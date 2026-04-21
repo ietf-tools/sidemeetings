@@ -6,6 +6,7 @@ import FastifySensible from '@fastify/sensible'
 import FastifyVite from '@fastify/vite'
 // import path from 'node:path'
 import meeting from './meeting.json' with { type: 'json' }
+// import fs from 'node:fs/promises'
 
 /* global process */
 
@@ -119,6 +120,8 @@ async function fetchCalData() {
     console.info(
       `${new Date().toISOString()} - Fetched ${resp.data?.length ?? 0} bookings, ${state.data.bookings?.length ?? 0} are confirmed.`
     )
+
+    // await fs.writeFile('125.json', JSON.stringify(state.data, null, 2), 'utf8')
   } catch (err) {
     console.warn(err)
   }
