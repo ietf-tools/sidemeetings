@@ -42,10 +42,16 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               <a
-                href="https://ietf.cal.com/side-meetings"
-                target="_blank"
+                :href="canRequest ? 'https://ietf.cal.com/side-meetings' : '#'"
+                :disabled="!canRequest"
+                :target="canRequest ? '_blank' : null"
                 tabindex="1"
-                class="relative inline-flex items-center gap-x-1.5 rounded-md border-t border-l border-l-white/30 border-t-white/40 bg-linear-to-t from-sky-600 to-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:to-sky-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500">
+                :class="[
+                  'relative inline-flex items-center gap-x-1.5 rounded-md border-t border-l border-l-white/30 border-t-white/40 px-3 py-2 text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500',
+                  canRequest
+                    ? 'bg-linear-to-t from-sky-600 to-sky-500 hover:to-sky-400 text-white'
+                    : 'bg-sky-900 text-white/50 line-through cursor-not-allowed pointer-events-none'
+                ]">
                 <PlusIcon class="-ml-0.5 size-5" aria-hidden="true" />
                 Request a Side Meeting
               </a>
@@ -57,10 +63,16 @@
         <!-- Mobile dropdown menu -->
         <div class="border-t border-sky-700 py-4 px-5 dark:border-sky-900">
           <a
-            href="https://ietf.cal.com/side-meetings"
-            target="_blank"
+            :href="canRequest ? 'https://ietf.cal.com/side-meetings' : '#'"
+            :disabled="!canRequest"
+            :target="canRequest ? '_blank' : null"
             tabindex="1"
-            class="relative flex items-center gap-x-1.5 rounded-md border-t border-l border-l-white/30 border-t-white/40 bg-linear-to-t from-sky-600 to-sky-500 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:to-sky-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500">
+            :class="[
+              'relative flex items-center gap-x-1.5 rounded-md border-t border-l border-l-white/30 border-t-white/40 bg-linear-to-t px-3 py-2 text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500',
+              canRequest
+                ? 'bg-linear-to-t from-sky-600 to-sky-500 hover:to-sky-400 text-white'
+                : 'bg-sky-900 text-white/50 line-through cursor-not-allowed pointer-events-none'
+            ]">
             <PlusIcon class="-ml-0.5 size-5" aria-hidden="true" />
             Request a Side Meeting
           </a>
@@ -320,7 +332,8 @@ const state = reactive({
     meetingLocation: '---',
     startDate: DateTime.fromISO('2000-01-01'),
     endDate: DateTime.fromISO('2000-01-02'),
-    timezone: 'America/New_York'
+    timezone: 'America/New_York',
+    canRequestStartDate: DateTime.fromISO('2000-01-01')
   },
   rooms: [],
   bookings: [],
@@ -331,6 +344,11 @@ const state = reactive({
 })
 
 const timezones = Intl.supportedValuesOf('timeZone')
+
+const canRequest = computed(() => {
+  const now = DateTime.now()
+  return now >= state.meeting.canRequestStartDate && now <= state.meeting.endDate
+})
 
 const meetingDates = computed(() => {
   const start = state.meeting.startDate.setZone(state.timezone)
@@ -511,7 +529,10 @@ async function fetchData() {
     state.meeting = {
       ...resp.meeting,
       startDate: DateTime.fromISO(resp.meeting.startDate, { zone: resp.meeting.timezone }),
-      endDate: DateTime.fromISO(resp.meeting.endDate, { zone: resp.meeting.timezone }).endOf('day')
+      endDate: DateTime.fromISO(resp.meeting.endDate, { zone: resp.meeting.timezone }).endOf('day'),
+      canRequestStartDate: DateTime.fromISO(resp.meeting.canRequestStartDate, {
+        zone: resp.meeting.timezone
+      })
     }
     state.rooms = resp.rooms.map((r, rIdx) => {
       return {

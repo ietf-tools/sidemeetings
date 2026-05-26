@@ -3,5 +3,6 @@
   "meetingLocation": "Vienna, Austria",
   "startDate": "2026-07-20",
   "endDate": "2026-07-24",
-  "timezone": "Europe/Vienna"
+  "timezone": "Europe/Vienna",
+  "canRequestStartDate": "2026-06-26"
 }
