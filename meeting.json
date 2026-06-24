@@ -4,5 +4,5 @@
   "startDate": "2026-07-20",
   "endDate": "2026-07-24",
   "timezone": "Europe/Vienna",
-  "canRequestStartDate": "2026-06-26"
+  "canRequestStartDateTime": "2026-06-26T21:00:00Z"
 }

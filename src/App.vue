@@ -333,7 +333,7 @@ const state = reactive({
     startDate: DateTime.fromISO('2000-01-01'),
     endDate: DateTime.fromISO('2000-01-02'),
     timezone: 'America/New_York',
-    canRequestStartDate: DateTime.fromISO('2000-01-01')
+    canRequestStartDateTime: DateTime.fromISO('2000-01-01:00:00:00Z')
   },
   rooms: [],
   bookings: [],
@@ -347,7 +347,7 @@ const timezones = Intl.supportedValuesOf('timeZone')
 
 const canRequest = computed(() => {
   const now = DateTime.now()
-  return now >= state.meeting.canRequestStartDate && now <= state.meeting.endDate
+  return now >= state.meeting.canRequestStartDateTime && now <= state.meeting.endDate
 })
 
 const meetingDates = computed(() => {
@@ -530,9 +530,7 @@ async function fetchData() {
       ...resp.meeting,
       startDate: DateTime.fromISO(resp.meeting.startDate, { zone: resp.meeting.timezone }),
       endDate: DateTime.fromISO(resp.meeting.endDate, { zone: resp.meeting.timezone }).endOf('day'),
-      canRequestStartDate: DateTime.fromISO(resp.meeting.canRequestStartDate, {
-        zone: resp.meeting.timezone
-      })
+      canRequestStartDateTime: DateTime.fromISO(resp.meeting.canRequestStartDateTime)
     }
     state.rooms = resp.rooms.map((r, rIdx) => {
       return {
