@@ -10,6 +10,11 @@ import meeting from './meeting.json' with { type: 'json' }
 
 /* global process */
 
+const meetingStart = Temporal.PlainDate.from(meeting.startDate).toZonedDateTime(meeting.timezone)
+const meetingEnd = Temporal.PlainDate.from(meeting.endDate)
+  .add({ days: 1 })
+  .toZonedDateTime(meeting.timezone)
+
 const DEV_MODE = !(process.env.NODE_ENV === 'production')
 
 const state = {
@@ -104,6 +109,13 @@ async function fetchCalData() {
     }
     state.data.bookings = resp.data
       .filter((bk) => bk.status !== 'pending')
+      .filter((bk) => {
+        const bkStart = Temporal.Instant.from(bk.start).toZonedDateTimeISO(meeting.timezone)
+        return (
+          Temporal.ZonedDateTime.compare(bkStart, meetingStart) > 0 &&
+          Temporal.ZonedDateTime.compare(bkStart, meetingEnd) < 0
+        )
+      })
       .map((bk) => ({
         id: bk.id,
         roomId: bk.eventType.id,

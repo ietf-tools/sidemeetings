@@ -1,4 +1,4 @@
-FROM node:24
+FROM node:26
 LABEL maintainer="IETF Tools Team <tools-discuss@ietf.org>"
 
 ENV NODE_ENV=production

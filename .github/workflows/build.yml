@@ -25,7 +25,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v6
         with:
-          node-version: 24.x
+          node-version: 26.x
 
       - name: Get Next Version
         id: semver
@@ -71,7 +71,7 @@ jobs:
             ghcr.io/ietf-tools/sidemeetings:${{ steps.semver.outputs.nextStrict }}
 
       - name: Create Draft Release
-        uses: ncipollo/release-action@v1.20.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           prerelease: true
           draft: false
@@ -93,7 +93,7 @@ jobs:
           writeToFile: false
 
       - name: Finalize Release
-        uses: ncipollo/release-action@v1.20.0
+        uses: ncipollo/release-action@v1.21.0
         with:
           allowUpdates: true
           makeLatest: true
