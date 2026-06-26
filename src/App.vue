@@ -42,14 +42,13 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
               <a
-                :href="canRequest ? 'https://ietf.cal.com/side-meetings' : '#'"
+                @click="showPrerequestInfo"
                 :disabled="!canRequest"
-                :target="canRequest ? '_blank' : null"
                 tabindex="1"
                 :class="[
                   'relative inline-flex items-center gap-x-1.5 rounded-md border-t border-l border-l-white/30 border-t-white/40 px-3 py-2 text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500',
                   canRequest
-                    ? 'bg-linear-to-t from-sky-600 to-sky-500 hover:to-sky-400 text-white'
+                    ? 'bg-linear-to-t from-sky-600 to-sky-500 hover:to-sky-400 text-white cursor-pointer'
                     : 'bg-sky-900 text-white/50 line-through cursor-not-allowed pointer-events-none'
                 ]">
                 <PlusIcon class="-ml-0.5 size-5" aria-hidden="true" />
@@ -63,14 +62,13 @@
         <!-- Mobile dropdown menu -->
         <div class="border-t border-sky-700 py-4 px-5 dark:border-sky-900">
           <a
-            :href="canRequest ? 'https://ietf.cal.com/side-meetings' : '#'"
+            @click="showPrerequestInfo"
             :disabled="!canRequest"
-            :target="canRequest ? '_blank' : null"
             tabindex="1"
             :class="[
               'relative flex items-center gap-x-1.5 rounded-md border-t border-l border-l-white/30 border-t-white/40 bg-linear-to-t px-3 py-2 text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500',
               canRequest
-                ? 'bg-linear-to-t from-sky-600 to-sky-500 hover:to-sky-400 text-white'
+                ? 'bg-linear-to-t from-sky-600 to-sky-500 hover:to-sky-400 text-white cursor-pointer'
                 : 'bg-sky-900 text-white/50 line-through cursor-not-allowed pointer-events-none'
             ]">
             <PlusIcon class="-ml-0.5 size-5" aria-hidden="true" />
@@ -304,6 +302,77 @@
       </div>
     </Dialog>
   </TransitionRoot>
+
+  <TransitionRoot appear :show="state.prerequestInfoShown" as="template">
+    <Dialog as="div" @close="closePrerequestInfo" class="relative z-10">
+      <TransitionChild
+        as="template"
+        enter="duration-300 ease-out"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="duration-200 ease-in"
+        leave-from="opacity-100"
+        leave-to="opacity-0">
+        <div class="fixed inset-0 bg-black/75"></div>
+      </TransitionChild>
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+          <TransitionChild
+            as="template"
+            enter="duration-300 ease-out"
+            enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100"
+            leave="duration-200 ease-in"
+            leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95">
+            <DialogPanel
+              class="w-full max-w-xl relative transform overflow-hidden rounded-2xl text-white text-left align-middle shadow-xl transition-all bg-gray-900">
+              <div class="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
+                <button
+                  type="button"
+                  class="rounded-mdfocus:outline-2 focus:outline-offset-2 bg-gray-800 hover:text-gray-300 focus:outline-white cursor-pointer"
+                  @click="closePrerequestInfo">
+                  <span class="sr-only">Close</span>
+                  <XMarkIcon class="size-6" aria-hidden="true" />
+                </button>
+              </div>
+              <div class="bg-gray-800 p-6">
+                <DialogTitle as="h3" class="text-lg font-semibold text-white"
+                  >Request a Side Meeting</DialogTitle
+                >
+                <DialogDescription as="div" class="mt-4 text-sm">
+                  <div>
+                    Note that only a single host can be specified when requesting a side meeting.
+                    Any additional may be added in the meeting description.
+                  </div>
+                  <div class="mt-4">
+                    Any edits after submission will need to be made by the secretariat.
+                  </div>
+                </DialogDescription>
+              </div>
+              <div class="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 bg-gray-900">
+                <a
+                  class="relative inline-flex items-center gap-x-1.5 w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-xs sm:ml-3 sm:w-auto bg-sky-600 hover:bg-sky-500 cursor-pointer"
+                  href="https://ietf.cal.com/side-meetings"
+                  target="_blank"
+                  @click="closePrerequestInfo">
+                  <ArrowRightCircleIcon class="-ml-0.5 size-5" aria-hidden="true" />
+                  Continue
+                </a>
+                <button
+                  type="button"
+                  class="relative inline-flex items-center gap-x-1.5 w-full justify-center rounded-md px-3 py-2 mt-3 sm:mt-0 text-sm font-semibold shadow-xs inset-ring sm:w-auto bg-white/10 text-white inset-ring-white/5 hover:bg-white/20 cursor-pointer"
+                  @click="closePrerequestInfo">
+                  <XMarkIcon class="-ml-0.5 size-5" aria-hidden="true" />
+                  Cancel
+                </button>
+              </div>
+            </DialogPanel>
+          </TransitionChild>
+        </div>
+      </div>
+    </Dialog>
+  </TransitionRoot>
 </template>
 
 <script setup>
@@ -318,7 +387,13 @@ import {
   TransitionRoot,
   TransitionChild
 } from '@headlessui/vue'
-import { Bars3Icon, CalendarDaysIcon, VideoCameraIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import {
+  ArrowRightCircleIcon,
+  Bars3Icon,
+  CalendarDaysIcon,
+  VideoCameraIcon,
+  XMarkIcon
+} from '@heroicons/vue/24/outline'
 import { PlusIcon } from '@heroicons/vue/20/solid'
 import { ChevronDownIcon } from '@heroicons/vue/16/solid'
 import { computed, reactive } from 'vue'
@@ -339,6 +414,7 @@ const state = reactive({
   bookings: [],
   timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   detailsShown: false,
+  prerequestInfoShown: false,
   firstFetch: true,
   details: {}
 })
@@ -434,6 +510,13 @@ function closeDetails() {
 }
 
 /**
+ * Close Pre-request Info modal
+ */
+function closePrerequestInfo() {
+  state.prerequestInfoShown = false
+}
+
+/**
  * Generate ICS
  *
  * @param {Boolean} all Add all sidemeetings to ics when true
@@ -510,6 +593,13 @@ function showDetails(booking) {
     dayDisplay: booking.start.toFormat('cccc, LLLL d, yyyy')
   }
   state.detailsShown = true
+}
+
+/**
+ * Display event details modal
+ */
+function showPrerequestInfo() {
+  state.prerequestInfoShown = true
 }
 
 /**
