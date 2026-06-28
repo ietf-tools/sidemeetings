@@ -64,7 +64,7 @@ jobs:
           DOCKER_BUILD_SUMMARY: false
         with:
           context: .
-          file: Dockerfile
+          file: docker/release.Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
