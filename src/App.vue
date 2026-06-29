@@ -355,9 +355,7 @@
               </div>
               <div class="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 bg-gray-900">
                 <a
-                  class="relative inline-flex items-center gap-x-1.5 w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-xs sm:ml-3 sm:w-auto bg-sky-600 hover:bg-sky-500 cursor-pointer line-through"
-                  href="#"
-                  target="_blank">
+                  class="relative inline-flex items-center gap-x-1.5 w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-gray-400 shadow-xs sm:ml-3 sm:w-auto bg-gray-800 line-through">
                   <ArrowRightCircleIcon class="-ml-0.5 size-5" aria-hidden="true" />
                   Continue
                 </a>
