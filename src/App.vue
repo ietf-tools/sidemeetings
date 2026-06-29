@@ -348,6 +348,9 @@
                   <div class="mt-4">
                     Any edits after submission will need to be made by the secretariat.
                   </div>
+                  <div class="mt-4">
+                    <strong>Note that the Grand Klimt Hall 3 room is fully booked and no longer available.</strong>
+                  </div>
                 </DialogDescription>
               </div>
               <div class="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 bg-gray-900">
