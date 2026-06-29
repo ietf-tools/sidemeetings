@@ -349,16 +349,15 @@
                     Any edits after submission will need to be made by the secretariat.
                   </div>
                   <div class="mt-4">
-                    <strong>Note that the Grand Klimt Hall 3 room is fully booked and no longer available.</strong>
+                    <strong>Sorry, all rooms have been fully booked. There are no more open slots.</strong>
                   </div>
                 </DialogDescription>
               </div>
               <div class="px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 bg-gray-900">
                 <a
-                  class="relative inline-flex items-center gap-x-1.5 w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-xs sm:ml-3 sm:w-auto bg-sky-600 hover:bg-sky-500 cursor-pointer"
-                  href="https://ietf.cal.com/side-meetings"
-                  target="_blank"
-                  @click="closePrerequestInfo">
+                  class="relative inline-flex items-center gap-x-1.5 w-full justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-xs sm:ml-3 sm:w-auto bg-sky-600 hover:bg-sky-500 cursor-pointer line-through"
+                  href="#"
+                  target="_blank">
                   <ArrowRightCircleIcon class="-ml-0.5 size-5" aria-hidden="true" />
                   Continue
                 </a>
