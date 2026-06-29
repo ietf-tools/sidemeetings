@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0d1016;
+  --surface: #151a22;
+  --s2: #1a2029;
+  --s3: #222a35;
+  --border: #272f3b;
+  --border-strong: #36404e;
+  --text: #e7ebf1;
+  --text-dim: #9aa4b4;
+  --text-faint: #6b7585;
+  --accent: #2dd4bf;
+  --accent-text: #04241f;
+  --accent-weak: #13312e;
+  --ok: #34d399;
+  --warn: #e3a93b;
+  --bad: #f0716a;
+  --muted: #7a8493;
+  --sidebar-bg: #0a0d12;
+  --sidebar-text: #aab4c4;
+  --sidebar-text-dim: #697383;
+  --sidebar-active-bg: #13312e;
+  --sidebar-active-text: #5eead4;
+  --sidebar-border: #1a2029;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: #0d1016;
+  color: #e7ebf1;
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-all cursor-pointer border-0;
+  }
+  .btn:hover:not(:disabled) {
+    filter: brightness(1.18);
+  }
+  .btn:disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-accent-text;
+  }
+  .btn-secondary {
+    @apply btn bg-surface border border-border-strong text-text;
+  }
+  .btn-danger {
+    @apply btn bg-bad text-white;
+  }
+  .btn-success {
+    @apply btn bg-ok text-[#022c1c];
+  }
+  /* 30×30 icon-only square button (row actions). Icon color is set by the
+     consumer via a text-* utility. */
+  .icon-btn {
+    @apply w-[30px] h-[30px] rounded-lg border border-border-strong bg-surface flex items-center justify-center transition-colors cursor-pointer;
+  }
+  .icon-btn:hover:not(:disabled) {
+    @apply border-text-faint;
+  }
+  .icon-btn:disabled {
+    @apply opacity-40 cursor-not-allowed;
+  }
+  .card {
+    @apply bg-surface border border-border rounded-2xl;
+    box-shadow: var(--shadow);
+  }
+  .form-input {
+    @apply w-full bg-s2 border border-border-strong rounded-lg px-3 py-2.5 text-sm text-text outline-none transition-colors;
+  }
+  .form-input:hover {
+    @apply border-text-faint;
+  }
+  .form-input:focus {
+    @apply border-accent;
+  }
+  .form-label {
+    @apply block text-xs font-semibold text-text-dim mb-1.5;
+  }
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #272f3b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #36404e;
+}
+
+/* Closed time cell: solid two-tone diagonal stripes (clearly distinct from the
+   plain surface background of free cells). */
+.cell-closed {
+  background: repeating-linear-gradient(
+    45deg,
+    #1a2029,
+    #1a2029 4px,
+    #222a35 4px,
+    #222a35 8px
+  );
+}

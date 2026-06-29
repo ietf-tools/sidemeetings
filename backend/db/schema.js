@@ -1,115 +1,158 @@
-import { sql } from 'drizzle-orm'
 import {
-  boolean,
-  date,
-  index,
-  integer,
-  jsonb,
-  pgEnum,
   pgTable,
-  primaryKey,
-  text,
-  timestamp,
+  pgEnum,
   uuid,
-  varchar
+  varchar,
+  text,
+  boolean,
+  integer,
+  timestamp,
+  date,
+  jsonb,
+  index
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 
-// == TABLES ===========================
+// ─── Enums ───────────────────────────────────────────────────────────────────
 
-// MEETINGS ----------------------------
+export const bookingStateEnum = pgEnum('booking_state', [
+  'pending',
+  'confirmed',
+  'rejected',
+  'cancelled'
+])
+
+export const activityKindEnum = pgEnum('activity_kind', [
+  'submitted',
+  'confirmed',
+  'rejected',
+  'cancelled',
+  'updated'
+])
+
+// ─── Meetings ─────────────────────────────────────────────────────────────────
+
 export const meetings = pgTable('meetings', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }).notNull(),
-  location: varchar({ length: 255 }).notNull(),
-  timezone: varchar({ length: 255 }).notNull(),
-  startDate: date().notNull(),
-  endDate: date().notNull(),
-  allowRequestsFrom: timestamp().notNull(),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow()
+  id: uuid('id').primaryKey().defaultRandom(),
+  num: varchar('num', { length: 10 }).notNull(),
+  city: varchar('city', { length: 255 }).notNull(),
+  country: varchar('country', { length: 255 }).notNull(),
+  venue: varchar('venue', { length: 255 }).notNull(),
+  timezone: varchar('timezone', { length: 100 }).notNull(), // IANA timezone
+  startDate: date('start_date').notNull(),
+  endDate: date('end_date').notNull(),
+  allowRequestsFrom: timestamp('allow_requests_from'),
+  isActive: boolean('is_active').notNull().default(false),
+  buffer: integer('buffer').notNull().default(15), // minutes between bookings
+  minNotice: integer('min_notice').notNull().default(60), // minutes before slot
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
 })
 
-// ROOMS -------------------------------
-export const rooms = pgTable('rooms', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }).notNull(),
-  slug: varchar({ length: 255 }).notNull(),
-  description: text().notNull(),
-  color: varchar({ length: 255 }).notNull(),
-  banner: text().notNull(), // markdown
-  durations: integer().array().notNull().default([]), // in minutes
-  defaultDuration: integer().notNull().default(0), // in minutes
-  bufferBeforeEvent: integer().notNull().default(0), // in minutes
-  bufferAfterEvent: integer().notNull().default(0), // in minutes
-  minimumNotice: integer().notNull().default(0), // in minutes
-  videoLinkUrl: varchar({ length: 2048 }).notNull(),
-  videoLinkName: varchar({ length: 255 }).notNull(),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-  meetingId: uuid()
-    .notNull()
-    .references(() => meetings.id)
-})
+// ─── Rooms ────────────────────────────────────────────────────────────────────
 
-// USERS -------------------------------
-export const users = pgTable('users',
+export const rooms = pgTable(
+  'rooms',
   {
-    id: uuid().primaryKey().defaultRandom(),
-    email: varchar({ length: 255 }).notNull().unique(),
-    name: varchar({ length: 255 }).notNull(),
-    authUserId: varchar({ length: 255 }),
-    isActive: boolean().notNull().default(false),
-    isAdmin: boolean().notNull().default(false),
-    createdAt: timestamp().notNull().defaultNow(),
-    updatedAt: timestamp().notNull().defaultNow()
-  }
+    id: uuid('id').primaryKey().defaultRandom(),
+    meetingId: uuid('meeting_id')
+      .notNull()
+      .references(() => meetings.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull(),
+    description: text('description'),
+    capacity: integer('capacity').notNull().default(0),
+    floor: varchar('floor', { length: 100 }),
+    color: varchar('color', { length: 50 }).notNull().default('sky'),
+    // availability: array of 5 elements (Mon–Fri), each is array of {s, e} window objects (minutes since midnight)
+    availability: jsonb('availability').notNull().default([[], [], [], [], []]),
+    videoLinkUrl: varchar('video_link_url', { length: 2048 }),
+    videoLinkName: varchar('video_link_name', { length: 255 }).default('Webex'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow()
+  },
+  (table) => [index('rooms_meeting_id_idx').on(table.meetingId)]
 )
 
-// BOOKINGS ----------------------------
-export const bookingStateEnum = pgEnum('bookingState', ['pending', 'confirmed', 'cancelled'])
-export const bookings = pgTable('bookings', {
-  id: uuid().primaryKey().defaultRandom(),
-  title: varchar({ length: 255 }).notNull(),
-  state: bookingStateEnum().notNull().default('pending'),
-  description: text().notNull(),
-  data: jsonb().notNull().default({}),
-  startsAt: timestamp().notNull(),
-  endsAt: timestamp('endsAt').generatedAlwaysAs(
-    () => sql`${bookings.startsAt} + (${bookings.duration} * INTERVAL '1 minute')`
-  ),
-  duration: integer().notNull().default(0), // in minutes
-  videoLinkUrl: varchar({ length: 2048 }).notNull(),
-  videoLinkName: varchar({ length: 255 }).notNull(),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().notNull().defaultNow(),
-  meetingId: uuid()
-    .notNull()
-    .references(() => meetings.id),
-  roomId: uuid()
-    .notNull()
-    .references(() => rooms.id),
-  initialOrganizerId: uuid()
-    .notNull()
-    .references(() => users.id)
+// ─── Users ────────────────────────────────────────────────────────────────────
+
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  authUserId: varchar('auth_user_id', { length: 255 }),
+  isActive: boolean('is_active').notNull().default(true), // false = blocked
+  isAdmin: boolean('is_admin').notNull().default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
 })
 
-// == RELATION TABLES ==================
+// ─── Bookings ─────────────────────────────────────────────────────────────────
 
-// BOOKING ORGANIZERS ------------------
-export const bookingOrganizers = pgTable(
-  'bookingOrganizers',
+export const bookings = pgTable(
+  'bookings',
   {
-    bookingId: uuid()
+    id: uuid('id').primaryKey().defaultRandom(),
+    meetingId: uuid('meeting_id')
       .notNull()
-      .references(() => bookings.id, { onDelete: 'cascade' }),
-    userId: uuid()
+      .references(() => meetings.id, { onDelete: 'cascade' }),
+    roomId: uuid('room_id')
       .notNull()
-      .references(() => users.id, { onDelete: 'cascade' })
+      .references(() => rooms.id, { onDelete: 'cascade' }),
+    organizerId: uuid('organizer_id')
+      .notNull()
+      .references(() => users.id),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+    state: bookingStateEnum('state').notNull().default('pending'),
+    isIrtf: boolean('is_irtf').notNull().default(false),
+    areas: varchar('areas', { length: 10 })
+      .array()
+      .notNull()
+      .default(sql`'{}'::varchar[]`),
+    coOrganizers: jsonb('co_organizers').notNull().default([]),
+    startsAt: timestamp('starts_at').notNull(),
+    duration: integer('duration').notNull(), // minutes
+    endsAt: timestamp('ends_at').generatedAlwaysAs(
+      sql`"starts_at" + ("duration" * INTERVAL '1 minute')`
+    ),
+    videoLinkUrl: varchar('video_link_url', { length: 2048 }),
+    videoLinkName: varchar('video_link_name', { length: 255 }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
   (table) => [
-    primaryKey({ columns: [table.bookingId, table.userId] }),
-    index('userGroups_bookingId_idx').on(table.bookingId),
-    index('userGroups_userId_idx').on(table.userId),
-    index('userGroups_composite_idx').on(table.bookingId, table.userId)
+    index('bookings_meeting_id_idx').on(table.meetingId),
+    index('bookings_room_id_idx').on(table.roomId),
+    index('bookings_organizer_id_idx').on(table.organizerId),
+    index('bookings_state_idx').on(table.state)
   ]
+)
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+
+export const settings = pgTable('settings', {
+  id: integer('id').primaryKey().default(1),
+  fromEmail: varchar('from_email', { length: 255 }),
+  replyTo: varchar('reply_to', { length: 255 }),
+  approvers: varchar('approvers', { length: 255 })
+    .array()
+    .notNull()
+    .default(sql`'{}'::varchar[]`),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+})
+
+// ─── Activity Log ─────────────────────────────────────────────────────────────
+
+export const activityLog = pgTable(
+  'activity_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+    bookingId: uuid('booking_id').references(() => bookings.id, { onDelete: 'cascade' }),
+    action: activityKindEnum('action').notNull(),
+    meta: jsonb('meta').notNull().default({}),
+    createdAt: timestamp('created_at').notNull().defaultNow()
+  },
+  (table) => [index('activity_log_created_at_idx').on(table.createdAt)]
 )

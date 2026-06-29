@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Hanken Grotesk', system-ui, sans-serif; }
+  :root {
+    --bg:#f4f5f7; --surface:#ffffff; --surface-2:#f7f8fa; --surface-3:#eef0f3;
+    --border:#e6e8ec; --border-strong:#d4d8df;
+    --text:#171a20; --text-dim:#5b6472; --text-faint:#9aa2b1;
+    --accent:#4f46e5; --accent-text:#ffffff; --accent-weak:#ecebfd;
+    --ok:#15935f; --warn:#c1820a; --bad:#d4453b; --muted:#8a93a3;
+    --sidebar-bg:#ffffff; --sidebar-text:#3b4250; --sidebar-text-dim:#8a93a3;
+    --sidebar-active-bg:#ecebfd; --sidebar-active-text:#4f46e5; --sidebar-border:#ebedf0;
+    --shadow:0 1px 2px rgba(18,22,31,.04), 0 4px 16px rgba(18,22,31,.05);
+  }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:8px; border:2px solid var(--bg); }
+  ::-webkit-scrollbar-track { background:transparent; }
+  input:hover:not(:focus), textarea:hover:not(:focus), select:hover:not(:focus) { border-color: var(--text-faint) !important; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent) !important; }
+  button { transition: box-shadow .14s ease, background-color .14s ease, filter .14s ease; }
+  button:hover:not(:disabled) { filter: brightness(1.18); }
+  button:disabled { box-shadow: none !important; filter: none !important; }
+  @keyframes scIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
+  @keyframes toastIn { from { opacity:0; transform: translateY(14px) scale(.98); } to { opacity:1; transform:none; } }
+  @keyframes overlayIn { from { opacity:0; } to { opacity:1; } }
+</style>
+</helmet>
+<div style="display:flex; height:100vh; width:100%; background:var(--bg); color:var(--text); overflow:hidden; font-size:14px; line-height:1.45;">
+
+  <!-- SIDEBAR -->
+  <aside style="width:252px; flex:0 0 252px; background:var(--sidebar-bg); border-right:1px solid var(--sidebar-border); display:flex; flex-direction:column; height:100%;">
+    <div style="padding:20px 20px 14px; display:flex; align-items:center; gap:11px;">
+      <div style="width:34px; height:34px; border-radius:9px; background:var(--accent); color:var(--accent-text); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; letter-spacing:-.02em;">SM</div>
+      <div>
+        <div style="font-weight:700; font-size:14px; letter-spacing:-.01em; color:var(--sidebar-text);">Side Meetings</div>
+        <div style="font-size:11px; color:var(--sidebar-text-dim); font-weight:500;">Admin console</div>
+      </div>
+    </div>
+
+    <div style="margin:6px 14px 4px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sidebar-text-dim);padding:0 2px 5px;">Viewing meeting</div>
+      <button onClick="{{ openPickMeeting }}" title="Switch the meeting you are viewing" style="width:100%; padding:11px 12px; border:1px solid var(--sidebar-border); border-radius:11px; background:var(--surface-2); display:flex; align-items:center; gap:10px; cursor:pointer; font:inherit; text-align:left;">
+        <div style="width:32px;height:32px;border-radius:8px;background:var(--accent-weak);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;font-family:'IBM Plex Mono',monospace;flex:0 0 32px;">{{ viewNum }}</div>
+        <div style="min-width:0;flex:1;">
+          <div style="font-size:13px;font-weight:700;color:var(--sidebar-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ meetingCode }}</div>
+          <div style="font-size:11px;color:var(--sidebar-text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ meetingCity }}</div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sidebar-text-dim)" stroke-width="2.2"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"></path></svg>
+      </button>
+    </div>
+
+    <nav style="padding:12px 14px; display:flex; flex-direction:column; gap:3px; flex:1; overflow-y:auto;">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--sidebar-text-dim);padding:8px 10px 5px;">Meeting</div>
+      <button onClick="{{ goDashboard }}" style="{{ navDashboard }}" style-hover="background:color-mix(in srgb, var(--sidebar-active-bg) 55%, transparent); color:var(--sidebar-active-text)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>
+        <span style="flex:1;">Dashboard</span>
+      </button>
+      <button onClick="{{ goRequests }}" style="{{ navRequests }}" style-hover="background:color-mix(in srgb, var(--sidebar-active-bg) 55%, transparent); color:var(--sidebar-active-text)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M3 12h18M3 19h12"></path></svg>
+        <span style="flex:1;">Bookings</span>
+        <sc-if value="{{ pendingCount }}" hint-placeholder-val="{{ true }}"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:color-mix(in srgb, var(--warn) 16%, transparent);color:var(--warn);padding:1px 7px;border-radius:20px;">{{ pendingCount }}</span></sc-if>
+      </button>
+      <button onClick="{{ goRooms }}" style="{{ navRooms }}" style-hover="background:color-mix(in srgb, var(--sidebar-active-bg) 55%, transparent); color:var(--sidebar-active-text)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v16M19 21V11h-3"></path><path d="M9 7h2M9 11h2M9 15h2"></path></svg>
+        <span style="flex:1;">Rooms</span>
+      </button>
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--sidebar-text-dim);padding:14px 10px 5px;">Global</div>
+      <button onClick="{{ goMeetings }}" style="{{ navMeetings }}" style-hover="background:color-mix(in srgb, var(--sidebar-active-bg) 55%, transparent); color:var(--sidebar-active-text)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M3 9h18M8 2v4M16 2v4"></path></svg>
+        <span style="flex:1;">Meetings</span>
+      </button>
+      <button onClick="{{ goUsers }}" style="{{ navUsers }}" style-hover="background:color-mix(in srgb, var(--sidebar-active-bg) 55%, transparent); color:var(--sidebar-active-text)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M18 20a5.2 5.2 0 0 0-3-4.7"></path></svg>
+        <span style="flex:1;">Users</span>
+      </button>
+      <button onClick="{{ goSettings }}" style="{{ navSettings }}" style-hover="background:color-mix(in srgb, var(--sidebar-active-bg) 55%, transparent); color:var(--sidebar-active-text)">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 6.6 19.4l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H2a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 3.6 6.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H8a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V8a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"></path></svg>
+        <span style="flex:1;">Settings</span>
+      </button>
+    </nav>
+
+    <div style="position:relative; border-top:1px solid var(--sidebar-border);">
+      <sc-if value="{{ userMenuOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ closeUserMenu }}" style="position:fixed; inset:0; z-index:40;"></div>
+        <div style="position:absolute; left:12px; right:12px; bottom:66px; z-index:50; background:var(--surface); border:1px solid var(--border); border-radius:11px; box-shadow:0 12px 32px rgba(0,0,0,.4); padding:6px; animation:scIn .15s ease;">
+          <button onClick="{{ logout }}" style="width:100%; display:flex; align-items:center; gap:10px; padding:9px 11px; border:none; border-radius:8px; background:none; color:var(--bad); font:inherit; font-size:13px; font-weight:600; cursor:pointer; text-align:left;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg>Log out
+          </button>
+        </div>
+      </sc-if>
+      <button onClick="{{ toggleUserMenu }}" style="width:100%; padding:12px 14px; display:flex; align-items:center; gap:10px; background:none; border:none; cursor:pointer; font:inherit; text-align:left;">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 55%, #000));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:0 0 32px;">A</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:600;color:var(--sidebar-text);">Alexa Morgan</div>
+          <div style="font-size:11px;color:var(--sidebar-text-dim);font-family:'IBM Plex Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">amorgan@ietf.org</div>
+        </div>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sidebar-text-dim)" stroke-width="2.2" style="flex:0 0 15px;"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"></path></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0; height:100%;">
+
+    <!-- TOPBAR -->
+    <header style="height:64px; flex:0 0 64px; border-bottom:1px solid var(--border); background:var(--surface); display:flex; align-items:center; gap:16px; padding:0 28px;">
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:18px; font-weight:700; letter-spacing:-.02em;">{{ pageTitle }}</div>
+        <div style="font-size:12.5px; color:var(--text-dim);">{{ pageSub }}</div>
+      </div>
+      <sc-if value="{{ topAction }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ topActionFn }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 15px;border:none;border-radius:10px;background:var(--accent);color:var(--accent-text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"></path></svg>{{ topAction }}
+        </button>
+      </sc-if>
+    </header>
+
+    <!-- SCROLL AREA -->
+    <main style="flex:1; overflow-y:auto; padding:28px;">
+
+      <sc-if value="{{ notViewingActive }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:1180px; margin:0 auto 18px; display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:11px; background:color-mix(in srgb,var(--accent) 12%,transparent); border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex:0 0 17px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v.5M11.4 12h.6v4h.6"></path></svg>
+          <div style="flex:1; font-size:13px; color:var(--text);">You're viewing <b>{{ viewMeetingLabel }}</b> — {{ viewStatusLabel }}. Bookings still apply to the active meeting, <b>{{ activeMeetingCode }}</b>.</div>
+          <button onClick="{{ backToActive }}" style="font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);background:var(--surface);border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:8px;padding:7px 13px;cursor:pointer;white-space:nowrap;">Back to active</button>
+        </div>
+      </sc-if>
+
+      <!-- DASHBOARD -->
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+      <div data-screen-label="Dashboard" style="max-width:1180px; margin:0 auto;">
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:22px;">
+          <sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:18px;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+                <span style="width:8px; height:8px; border-radius:50%; background:{{ s.color }};"></span>
+                <span style="font-size:12.5px; color:var(--text-dim); font-weight:600;">{{ s.label }}</span>
+              </div>
+              <div style="font-size:34px; font-weight:800; letter-spacing:-.03em; line-height:1;">{{ s.value }}</div>
+              <div style="font-size:12px; color:var(--text-faint); margin-top:6px;">{{ s.sub }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px;">
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); overflow:hidden;">
+            <div style="padding:16px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+              <div style="font-size:15px; font-weight:700;">Pending review</div>
+              <button onClick="{{ goRequests }}" style="font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);background:none;border:none;cursor:pointer;">View all →</button>
+            </div>
+            <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <sc-for list="{{ pendingList }}" as="r" hint-placeholder-count="3">
+                <div style="display:flex; align-items:center; gap:14px; padding:14px 18px; border-bottom:1px solid var(--surface-3);">
+                  <div onClick="{{ r.onOpen }}" style="flex:1; min-width:0; cursor:pointer;">
+                    <div style="font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ r.title }}</div>
+                    <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">{{ r.orgName }} · {{ r.roomName }} · <span style="font-family:'IBM Plex Mono',monospace;">{{ r.timeShort }}</span></div>
+                  </div>
+                  <button onClick="{{ r.onReject }}" title="Reject" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--bad);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                  </button>
+                  <button onClick="{{ r.onApprove }}" title="Approve" style="display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:8px;border:none;background:var(--ok);color:#fff;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"></path></svg>Approve
+                  </button>
+                </div>
+              </sc-for>
+            </div>
+            </sc-if>
+            <sc-if value="{{ noPending }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:46px 18px; text-align:center; color:var(--text-faint);">
+                <div style="font-size:14px; font-weight:600; color:var(--text-dim);">All caught up</div>
+                <div style="font-size:12.5px; margin-top:4px;">No requests awaiting review.</div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:18px;">
+              <div style="font-size:15px; font-weight:700; margin-bottom:14px;">Room utilization</div>
+              <div style="display:flex; flex-direction:column; gap:13px;">
+                <sc-for list="{{ roomUtil }}" as="u" hint-placeholder-count="3">
+                  <div>
+                    <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:5px;">
+                      <span style="font-weight:600;">{{ u.name }}</span>
+                      <span style="color:var(--text-dim); font-family:'IBM Plex Mono',monospace; font-size:11.5px;">{{ u.label }}</span>
+                    </div>
+                    <div style="height:7px; border-radius:6px; background:var(--surface-3); overflow:hidden;">
+                      <div style="height:100%; border-radius:6px; background:var(--accent); width:{{ u.pct }};"></div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:18px;">
+              <div style="font-size:15px; font-weight:700; margin-bottom:14px;">Recent activity</div>
+              <div style="display:flex; flex-direction:column; gap:13px;">
+                <sc-for list="{{ activity }}" as="a" hint-placeholder-count="4">
+                  <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <span style="margin-top:5px; width:8px; height:8px; border-radius:50%; flex:0 0 8px; background:{{ a.color }};"></span>
+                    <div style="font-size:12.5px; line-height:1.4;">
+                      <span style="font-weight:600;">{{ a.who }}</span> <span style="color:var(--text-dim);">{{ a.what }}</span> <span style="font-weight:600;">{{ a.obj }}</span>
+                      <div style="font-size:11px; color:var(--text-faint); margin-top:1px;">{{ a.when }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- REQUESTS -->
+      <sc-if value="{{ isRequests }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Requests" style="max-width:1180px; margin:0 auto;">
+        <div style="display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap;">
+          <sc-for list="{{ filterTabs }}" as="t" hint-placeholder-count="5">
+            <button onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }} <span style="opacity:.6; font-family:'IBM Plex Mono',monospace; font-size:11.5px;">{{ t.count }}</span></button>
+          </sc-for>
+        </div>
+
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); overflow:hidden;">
+          <div style="display:grid; grid-template-columns:2.4fr 1.3fr 1.4fr 1fr 1.2fr; gap:12px; padding:12px 18px; border-bottom:1px solid var(--border); background:var(--surface-2); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim);">
+            <div>Side meeting</div><div>Room</div><div>Time</div><div>Status</div><div style="text-align:right;">Actions</div>
+          </div>
+          <sc-if value="{{ hasRequests }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <sc-for list="{{ requestRows }}" as="r" hint-placeholder-count="6">
+              <div style="display:grid; grid-template-columns:2.4fr 1.3fr 1.4fr 1fr 1.2fr; gap:12px; padding:14px 18px; border-bottom:1px solid var(--surface-3); align-items:center;">
+                <div onClick="{{ r.onOpen }}" style="cursor:pointer; min-width:0;">
+                  <div style="font-size:14px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-decoration:{{ r.titleDeco }}; color:{{ r.titleColor }};">{{ r.title }}</div>
+                  <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">{{ r.orgName }}</div>
+                </div>
+                <div style="font-size:13px;">{{ r.roomName }}</div>
+                <div style="font-size:12.5px; color:var(--text-dim);"><span style="font-weight:600; color:var(--text);">{{ r.dayLabel }}</span><br><span style="font-family:'IBM Plex Mono',monospace; font-size:11.5px;">{{ r.timeRange }}</span></div>
+                <div><span style="display:inline-block; font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; color:{{ r.badgeColor }}; background:{{ r.badgeBg }}; border:{{ r.badgeBorder }};">{{ r.statusLabel }}</span></div>
+                <div style="display:flex; gap:6px; justify-content:flex-end;">
+                  <sc-if value="{{ r.isPending }}" hint-placeholder-val="{{ true }}">
+                    <button onClick="{{ r.onReject }}" title="Reject" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--bad);cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+                    <button onClick="{{ r.onApprove }}" title="Approve" style="width:30px;height:30px;border-radius:8px;border:none;background:var(--ok);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"></path></svg></button>
+                  </sc-if>
+                  <button onClick="{{ r.onOpen }}" style="font:inherit;font-size:12.5px;font-weight:600;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px 11px;cursor:pointer;">Open</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+          <sc-if value="{{ noRequests }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:60px 18px; text-align:center; color:var(--text-faint);">
+              <div style="font-size:15px; font-weight:600; color:var(--text-dim);">No bookings found</div>
+              <div style="font-size:13px; margin-top:5px;">Try a different filter or search term.</div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- REQUEST DETAIL -->
+      <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Request detail" style="max-width:1040px; margin:0 auto;">
+        <button onClick="{{ goRequests }}" style="display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:var(--text-dim);background:none;border:none;cursor:pointer;margin-bottom:16px;padding:0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"></path></svg>Back to bookings
+        </button>
+
+        <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:22px;">
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+              <div style="font-size:23px; font-weight:800; letter-spacing:-.02em;">{{ detailTitle }}</div>
+              <span style="display:inline-block; font-size:12.5px; font-weight:600; padding:4px 12px; border-radius:20px; color:{{ detailBadgeColor }}; background:{{ detailBadgeBg }}; border:{{ detailBadgeBorder }};">{{ detailStatusLabel }}</span>
+            </div>
+            <div style="font-size:13px; color:var(--text-dim); margin-top:6px;">Submitted {{ detailSubmitted }} by {{ detailOrgName }}</div>
+            <div style="font-size:12px; color:var(--text-faint); margin-top:3px;">Booking ID <span style="font-family:'IBM Plex Mono',monospace;">{{ detailUuid }}</span></div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1.5fr 1fr; gap:20px; align-items:start;">
+          <!-- EDIT FORM -->
+          <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:22px; display:flex; flex-direction:column; gap:16px;">
+            <div style="font-size:14px; font-weight:700;">Edit details</div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Title</label>
+              <input value="{{ draftTitle }}" onInput="{{ onDraftTitle }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Description</label>
+              <textarea value="{{ draftDesc }}" onInput="{{ onDraftDesc }}" rows="3" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:13.5px;outline:none;resize:vertical;line-height:1.5;"></textarea>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Main organizer</label>
+                <input value="{{ draftOrgName }}" onInput="{{ onDraftOrgName }}" placeholder="Full name" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Organizer email</label>
+                <input value="{{ draftOrgEmail }}" onInput="{{ onDraftOrgEmail }}" placeholder="name@example.org" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-family:'IBM Plex Mono',monospace;outline:none;">
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Co-organizers</label>
+              <sc-if value="{{ hasExtraEdit }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:9px;">
+                  <sc-for list="{{ extraList }}" as="x" hint-placeholder-count="2">
+                    <div style="display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:8px 8px 8px 13px;">
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-size:13px; font-weight:600;">{{ x.name }}</div>
+                        <sc-if value="{{ x.hasEmail }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace;">{{ x.email }}</div></sc-if>
+                      </div>
+                      <button onClick="{{ x.onRemove }}" title="Remove" style="width:24px;height:24px;flex:0 0 24px;border-radius:7px;border:none;background:var(--surface-3);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <div style="display:flex; gap:8px;">
+                <input value="{{ newExtraName }}" onInput="{{ onNewExtraName }}" onKeyDown="{{ onNewExtraKey }}" placeholder="Name" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+                <input value="{{ newExtraEmail }}" onInput="{{ onNewExtraEmail }}" onKeyDown="{{ onNewExtraKey }}" placeholder="Email" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-family:'IBM Plex Mono',monospace;outline:none;">
+                <button onClick="{{ addExtra }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface-2);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Add</button>
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Meeting type</label>
+              <div onClick="{{ onToggleIRTF }}" style="display:flex; align-items:center; gap:11px; padding:11px 13px; border:1px solid var(--border-strong); border-radius:9px; cursor:pointer; background:var(--surface);">
+                <div style="{{ checkboxStyle }}">
+                  <sc-if value="{{ draftIsIRTF }}" hint-placeholder-val="{{ false }}">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" stroke-width="3"><path d="M20 6 9 17l-5-5"></path></svg>
+                  </sc-if>
+                </div>
+                <div>
+                  <div style="font-size:13.5px; font-weight:600;">This is an IRTF meeting</div>
+                  <div style="font-size:11.5px; color:var(--text-dim);">Leave unchecked for IETF side meetings</div>
+                </div>
+              </div>
+            </div>
+            <sc-if value="{{ showAreas }}" hint-placeholder-val="{{ true }}">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">IETF area(s) <span style="color:var(--text-faint);font-weight:400;">· select one or more</span></label>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                  <sc-for list="{{ areaChips }}" as="a" hint-placeholder-count="7">
+                    <button onClick="{{ a.onClick }}" style="{{ a.style }}">{{ a.name }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Room</label>
+                <select value="{{ draftRoom }}" onChange="{{ onDraftRoom }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+                  <sc-for list="{{ roomOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.id }}">{{ o.name }}</option></sc-for>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Day</label>
+                <select value="{{ draftDay }}" onChange="{{ onDraftDay }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+                  <sc-for list="{{ dayOptions }}" as="o" hint-placeholder-count="5"><option value="{{ o.i }}">{{ o.label }}</option></sc-for>
+                </select>
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Duration</label>
+                <select value="{{ draftDuration }}" onChange="{{ onDraftDuration }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+                  <sc-for list="{{ durationOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Start time <span style="color:var(--text-faint);font-weight:400;">· 30-min steps</span></label>
+                <select value="{{ draftStart }}" onChange="{{ onDraftStart }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+                  <sc-for list="{{ startOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+                </select>
+              </div>
+            </div>
+            <sc-if value="{{ noStarts }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;color:var(--bad);margin-top:-8px;display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.5"></path></svg>No free 30-minute start fits this duration in the room's hours that day. Try a shorter duration, another day or room.</div>
+            </sc-if>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Meeting link</label>
+              <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <button onClick="{{ setLinkWebex }}" style="{{ linkWebexBtn }}">Webex (default)</button>
+                <button onClick="{{ setLinkCustom }}" style="{{ linkCustomBtn }}">Custom link</button>
+              </div>
+              <input value="{{ draftLink }}" onInput="{{ onDraftLink }}" placeholder="https://…" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-family:'IBM Plex Mono',monospace;outline:none;">
+            </div>
+            <div style="display:flex; gap:10px; padding-top:4px;">
+              <button onClick="{{ saveEdit }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border:none;border-radius:9px;background:var(--accent);color:var(--accent-text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Save changes</button>
+              <button onClick="{{ resetEdit }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Reset</button>
+            </div>
+          </div>
+
+          <!-- SUMMARY + ACTIONS -->
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:20px;">
+              <div style="font-size:14px; font-weight:700; margin-bottom:14px;">Summary</div>
+              <div style="display:flex; flex-direction:column; gap:13px;">
+                <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Organizer</div><div style="font-size:13.5px;font-weight:600;margin-top:2px;">{{ detailOrgName }}</div><div style="font-size:12px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;">{{ detailOrgEmail }}</div></div>
+                <sc-if value="{{ hasExtra }}" hint-placeholder-val="{{ false }}"><div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Co-organizers</div><div style="display:flex;flex-direction:column;gap:7px;margin-top:4px;"><sc-for list="{{ extraSummary }}" as="x" hint-placeholder-count="1"><div><div style="font-size:13.5px;font-weight:600;">{{ x.name }}</div><sc-if value="{{ x.hasEmail }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;">{{ x.email }}</div></sc-if></div></sc-for></div></div></sc-if>
+                <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Areas</div><div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:5px;"><sc-for list="{{ detailAreaPills }}" as="a" hint-placeholder-count="2"><span style="font-size:12px; font-weight:600; padding:2px 7px; border-radius:5px; color:var(--accent); background:var(--accent-weak); border:1px solid color-mix(in srgb, var(--accent) 30%, transparent);">{{ a.label }}</span></sc-for></div></div>
+                <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Room</div><div style="font-size:13.5px;font-weight:600;margin-top:2px;">{{ detailRoom }}</div></div>
+                <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">When</div><div style="font-size:13.5px;font-weight:600;margin-top:2px;">{{ detailWhen }}</div></div>
+                <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Link</div><a href="{{ detailLink }}" target="_blank" style="font-size:12.5px;color:var(--accent);font-family:'IBM Plex Mono',monospace;word-break:break-all;text-decoration:none;display:block;margin-top:2px;">{{ detailLink }}</a><div style="font-size:11px;color:var(--text-faint);margin-top:2px;">{{ detailLinkType }}</div></div>
+              </div>
+            </div>
+
+            <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:20px;">
+              <div style="font-size:14px; font-weight:700; margin-bottom:6px;">Decision</div>
+              <div style="font-size:12.5px; color:var(--text-dim); margin-bottom:14px;">Approving reserves the room and time slot. The organizer is notified by email.</div>
+              <div style="display:flex; flex-direction:column; gap:9px;">
+                <button onClick="{{ approveDetail }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:none;border-radius:10px;background:var(--ok);color:#fff;font:inherit;font-size:14px;font-weight:700;cursor:pointer;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"></path></svg>Approve request</button>
+                <div style="display:flex; gap:9px;">
+                  <button onClick="{{ rejectDetail }}" style="flex:1;padding:11px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--bad);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Reject</button>
+                  <button onClick="{{ cancelDetail }}" style="flex:1;padding:11px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Cancel booking</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ROOMS -->
+      <sc-if value="{{ isRooms }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Rooms" style="max-width:1180px; margin:0 auto;">
+        <div style="display:flex; gap:14px; margin-bottom:20px; flex-wrap:wrap;">
+          <sc-for list="{{ roomCards }}" as="rc" hint-placeholder-count="3">
+            <div onClick="{{ rc.onSelect }}" style="{{ rc.style }}">
+              <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+                <div style="font-size:15px; font-weight:700; display:flex; align-items:center; gap:9px;"><span style="width:10px; height:10px; border-radius:50%; flex:0 0 10px; background:{{ rc.color }};"></span>{{ rc.name }}</div>
+                <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-dim); background:var(--surface-2); padding:2px 8px; border-radius:20px; white-space:nowrap;">cap {{ rc.cap }}</span>
+              </div>
+              <div style="font-size:12.5px; color:var(--text-dim); margin-top:8px; line-height:1.45;">{{ rc.desc }}</div>
+              <div style="font-size:12.5px; color:var(--text-dim); margin-top:10px; display:flex; gap:14px; align-items:center;">
+                <span>{{ rc.floor }}</span>
+                <span><b style="color:var(--text);">{{ rc.booked }}</b> booked · <b style="color:var(--text);">{{ rc.free }}</b> free</span>
+              </div>
+              <div style="display:flex; gap:8px; margin-top:12px;">
+                <button onClick="{{ rc.onEdit }}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Edit
+                </button>
+                <button onClick="{{ rc.onDelete }}" title="Delete room" style="display:inline-flex;align-items:center;justify-content:center;padding:6px 10px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--bad);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"></path></svg>
+                </button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ hasRooms }}" hint-placeholder-val="{{ true }}">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); overflow:hidden;">
+          <div style="padding:16px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px;">
+            <div style="max-width:540px;">
+              <div style="font-size:15px; font-weight:700;">{{ selectedRoomName }} · week schedule</div>
+              <div style="font-size:12px; color:var(--text-dim); margin-top:3px;">{{ selectedRoomDesc }}</div>
+              <div style="font-size:11.5px; color:var(--text-faint); margin-top:4px;">Click a booked slot to open the request</div>
+            </div>
+            <div style="display:flex; gap:14px; font-size:11.5px; color:var(--text-dim); flex-wrap:wrap;">
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:3px;background:color-mix(in srgb,var(--ok) 22%,transparent);border:1px solid color-mix(in srgb,var(--ok) 45%,transparent);"></span>Approved</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:3px;background:color-mix(in srgb,var(--warn) 22%,transparent);border:1px solid color-mix(in srgb,var(--warn) 45%,transparent);"></span>Pending</span>
+              <span style="display:flex;align-items:center;gap:5px;"><span style="width:11px;height:11px;border-radius:3px;background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 4px,var(--surface-3) 4px,var(--surface-3) 8px);"></span>Closed</span>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; padding:13px 18px; border-bottom:1px solid var(--border); background:var(--surface-2);">
+            <sc-for list="{{ roomHours }}" as="d" hint-placeholder-count="5">
+              <div>
+                <div style="font-size:12px; font-weight:700;">{{ d.day }} <span style="color:var(--text-faint); font-weight:500;">{{ d.n }}</span></div>
+                <div style="font-size:11px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace; margin-top:2px;">{{ d.txt }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="overflow-x:auto;">
+            <div style="padding:8px 14px 18px;">
+              <div style="display:grid; grid-template-columns:58px repeat(5,1fr); min-width:720px; padding-bottom:6px;">
+                <div></div>
+                <sc-for list="{{ dayHeaders }}" as="d" hint-placeholder-count="5"><div style="text-align:center; font-size:12px; font-weight:700;">{{ d.d }} <span style="color:var(--text-faint); font-weight:500;">{{ d.n }}</span></div></sc-for>
+              </div>
+              <div style="{{ gridStyle }}">
+                <sc-for list="{{ gridCells }}" as="c" hint-placeholder-count="30">
+                  <div onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.text }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </div>
+        </sc-if>
+        <sc-if value="{{ noRooms }}" hint-placeholder-val="{{ false }}">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:60px 18px; text-align:center;">
+          <div style="font-size:15px; font-weight:600; color:var(--text-dim);">No rooms yet</div>
+          <div style="font-size:13px; color:var(--text-faint); margin-top:5px;">Add a room to start scheduling side meetings.</div>
+        </div>
+        </sc-if>
+      </div>
+      </sc-if>
+
+      <!-- MEETINGS -->
+      <sc-if value="{{ isMeetings }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Meetings" style="max-width:1000px; margin:0 auto;">
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <sc-for list="{{ meetingCards }}" as="m" hint-placeholder-count="4">
+            <div style="background:var(--surface); border:1px solid {{ m.borderColor }}; border-radius:14px; box-shadow:{{ m.cardShadow }}; padding:20px; display:flex; align-items:center; gap:18px;">
+              <div style="width:54px;height:54px;border-radius:12px;background:var(--accent-weak);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;font-family:'IBM Plex Mono',monospace;flex:0 0 54px;">{{ m.num }}</div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="font-size:16px; font-weight:700;">{{ m.code }} · {{ m.city }}</div>
+                  <span style="font-size:11.5px; font-weight:600; padding:2px 10px; border-radius:20px; color:{{ m.statusColor }}; background:{{ m.statusBg }};">{{ m.statusLabel }}</span>
+                  <sc-if value="{{ m.viewing }}" hint-placeholder-val="{{ false }}"><span style="font-size:11px;font-weight:700;color:var(--accent);background:var(--accent-weak);padding:2px 9px;border-radius:20px;">Viewing</span></sc-if>
+                </div>
+                <div style="font-size:12.5px; color:var(--text-dim); margin-top:3px;">{{ m.dates }} · {{ m.venue }}</div>
+                <div style="font-size:12px; color:var(--text-faint); margin-top:4px; display:flex; align-items:center; gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><span style="font-family:'IBM Plex Mono',monospace;">{{ m.tz }}</span></div>
+                <div style="font-size:12px; margin-top:6px; display:flex; flex-direction:column; align-items:flex-start; gap:6px;">
+                  <span style="display:inline-flex; align-items:center; gap:5px; color:var(--text-dim);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3v4M8 3v4M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg>Submissions open <b style="color:var(--text); font-family:'IBM Plex Mono',monospace; font-weight:600;">{{ m.subOpenLabel }}</b></span>
+                  <span style="font-size:10.5px; font-weight:700; padding:1px 8px; border-radius:20px; color:{{ m.subStatusColor }}; background:color-mix(in srgb, {{ m.subStatusColor }} 14%, transparent);">{{ m.subStatusLabel }}</span>
+                </div>
+              </div>
+              <div style="text-align:center;"><div style="font-size:20px; font-weight:800;">{{ m.rooms }}</div><div style="font-size:11px; color:var(--text-faint);">rooms</div></div>
+              <div style="text-align:center;"><div style="font-size:20px; font-weight:800;">{{ m.sidem }}</div><div style="font-size:11px; color:var(--text-faint);">side mtgs</div></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button onClick="{{ m.onView }}" style="{{ m.viewBtnStyle }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>{{ m.viewBtnLabel }}</button>
+                <button onClick="{{ m.onActivate }}" style="{{ m.btnStyle }}">{{ m.btnLabel }}</button>
+                <button onClick="{{ m.onEdit }}" title="Edit meeting" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--text);cursor:pointer;font:inherit;font-size:12.5px;font-weight:600;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>Edit</button>
+                <button onClick="{{ m.onDelete }}" title="Delete meeting" style="display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;box-sizing:border-box;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--bad);cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"></path></svg></button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- USERS -->
+      <sc-if value="{{ isUsers }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Users" style="max-width:1040px; margin:0 auto;">
+        <div style="position:relative; display:flex; align-items:center; margin-bottom:16px; max-width:340px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" stroke-width="2" style="position:absolute; left:11px; pointer-events:none;"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+          <input value="{{ userSearch }}" onInput="{{ onUserSearch }}" placeholder="Search users by name or email…" style="width:100%; padding:10px 12px 10px 34px; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; font-size:13.5px; outline:none;">
+        </div>
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); overflow:hidden;">
+          <div style="display:grid; grid-template-columns:2.6fr 1fr .8fr 132px; gap:12px; padding:12px 18px; border-bottom:1px solid var(--border); background:var(--surface-2); font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--text-dim);">
+            <div>User</div><div>Role</div><div>Bookings</div><div style="text-align:right;">Actions</div>
+          </div>
+          <sc-for list="{{ userRows }}" as="u" hint-placeholder-count="8">
+            <div style="display:grid; grid-template-columns:2.6fr 1fr .8fr 132px; gap:12px; padding:13px 18px; border-bottom:1px solid var(--surface-3); align-items:center;">
+              <div style="display:flex; align-items:center; gap:11px; min-width:0;">
+                <div style="width:34px;height:34px;border-radius:50%;background:{{ u.avBg }};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex:0 0 34px;">{{ u.initial }}</div>
+                <div style="min-width:0;">
+                  <div style="font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">{{ u.name }}
+                    <sc-if value="{{ u.you }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-weak);padding:1px 6px;border-radius:5px;">You</span></sc-if>
+                    <sc-if value="{{ u.blocked }}" hint-placeholder-val="{{ false }}"><span style="font-size:10px;font-weight:700;color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent);padding:1px 6px;border-radius:5px;">Blocked</span></sc-if>
+                  </div>
+                  <div style="font-size:12px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace;">{{ u.email }}</div>
+                </div>
+              </div>
+              <div>
+                <span style="display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:600; padding:3px 11px 3px 9px; border-radius:20px; color:{{ u.roleColor }}; background:{{ u.roleBg }};">
+                  <span style="width:7px; height:7px; border-radius:50%; background:{{ u.roleColor }};"></span>{{ u.role }}
+                </span>
+              </div>
+              <div style="font-size:13px; font-family:'IBM Plex Mono',monospace;">{{ u.reqs }}</div>
+              <div style="display:flex; gap:6px; justify-content:flex-end;">
+                <button onClick="{{ u.onEdit }}" title="Edit user" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                </button>
+                <button onClick="{{ u.onBlock }}" disabled="{{ u.isAdmin }}" title="{{ u.blockLabel }}" style="{{ u.blockBtnStyle }}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>
+                </button>
+                <button onClick="{{ u.onDelete }}" disabled="{{ u.isAdmin }}" title="{{ u.deleteLabel }}" style="{{ u.deleteBtnStyle }}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"></path></svg>
+                </button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- SETTINGS -->
+      <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+      <div data-screen-label="Settings" style="max-width:680px; margin:0 auto;">
+        <div style="background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:24px; display:flex; flex-direction:column; gap:20px;">
+          <div>
+            <div style="font-size:15px; font-weight:700;">Request notifications</div>
+            <div style="font-size:12.5px; color:var(--text-dim); margin-top:2px;">Email settings used when a new side meeting request is submitted.</div>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">"From" email address</label>
+            <input value="{{ setFromEmail }}" onInput="{{ onFromEmail }}" placeholder="no-reply@ietf.org" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+            <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px;">Sender address shown on notification emails.</div>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">"Reply-to" email address</label>
+            <input value="{{ setReplyTo }}" onInput="{{ onReplyTo }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+            <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px;">Where replies from organizers are routed.</div>
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Approvers <span style="color:var(--text-faint);font-weight:400;">· notified of every new request</span></label>
+            <sc-if value="{{ hasApprovers }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:9px;">
+                <sc-for list="{{ approverList }}" as="a" hint-placeholder-count="2">
+                  <div style="display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:8px 8px 8px 13px;">
+                    <div style="flex:1; min-width:0; font-size:13.5px; font-family:'IBM Plex Mono',monospace;">{{ a.email }}</div>
+                    <button onClick="{{ a.onRemove }}" title="Remove approver" style="width:24px;height:24px;flex:0 0 24px;border-radius:7px;border:none;background:var(--surface-3);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                    </button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <div style="display:flex; gap:8px;">
+              <input value="{{ newApprover }}" onInput="{{ onNewApprover }}" onKeyDown="{{ onNewApproverKey }}" placeholder="approver@example.org" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+              <button onClick="{{ addApprover }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface-2);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Add</button>
+            </div>
+          </div>
+          <div style="display:flex; padding-top:4px; border-top:1px solid var(--border); padding-top:18px;">
+            <button onClick="{{ saveSettings }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;background:var(--accent);color:var(--accent-text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Save settings</button>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+    </main>
+  </div>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--surface); padding:12px 18px; border-radius:11px; box-shadow:0 12px 32px rgba(0,0,0,.25); font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:9px; z-index:60; animation:toastIn .25s ease;">
+      <span style="width:8px; height:8px; border-radius:50%; background:{{ toastColor }};"></span>{{ toast }}
+    </div>
+  </sc-if>
+
+  <!-- MODAL -->
+  <sc-if value="{{ modal }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeModal }}" style="position:fixed; inset:0; background:rgba(10,12,18,.42); z-index:70; display:flex; align-items:center; justify-content:center; padding:24px; animation:overlayIn .15s ease;">
+      <sc-if value="{{ showFormModal }}" hint-placeholder-val="{{ true }}">
+      <div onClick="{{ stop }}" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.3); width:100%; max-width:{{ modalMaxW }}; max-height:86vh; overflow-y:auto; padding:24px; animation:scIn .2s ease;">
+        <div style="font-size:17px; font-weight:700; margin-bottom:4px;">{{ modalTitle }}</div>
+        <div style="font-size:12.5px; color:var(--text-dim); margin-bottom:18px;">{{ modalSub }}</div>
+        <div style="display:flex; flex-direction:column; gap:13px;">
+          <sc-for list="{{ modalFields }}" as="f" hint-placeholder-count="3">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">{{ f.label }}</label>
+              <input value="{{ f.value }}" onInput="{{ f.onInput }}" placeholder="{{ f.placeholder }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ isMeetingModal }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:13px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Meeting dates</label>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <input type="text" inputmode="numeric" pattern="\d{4}-\d{2}-\d{2}" placeholder="YYYY-MM-DD" maxlength="10" value="{{ draftDateStart }}" onInput="{{ onDraftDateStart }}" style="flex:1;min-width:0;width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+              <span style="font-size:13px; color:var(--text-dim); flex:0 0 auto;">to</span>
+              <input type="text" inputmode="numeric" pattern="\d{4}-\d{2}-\d{2}" placeholder="YYYY-MM-DD" maxlength="10" value="{{ draftDateEnd }}" onInput="{{ onDraftDateEnd }}" style="flex:1;min-width:0;width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+            </div>
+            <sc-if value="{{ hasDatePreview }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px; color:var(--text-faint); margin-top:6px;">Displayed as <span style="color:var(--text-dim); font-weight:600;">{{ draftDatePreview }}</span></div>
+            </sc-if>
+          </div>
+          <div style="margin-top:13px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Submissions open <span style="color:var(--text-faint);font-weight:400;">· when organizers can start requesting</span></label>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <input type="text" inputmode="numeric" pattern="\d{4}-\d{2}-\d{2}" placeholder="YYYY-MM-DD" maxlength="10" value="{{ draftSubDate }}" onInput="{{ onDraftSubDate }}" style="flex:1;min-width:0;width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+              <span style="font-size:13px; color:var(--text-dim); flex:0 0 auto;">at</span>
+              <input type="text" inputmode="numeric" pattern="\d{2}:\d{2}" placeholder="HH:MM" maxlength="5" value="{{ draftSubTime }}" onInput="{{ onDraftSubTime }}" style="flex:0 0 96px;width:96px;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+            </div>
+            <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px;">In the meeting's time zone.</div>
+          </div>
+          <div style="margin-top:13px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Time zone <span style="color:var(--text-faint);font-weight:400;">· IANA</span></label>
+            <select value="{{ draftTz }}" onChange="{{ onDraftTz }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+              <sc-for list="{{ tzOptions }}" as="t" hint-placeholder-count="8"><option value="{{ t.v }}">{{ t.label }}</option></sc-for>
+            </select>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:13px;">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Inter-meeting buffer</label>
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="text" inputmode="numeric" value="{{ draftBuffer }}" onInput="{{ onDraftBuffer }}" style="width:100%;padding:10px 44px 10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+                <span style="position:absolute; right:12px; font-size:12px; color:var(--text-faint); pointer-events:none;">min</span>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px;">Gap required between back-to-back side meetings.</div>
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Minimum notice</label>
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="text" inputmode="numeric" value="{{ draftMinNotice }}" onInput="{{ onDraftMinNotice }}" style="width:100%;padding:10px 44px 10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;font-family:'IBM Plex Mono',monospace;outline:none;">
+                <span style="position:absolute; right:12px; font-size:12px; color:var(--text-faint); pointer-events:none;">min</span>
+              </div>
+              <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px;">How far ahead of the slot a request must be made.</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isUserModal }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:13px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Role</label>
+            <select value="{{ draftRole }}" onChange="{{ onDraftRole }}" style="width:100%;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+              <sc-for list="{{ roleOptions }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}">{{ o.label }}</option></sc-for>
+            </select>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isRoomModal }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:13px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px;">Color</label>
+            <div style="display:flex; gap:9px;">
+              <sc-for list="{{ roomColorOptions }}" as="c" hint-placeholder-count="5">
+                <button onClick="{{ c.onPick }}" title="{{ c.name }}" style="width:30px;height:30px;border-radius:8px;cursor:pointer;background:{{ c.value }};display:flex;align-items:center;justify-content:center;border:2px solid {{ c.value }};outline-offset:2px;">
+                  <sc-if value="{{ c.selected }}" hint-placeholder-val="{{ false }}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0d1016" stroke-width="3"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:18px;">
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:8px;">Availability periods <span style="color:var(--text-faint);font-weight:400;">· add one or more time periods per day</span></label>
+            <div style="display:flex; flex-direction:column; gap:9px;">
+              <sc-for list="{{ roomModalSched }}" as="d" hint-placeholder-count="5">
+                <div style="border:1px solid var(--border); border-radius:11px; padding:11px 13px; background:var(--surface-2);">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div style="font-size:13px; font-weight:700; min-width:64px;">{{ d.day }} <span style="color:var(--text-faint); font-weight:500;">{{ d.n }}</span></div>
+                    <button onClick="{{ d.onAdd }}" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--accent);font:inherit;font-size:12px;font-weight:600;cursor:pointer;">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"></path></svg>Add period
+                    </button>
+                  </div>
+                  <sc-if value="{{ d.hasPeriods }}" hint-placeholder-val="{{ true }}">
+                    <div style="display:flex; flex-direction:column; gap:7px; margin-top:9px;">
+                      <sc-for list="{{ d.periods }}" as="p" hint-placeholder-count="2">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                          <select value="{{ p.sVal }}" onChange="{{ p.onS }}" style="flex:1;padding:7px 9px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-family:'IBM Plex Mono',monospace;outline:none;">
+                            <sc-for list="{{ timeOptions }}" as="t" hint-placeholder-count="6"><option value="{{ t.v }}">{{ t.label }}</option></sc-for>
+                          </select>
+                          <span style="font-size:12px; color:var(--text-dim);">to</span>
+                          <select value="{{ p.eVal }}" onChange="{{ p.onE }}" style="flex:1;padding:7px 9px;border:1px solid var(--border-strong);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-family:'IBM Plex Mono',monospace;outline:none;">
+                            <sc-for list="{{ timeOptions }}" as="t" hint-placeholder-count="6"><option value="{{ t.v }}">{{ t.label }}</option></sc-for>
+                          </select>
+                          <button onClick="{{ p.onRemove }}" title="Remove period" style="width:30px;height:30px;flex:0 0 30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--surface);color:var(--bad);cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                          </button>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ d.noPeriods }}" hint-placeholder-val="{{ false }}">
+                    <div style="font-size:12px; color:var(--text-faint); margin-top:7px;">Closed — no availability this day.</div>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <div style="display:flex; gap:10px; margin-top:22px; justify-content:flex-end;">
+          <button onClick="{{ closeModal }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+          <button onClick="{{ submitModal }}" style="padding:10px 18px;border:none;border-radius:9px;background:var(--accent);color:var(--accent-text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">{{ modalCta }}</button>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ showConfirm }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ stop }}" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.3); width:100%; max-width:460px; padding:24px; animation:scIn .2s ease;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+          <div style="width:42px;height:42px;border-radius:11px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17v.5"></path><path d="M10.3 3.9 2.4 18a1.8 1.8 0 0 0 1.6 2.7h16a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"></path></svg>
+          </div>
+          <div>
+            <div style="font-size:17px; font-weight:700;">Delete {{ confirmName }}?</div>
+            <div style="font-size:12.5px; color:var(--text-dim);">This action cannot be undone.</div>
+          </div>
+        </div>
+        <div style="font-size:13.5px; color:var(--text); line-height:1.5; background:color-mix(in srgb,var(--bad) 8%,transparent); border:1px solid color-mix(in srgb,var(--bad) 22%,transparent); border-radius:10px; padding:13px 15px;">
+          Deleting this meeting will permanently remove its <b>{{ confirmRooms }} rooms</b> and <b>{{ confirmSidem }} side-meeting bookings</b>, including all approved reservations and their schedules.
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+          <button onClick="{{ closeModal }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+          <button onClick="{{ onConfirmDelete }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;background:var(--bad);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"></path></svg>Delete meeting
+          </button>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ showConfirmUser }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ stop }}" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.3); width:100%; max-width:460px; padding:24px; animation:scIn .2s ease;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+          <div style="width:42px;height:42px;border-radius:11px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17v.5"></path><path d="M10.3 3.9 2.4 18a1.8 1.8 0 0 0 1.6 2.7h16a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"></path></svg>
+          </div>
+          <div>
+            <div style="font-size:17px; font-weight:700;">Delete {{ confirmUserName }}?</div>
+            <div style="font-size:12.5px; color:var(--text-dim);">This action cannot be undone.</div>
+          </div>
+        </div>
+        <div style="font-size:13.5px; color:var(--text); line-height:1.5; background:color-mix(in srgb,var(--bad) 8%,transparent); border:1px solid color-mix(in srgb,var(--bad) 22%,transparent); border-radius:10px; padding:13px 15px;">
+          This removes the user account. Their <b>{{ confirmUserBookings }} bookings</b> will <b>not</b> be deleted and will remain in the system.
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+          <button onClick="{{ closeModal }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+          <button onClick="{{ onConfirmDeleteUser }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;background:var(--bad);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"></path></svg>Delete user
+          </button>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ showConfirmRoom }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ stop }}" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.3); width:100%; max-width:460px; padding:24px; animation:scIn .2s ease;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+          <div style="width:42px;height:42px;border-radius:11px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17v.5"></path><path d="M10.3 3.9 2.4 18a1.8 1.8 0 0 0 1.6 2.7h16a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"></path></svg>
+          </div>
+          <div>
+            <div style="font-size:17px; font-weight:700;">Delete {{ confirmRoomName }}?</div>
+            <div style="font-size:12.5px; color:var(--text-dim);">This action cannot be undone.</div>
+          </div>
+        </div>
+        <div style="font-size:13.5px; color:var(--text); line-height:1.5; background:color-mix(in srgb,var(--bad) 8%,transparent); border:1px solid color-mix(in srgb,var(--bad) 22%,transparent); border-radius:10px; padding:13px 15px;">
+          Deleting this room will also permanently delete its <b>{{ confirmRoomBookings }} bookings</b>, including any approved reservations and their schedules.
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+          <button onClick="{{ closeModal }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Cancel</button>
+          <button onClick="{{ onConfirmDeleteRoom }}" style="display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border:none;border-radius:9px;background:var(--bad);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v5M14 11v5"></path></svg>Delete room
+          </button>
+        </div>
+      </div>
+      </sc-if>
+      <sc-if value="{{ showPick }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ stop }}" style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.3); width:100%; max-width:520px; max-height:86vh; display:flex; flex-direction:column; padding:24px; animation:scIn .2s ease;">
+        <div style="font-size:17px; font-weight:700; margin-bottom:4px; color:var(--text);">Switch meeting</div>
+        <div style="font-size:12.5px; color:var(--text-dim); margin-bottom:14px;">Choose which meeting to view. This doesn't change the active meeting used for new bookings.</div>
+        <div style="position:relative; display:flex; align-items:center; margin-bottom:14px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-faint)" stroke-width="2" style="position:absolute; left:11px; pointer-events:none;"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+          <input value="{{ pickSearch }}" onInput="{{ onPickSearch }}" placeholder="Search by number, city or venue…" style="width:100%; padding:10px 12px 10px 34px; border:1px solid var(--border-strong); border-radius:9px; background:var(--surface-2); color:var(--text); font:inherit; font-size:13.5px; outline:none;">
+        </div>
+        <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:9px; min-height:120px; max-height:52vh; margin:0 -4px; padding:2px 4px;">
+          <sc-for list="{{ pickList }}" as="m" hint-placeholder-count="4">
+            <button onClick="{{ m.onPick }}" style="{{ m.rowStyle }}">
+              <div style="width:44px;height:44px;border-radius:11px;background:var(--accent-weak);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;font-family:'IBM Plex Mono',monospace;flex:0 0 44px;">{{ m.num }}</div>
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <span style="font-size:14.5px; font-weight:700;">{{ m.code }} · {{ m.place }}</span>
+                  <span style="font-size:10.5px; font-weight:600; padding:1px 8px; border-radius:20px; color:{{ m.statusColor }}; background:{{ m.statusBg }};">{{ m.statusLabel }}</span>
+                  <sc-if value="{{ m.isActive }}" hint-placeholder-val="{{ false }}"><span style="font-size:10.5px; font-weight:700; color:var(--accent); background:var(--accent-weak); padding:1px 8px; border-radius:20px;">Active</span></sc-if>
+                </div>
+                <div style="font-size:12px; color:var(--text-dim); margin-top:3px;">{{ m.dates }} · {{ m.venue }}</div>
+              </div>
+              <sc-if value="{{ m.selected }}" hint-placeholder-val="{{ false }}">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.4" style="flex:0 0 20px;"><path d="M20 6 9 17l-5-5"></path></svg>
+              </sc-if>
+            </button>
+          </sc-for>
+          <sc-if value="{{ pickEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:40px 12px; text-align:center; color:var(--text-faint); font-size:13px;">No meetings match your search.</div>
+          </sc-if>
+        </div>
+        <div style="display:flex; margin-top:18px; justify-content:flex-end;">
+          <button onClick="{{ closeModal }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Close</button>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.computeDays = (m) => {
+      const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const base = (m && m.startDate) ? new Date(m.startDate + 'T00:00:00') : new Date('2026-07-18T00:00:00');
+      const dow = base.getDay();
+      const add = dow === 0 ? 1 : (dow === 1 ? 0 : (8 - dow) % 7);
+      const mon = new Date(base); mon.setDate(base.getDate() + add);
+      const out = [];
+      for (let i = 0; i < 5; i++) { const dd = new Date(mon); dd.setDate(mon.getDate() + i); out.push({ d: WD[dd.getDay()], n: dd.getDate() }); }
+      return out;
+    };
+    this.days = this.computeDays(null);
+    this.durations = [60, 90, 120];
+    this.areas = ['ART', 'GEN', 'INT', 'OPS', 'RTG', 'SEC', 'WIT'];
+    this.roomColors = [{ name:'Sky', value:'#38bdf8' }, { name:'Yellow', value:'#eab308' }, { name:'Purple', value:'#a855f7' }, { name:'Emerald', value:'#10b981' }, { name:'Indigo', value:'#6366f1' }];
+    try { this.timezones = Intl.supportedValuesOf('timeZone'); } catch (e) { this.timezones = ['UTC','Europe/Madrid','Europe/London','America/Toronto','America/New_York','America/Los_Angeles','Asia/Tokyo','Asia/Shanghai','Australia/Sydney']; }
+    this.seed = { 'SM-01':{areas:['OPS','INT']}, 'SM-02':{areas:['WIT','ART']}, 'SM-03':{areas:['SEC']}, 'SM-04':{areas:['WIT']}, 'SM-05':{isIRTF:true}, 'SM-06':{areas:['SEC','ART']}, 'SM-07':{areas:['ART']}, 'SM-08':{areas:['INT','RTG']}, 'SM-09':{areas:['OPS','RTG']}, 'SM-10':{areas:['ART','WIT']}, 'SM-11':{areas:['GEN']}, 'SM-12':{isIRTF:true} };
+    this.themes = {
+      daylight: { '--bg':'#f4f5f7','--surface':'#ffffff','--surface-2':'#f7f8fa','--surface-3':'#eef0f3','--border':'#e6e8ec','--border-strong':'#d4d8df','--text':'#171a20','--text-dim':'#5b6472','--text-faint':'#9aa2b1','--accent':'#4f46e5','--accent-text':'#ffffff','--accent-weak':'#ecebfd','--ok':'#15935f','--warn':'#c1820a','--bad':'#d4453b','--muted':'#8a93a3','--sidebar-bg':'#ffffff','--sidebar-text':'#3b4250','--sidebar-text-dim':'#8a93a3','--sidebar-active-bg':'#ecebfd','--sidebar-active-text':'#4f46e5','--sidebar-border':'#ebedf0','--shadow':'0 1px 2px rgba(18,22,31,.04), 0 4px 16px rgba(18,22,31,.05)' },
+      forest: { '--bg':'#f3f4ef','--surface':'#ffffff','--surface-2':'#f6f7f1','--surface-3':'#ecefe4','--border':'#e2e5d9','--border-strong':'#cfd4c4','--text':'#1c2118','--text-dim':'#586154','--text-faint':'#959e8c','--accent':'#1f7a52','--accent-text':'#ffffff','--accent-weak':'#e3f1e8','--ok':'#1f7a52','--warn':'#b9760a','--bad':'#c0443c','--muted':'#8a937f','--sidebar-bg':'#16271d','--sidebar-text':'#c5d3c8','--sidebar-text-dim':'#7e9483','--sidebar-active-bg':'#214a33','--sidebar-active-text':'#ffffff','--sidebar-border':'#22382a','--shadow':'0 1px 2px rgba(28,33,24,.05), 0 6px 20px rgba(28,33,24,.06)' },
+      midnight: { '--bg':'#0d1016','--surface':'#151a22','--surface-2':'#1a2029','--surface-3':'#222a35','--border':'#272f3b','--border-strong':'#36404e','--text':'#e7ebf1','--text-dim':'#9aa4b4','--text-faint':'#6b7585','--accent':'#2dd4bf','--accent-text':'#04241f','--accent-weak':'#13312e','--ok':'#34d399','--warn':'#e3a93b','--bad':'#f0716a','--muted':'#7a8493','--sidebar-bg':'#0a0d12','--sidebar-text':'#aab4c4','--sidebar-text-dim':'#697383','--sidebar-active-bg':'#13312e','--sidebar-active-text':'#5eead4','--sidebar-border':'#1a2029','--shadow':'0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35)' },
+    };
+    this.avatarColors = ['#4f46e5','#0ea5a4','#d97706','#db2777','#2563eb','#16a34a','#9333ea','#dc2626'];
+    this.state = {
+      view: 'dashboard',
+      theme: 'midnight',
+      activeMeetingId: 'm126',
+      viewMeetingId: 'm126',
+      filter: 'all',
+      search: '',
+      selectedRequestId: null,
+      editDraft: null,
+      selectedRoomId: 'r2',
+      editRoomId: null,
+      editMeetingId: null,
+      editUserId: null,
+      settings: { fromEmail: 'no-reply@ietf.org', replyTo: 'sidemeetings@ietf.org', approvers: ['amorgan@ietf.org', 'lflynn@ietf.org'] },
+      newApprover: '',
+      confirmMeetingId: null,
+      blocked: {},
+      modal: null,
+      form: {},
+      toast: null,
+      requests: [
+        {id:'SM-01', title:'DNSOP Hackathon Sync', desc:'Coordinate dnsop hackathon outcomes and align on draft updates ahead of Thursday\u2019s session.', org:{name:'Petr \u0160pa\u010dek', email:'pspacek@isc.org', aff:'ISC'}, extra:[{name:'Benno Overeinder',email:'benno@nlnetlabs.nl'}], roomId:'r2', dayIndex:0, start:780, duration:90, linkType:'webex', link:'https://ietf.webex.com/meet/sm01', status:'approved', attendees:24, submitted:'Jun 18'},
+        {id:'SM-02', title:'QUIC Interop Planning', desc:'Plan the next interop event and assign owners for the test matrix.', org:{name:'Lars Eggert', email:'lars@eggert.org', aff:'Mozilla'}, extra:[], roomId:'r1', dayIndex:0, start:780, duration:120, linkType:'custom', link:'https://zoom.us/j/quic-interop', status:'pending', attendees:18, submitted:'Jun 24'},
+        {id:'SM-03', title:'TLS 1.4 Design Team', desc:'Closed design-team working session on the handshake simplification draft.', org:{name:'Sean Turner', email:'sean@sn3rd.com', aff:'sn3rd'}, extra:[{name:'Joseph Salowey',email:'joe@salowey.net'}], roomId:'r3', dayIndex:1, start:540, duration:90, linkType:'webex', link:'https://ietf.webex.com/meet/sm03', status:'approved', attendees:9, submitted:'Jun 17'},
+        {id:'SM-04', title:'MASQUE Side Chat', desc:'Informal discussion on proxying UDP and CONNECT-IP deployment feedback.', org:{name:'Marcus Ihlar', email:'marcus.ihlar@ericsson.com', aff:'Ericsson'}, extra:[], roomId:'r1', dayIndex:1, start:780, duration:60, linkType:'webex', link:'https://ietf.webex.com/meet/sm04', status:'pending', attendees:15, submitted:'Jun 25'},
+        {id:'SM-05', title:'IRTF CFRG Coffee', desc:'Open coffee chat on post-quantum signature drafts.', org:{name:'Nick Sullivan', email:'nick@cloudflare.com', aff:'Cloudflare'}, extra:[], roomId:'r3', dayIndex:2, start:450, duration:60, linkType:'webex', link:'https://ietf.webex.com/meet/sm05', status:'approved', attendees:12, submitted:'Jun 16'},
+        {id:'SM-06', title:'OAuth Working Lunch', desc:'Review open issues on the OAuth 2.1 consolidation and next steps.', org:{name:'Aaron Parecki', email:'aaron@parecki.com', aff:'Okta'}, extra:[{name:'Pieter Kasselman',email:'pieter.kasselman@microsoft.com'}], roomId:'r2', dayIndex:2, start:660, duration:120, linkType:'custom', link:'https://meet.google.com/oauth-wg', status:'pending', attendees:28, submitted:'Jun 24'},
+        {id:'SM-07', title:'Media Codecs BoF Prep', desc:'Prepare charter text and agenda for the proposed BoF.', org:{name:'Bernard Aboba', email:'bernard.aboba@gmail.com', aff:'Microsoft'}, extra:[], roomId:'r2', dayIndex:3, start:540, duration:90, linkType:'webex', link:'https://ietf.webex.com/meet/sm07', status:'rejected', attendees:35, submitted:'Jun 19'},
+        {id:'SM-08', title:'6MAN Routing Sync', desc:'Sync on IPv6 maintenance drafts heading to last call.', org:{name:'Ole Tr\u00f8an', email:'ot@cisco.com', aff:'Cisco'}, extra:[], roomId:'r1', dayIndex:3, start:780, duration:60, linkType:'webex', link:'https://ietf.webex.com/meet/sm08', status:'approved', attendees:14, submitted:'Jun 18'},
+        {id:'SM-09', title:'SIDROPS Deployment', desc:'Operator feedback session on RPKI deployment hurdles.', org:{name:'Job Snijders', email:'job@fastly.com', aff:'Fastly'}, extra:[{name:'Ties de Kock',email:'ties@ripe.net'}], roomId:'r3', dayIndex:3, start:1140, duration:90, linkType:'webex', link:'https://ietf.webex.com/meet/sm09', status:'pending', attendees:20, submitted:'Jun 25'},
+        {id:'SM-10', title:'HTTP Semantics Review', desc:'Walk through editorial issues on the maintained HTTP specs.', org:{name:'Mark Nottingham', email:'mnot@mnot.net', aff:'Cloudflare'}, extra:[], roomId:'r2', dayIndex:4, start:570, duration:60, linkType:'webex', link:'https://ietf.webex.com/meet/sm10', status:'approved', attendees:22, submitted:'Jun 15'},
+        {id:'SM-11', title:'Newcomers Mentoring Mixer', desc:'Casual mixer pairing first-time attendees with mentors.', org:{name:'Greg Wood', email:'ghwood@ietf.org', aff:'IETF'}, extra:[], roomId:'r1', dayIndex:4, start:840, duration:120, linkType:'webex', link:'https://ietf.webex.com/meet/sm11', status:'cancelled', attendees:40, submitted:'Jun 12'},
+        {id:'SM-12', title:'PEARG Privacy Chat', desc:'Research group discussion on privacy-preserving measurement.', org:{name:'Shivan Sahib', email:'shivan@brave.com', aff:'Brave'}, extra:[], roomId:'r3', dayIndex:4, start:720, duration:90, linkType:'custom', link:'https://signal.group/pearg', status:'pending', attendees:11, submitted:'Jun 26'},
+      ],
+      rooms: [
+        {id:'r1', name:'Auditorium Foyer A', cap:30, floor:'Level 0', desc:'Open foyer space by the main auditorium \u2014 best for informal gatherings, standing meetings and hackathon syncs. No fixed seating.', sched:[[{s:540,e:660},{s:780,e:960}],[{s:570,e:720},{s:780,e:900}],[{s:540,e:720}],[{s:780,e:1020}],[{s:540,e:660},{s:840,e:960}]]},
+        {id:'r2', name:'Monteverdi', cap:50, floor:'Level 1', desc:'Mid-size meeting room with projector, screen and rounded-table seating. Suited to working lunches and larger side meetings.', sched:[[{s:480,e:720},{s:780,e:1080}],[{s:480,e:1080}],[{s:660,e:840},{s:1020,e:1200}],[{s:540,e:780}],[{s:540,e:1020}]]},
+        {id:'r3', name:'Liszt', cap:20, floor:'Level 1', desc:'Compact breakout room with a whiteboard. Ideal for design teams and small focused group work.', sched:[[{s:600,e:780}],[{s:540,e:690},{s:840,e:990}],[{s:450,e:570}],[{s:780,e:1080},{s:1140,e:1260}],[{s:720,e:900}]]},
+      ],
+      meetings: [
+        {id:'m126', num:'126', code:'IETF 126', city:'Madrid', country:'Spain', startDate:'2026-07-18', endDate:'2026-07-24', dates:'July 18\u201324, 2026', venue:'Madrid Marriott Auditorium', status:'active', rooms:3, sidem:12, tz:'Europe/Madrid', subOpenDate:'2026-06-15', subOpenTime:'09:00', buffer:15, minNotice:120},
+        {id:'m125', num:'125', code:'IETF 125', city:'San Francisco', country:'USA', startDate:'2026-03-21', endDate:'2026-03-27', dates:'March 21\u201327, 2026', venue:'Hilton Union Square', status:'past', rooms:2, sidem:18, tz:'America/Los_Angeles', subOpenDate:'2026-02-10', subOpenTime:'09:00', buffer:15, minNotice:60},
+        {id:'m124', num:'124', code:'IETF 124', city:'Montr\u00e9al', country:'Canada', startDate:'2025-11-01', endDate:'2025-11-07', dates:'November 1\u20137, 2025', venue:'Fairmont Queen Elizabeth', status:'past', rooms:2, sidem:15, tz:'America/Toronto', subOpenDate:'2025-09-22', subOpenTime:'09:00', buffer:10, minNotice:60},
+        {id:'m127', num:'127', code:'IETF 127', city:'Yokohama', country:'Japan', startDate:'2026-11-14', endDate:'2026-11-20', dates:'November 14\u201320, 2026', venue:'PACIFICO Yokohama', status:'planning', rooms:0, sidem:0, tz:'Asia/Tokyo', subOpenDate:'2026-09-28', subOpenTime:'09:00', buffer:15, minNotice:120},
+      ],
+      users: [
+        {id:'u1', name:'Alexa Morgan', email:'amorgan@ietf.org', role:'Admin', reqs:0, last:'now', you:true},
+        {id:'u2', name:'Liz Flynn', email:'lflynn@ietf.org', role:'Admin', reqs:0, last:'2h ago'},
+        {id:'u3', name:'Lars Eggert', email:'lars@eggert.org', role:'User', reqs:1, last:'1h ago'},
+        {id:'u4', name:'Sean Turner', email:'sean@sn3rd.com', role:'User', reqs:1, last:'1d ago'},
+        {id:'u5', name:'Nick Sullivan', email:'nick@cloudflare.com', role:'User', reqs:1, last:'4h ago'},
+        {id:'u6', name:'Aaron Parecki', email:'aaron@parecki.com', role:'User', reqs:1, last:'3h ago'},
+        {id:'u7', name:'Mark Nottingham', email:'mnot@mnot.net', role:'User', reqs:1, last:'5h ago'},
+        {id:'u8', name:'Job Snijders', email:'job@fastly.com', role:'User', reqs:1, last:'30m ago'},
+      ],
+      activity: [
+        {who:'You', what:'approved', obj:'HTTP Semantics Review', when:'10m ago', kind:'ok'},
+        {who:'Lars Eggert', what:'submitted', obj:'QUIC Interop Planning', when:'1h ago', kind:'warn'},
+        {who:'You', what:'rejected', obj:'Media Codecs BoF Prep', when:'3h ago', kind:'bad'},
+        {who:'Liz Flynn', what:'blocked a slot in', obj:'Monteverdi', when:'5h ago', kind:'muted'},
+      ],
+    };
+    this.state.rooms.forEach((r, i) => { if (!r.color) r.color = this.roomColors[i % this.roomColors.length].value; });
+    const _stimes = ['08:20','09:14','11:02','13:05','14:32','16:48','10:37','15:21'];
+    this.state.requests.forEach((r, i) => { const sd = this.seed[r.id]; if (sd) { r.isIRTF = !!sd.isIRTF; r.areas = sd.areas || []; } if (!r.meetingId) r.meetingId = 'm126'; if (!r.submittedTime) r.submittedTime = _stimes[i % _stimes.length]; if (!r.uuid) r.uuid = (self.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('id-' + Math.random().toString(16).slice(2, 10)); });
+    this.state.rooms.forEach(r => { if (!r.meetingId) r.meetingId = 'm126'; });
+    this.state.rooms.push(
+      { id:'s1', meetingId:'m125', name:'Continental Ballroom', cap:60, floor:'Ballroom Level', desc:'Large ballroom on the ballroom level, divisible into sections. Used for the bigger side meetings and social gatherings.', sched:[[{s:540,e:720},{s:780,e:1020}],[{s:540,e:1020}],[{s:540,e:1020}],[{s:540,e:1020}],[{s:540,e:780}]] },
+      { id:'s2', meetingId:'m125', name:'Franciscan', cap:25, floor:'Level 2', desc:'Quiet room on level 2 with a U-shape table. Good for design teams and closed sessions.', sched:[[{s:600,e:780}],[{s:540,e:690},{s:840,e:1020}],[{s:600,e:900}],[{s:540,e:780}],[{s:600,e:840}]] },
+    );
+    this.state.requests.push(
+      { id:'SF-01', meetingId:'m125', title:'WebTransport Sync', desc:'Coordinate the WebTransport drafts and align with the W3C side.', org:{name:'Victor Vasiliev', email:'vasilvv@google.com', aff:'Google'}, extra:[], roomId:'s1', dayIndex:0, start:780, duration:90, linkType:'webex', link:'https://ietf.webex.com/meet/sf01', status:'approved', attendees:32, submitted:'Mar 14', isIRTF:false, areas:['WIT'] },
+      { id:'SF-02', meetingId:'m125', title:'CBOR Maintenance', desc:'Triage open CBOR errata and maintenance items.', org:{name:'Carsten Bormann', email:'cabo@tzi.org', aff:'TZI'}, extra:[], roomId:'s2', dayIndex:1, start:540, duration:60, linkType:'webex', link:'https://ietf.webex.com/meet/sf02', status:'approved', attendees:14, submitted:'Mar 12', isIRTF:false, areas:['ART'] },
+      { id:'SF-03', meetingId:'m125', title:'PQUIP Office Hours', desc:'Post-quantum readiness Q&A for implementers.', org:{name:'Sof\u00eda Celi', email:'sofia@brave.com', aff:'Brave'}, extra:[], roomId:'s1', dayIndex:2, start:660, duration:120, linkType:'custom', link:'https://meet.google.com/pquip', status:'approved', attendees:40, submitted:'Mar 10', isIRTF:true, areas:[] },
+      { id:'SF-04', meetingId:'m125', title:'NETCONF Coffee', desc:'Informal NETCONF/YANG catch-up.', org:{name:'Kent Watsen', email:'kent@watsen.net', aff:'Watsen Networks'}, extra:[], roomId:'s2', dayIndex:3, start:600, duration:60, linkType:'webex', link:'https://ietf.webex.com/meet/sf04', status:'rejected', attendees:10, submitted:'Mar 9', isIRTF:false, areas:['OPS'] },
+      { id:'SF-05', meetingId:'m125', title:'GNAP Wrap-up', desc:'Final review before publication.', org:{name:'Justin Richer', email:'justin@bspk.io', aff:'Bespoke'}, extra:[], roomId:'s1', dayIndex:4, start:540, duration:90, linkType:'webex', link:'https://ietf.webex.com/meet/sf05', status:'approved', attendees:18, submitted:'Mar 8', isIRTF:false, areas:['SEC'] },
+    );
+  }
+
+  componentDidMount() { this.applyTheme('midnight'); }
+  applyTheme(name) {
+    const t = this.themes[name]; if (!t) return;
+    const r = document.documentElement;
+    Object.entries(t).forEach(([k, v]) => r.style.setProperty(k, v));
+  }
+  setTheme = (name) => { this.setState({ theme: name }); this.applyTheme(name); };
+
+  statusMeta(s) {
+    return ({
+      approved: { label:'Approved', color:'var(--ok)' },
+      pending: { label:'Pending', color:'var(--warn)' },
+      rejected: { label:'Rejected', color:'var(--bad)' },
+      cancelled: { label:'Cancelled', color:'var(--muted)' },
+    })[s] || { label:s, color:'var(--muted)' };
+  }
+  badge(color) {
+    return {
+      color,
+      bg: 'color-mix(in srgb, ' + color + ' 14%, transparent)',
+      border: '1px solid color-mix(in srgb, ' + color + ' 26%, transparent)',
+    };
+  }
+  roomName(id) { const r = this.state.rooms.find(x => x.id === id); return r ? r.name : '\u2014'; }
+  roomById(id) { return this.state.rooms.find(x => x.id === id); }
+  fmt(m) { const h = Math.floor(m / 60), mm = m % 60; return String(h).padStart(2,'0') + ':' + String(mm).padStart(2,'0'); }
+  windowsFor(room, di) { return (room && room.sched && room.sched[di]) || []; }
+  bookingsFor(room, di, excludeId) {
+    return this.state.requests.filter(r => r.roomId === room.id && r.dayIndex === di && (r.status === 'approved' || r.status === 'pending') && r.id !== excludeId);
+  }
+  conflict(room, di, start, dur, excludeId) {
+    for (const r of this.bookingsFor(room, di, excludeId)) {
+      if (start < r.start + r.duration && r.start < start + dur) return true;
+    }
+    for (let t = start; t < start + dur; t += 30) {
+      if (this.state.blocked[room.id + ':' + di + ':' + t]) return true;
+    }
+    return false;
+  }
+  availableStarts(room, di, dur, excludeId) {
+    const res = [];
+    for (const w of this.windowsFor(room, di)) {
+      for (let s = w.s; s + dur <= w.e; s += 30) {
+        if (!this.conflict(room, di, s, dur, excludeId)) res.push(s);
+      }
+    }
+    return res;
+  }
+  timeShort(r) { return this.days[r.dayIndex].d + ' ' + this.fmt(r.start); }
+  setDraftField = (k, v) => this.setState(s => {
+    const d = { ...s.editDraft, [k]: v };
+    const room = this.roomById(d.roomId);
+    const starts = this.availableStarts(room, d.dayIndex, d.duration, d.id);
+    if (!starts.includes(d.start)) d.start = starts.length ? starts[0] : null;
+    return { editDraft: d };
+  });
+
+  navigate = (v) => this.setState({ view: v, modal: null });
+  showToast = (msg, color) => {
+    this.setState({ toast: msg, toastColor: color || 'var(--ok)' });
+    clearTimeout(this._tt);
+    this._tt = setTimeout(() => this.setState({ toast: null }), 2600);
+  };
+
+  openRequest = (id) => {
+    const r = this.state.requests.find(x => x.id === id);
+    this.setState({ view: 'detail', selectedRequestId: id, editDraft: { ...r, org: { ...r.org }, extra: (r.extra || []).map(x => typeof x === 'string' ? { name: x, email: '' } : { ...x }), isIRTF: !!r.isIRTF, areas: [...(r.areas || [])] }, newExtraName: '', newExtraEmail: '' });
+  };
+  toggleIRTF = () => this.setState(s => ({ editDraft: { ...s.editDraft, isIRTF: !s.editDraft.isIRTF } }));
+  toggleArea = (a) => this.setState(s => {
+    const set = new Set(s.editDraft.areas || []);
+    if (set.has(a)) set.delete(a); else set.add(a);
+    return { editDraft: { ...s.editDraft, areas: this.areas.filter(x => set.has(x)) } };
+  });
+  editOrg = (k, v) => this.setState(s => ({ editDraft: { ...s.editDraft, org: { ...s.editDraft.org, [k]: v } } }));
+  addExtra = () => this.setState(s => {
+    const name = (s.newExtraName || '').trim();
+    if (!name) return {};
+    return { editDraft: { ...s.editDraft, extra: [...(s.editDraft.extra || []), { name, email: (s.newExtraEmail || '').trim() }] }, newExtraName: '', newExtraEmail: '' };
+  });
+  removeExtra = (i) => this.setState(s => ({ editDraft: { ...s.editDraft, extra: s.editDraft.extra.filter((_, idx) => idx !== i) } }));
+  setStatus(id, status, msg, color) {
+    this.setState(s => ({ requests: s.requests.map(r => r.id === id ? { ...r, status } : r) }));
+    this.showToast(msg, color);
+  }
+  approve = (id) => this.setStatus(id, 'approved', 'Request approved \u2014 room reserved', 'var(--ok)');
+  reject = (id) => this.setStatus(id, 'rejected', 'Request rejected', 'var(--bad)');
+  cancelReq = (id) => this.setStatus(id, 'cancelled', 'Booking cancelled \u2014 slot released', 'var(--muted)');
+
+  editField = (k, v) => this.setState(s => ({ editDraft: { ...s.editDraft, [k]: v } }));
+  saveEdit = () => {
+    const d = this.state.editDraft;
+    this.setState(s => ({ requests: s.requests.map(r => r.id === d.id ? { ...d } : r) }));
+    this.showToast('Changes saved', 'var(--accent)');
+  };
+  resetEdit = () => {
+    const r = this.state.requests.find(x => x.id === this.state.selectedRequestId);
+    this.setState({ editDraft: { ...r, org: { ...r.org } } });
+  };
+
+  selectRoom = (id) => this.setState({ selectedRoomId: id });
+  toggleBlock = (key) => this.setState(s => {
+    const b = { ...s.blocked };
+    if (b[key]) delete b[key]; else b[key] = true;
+    return { blocked: b };
+  });
+
+  setViewMeeting = (id) => this.setState(s => {
+    const firstRoom = s.rooms.find(r => r.meetingId === id);
+    return { viewMeetingId: id, selectedRoomId: firstRoom ? firstRoom.id : null, modal: null };
+  });
+  openPickMeeting = () => this.setState({ modal: 'pickMeeting', pickSearch: '' });
+  setSettingField = (k, v) => this.setState(s => ({ settings: { ...s.settings, [k]: v } }));
+  addApprover = () => this.setState(s => {
+    const v = (s.newApprover || '').trim();
+    if (!v) return {};
+    return { settings: { ...s.settings, approvers: [...s.settings.approvers, v] }, newApprover: '' };
+  });
+  removeApprover = (i) => this.setState(s => ({ settings: { ...s.settings, approvers: s.settings.approvers.filter((_, idx) => idx !== i) } }));
+  saveSettings = () => this.showToast('Settings saved', 'var(--accent)');
+  setActiveMeeting = (id) => {
+    this.setState(s => ({
+      activeMeetingId: id,
+      meetings: s.meetings.map(m => ({ ...m, status: m.id === id ? 'active' : (m.status === 'active' ? 'past' : m.status) })),
+    }));
+    this.showToast('Active meeting switched', 'var(--accent)');
+  };
+  openEditUser = (id) => { const u = this.state.users.find(x => x.id === id); this.setState({ modal: 'user', editUserId: id, form: { name: u.name, email: u.email, role: u.role } }); };
+  deleteUser = (id) => { const u = this.state.users.find(x => x.id === id); if (u && u.you) { this.showToast("You can't delete your own account", 'var(--bad)'); return; } this.setState({ modal: 'confirmUser', confirmUserId: id }); };
+  confirmDeleteUser = () => this.setState(s => {
+    this.showToast('User removed', 'var(--bad)');
+    return { users: s.users.filter(x => x.id !== s.confirmUserId), modal: null, confirmUserId: null };
+  });
+  toggleBlockUser = (id) => this.setState(s => {
+    const u = s.users.find(x => x.id === id);
+    if (u && u.you) { this.showToast("You can't block your own account", 'var(--bad)'); return {}; }
+    const blk = !(u && u.blocked);
+    this.showToast(blk ? 'User blocked from submitting' : 'User unblocked', blk ? 'var(--bad)' : 'var(--ok)');
+    return { users: s.users.map(x => x.id === id ? { ...x, blocked: blk } : x) };
+  });
+
+  defaultSched() { const w = [{s:540,e:720},{s:780,e:1020}]; return [0,1,2,3,4].map(() => w.map(p => ({ ...p }))); }
+  cloneSched(sch) { return (sch || [[],[],[],[],[]]).map(a => (a || []).map(p => ({ ...p }))); }
+  openModal = (type) => this.setState({ modal: type, editRoomId: null, editMeetingId: null, editUserId: null, form: type === 'room' ? { sched: this.defaultSched(), color: this.roomColors[0].value } : (type === 'meeting' ? { tz: 'UTC' } : (type === 'user' ? { role: 'User' } : {})) });
+  closeModal = () => this.setState({ modal: null, form: {}, editRoomId: null, editMeetingId: null, editUserId: null, confirmMeetingId: null, confirmUserId: null, confirmRoomId: null });
+  formatDates(s, e) {
+    if (!s || !e) return 'TBD';
+    const M = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const a = new Date(s + 'T00:00:00'), b = new Date(e + 'T00:00:00');
+    const am = a.getMonth(), bm = b.getMonth(), ay = a.getFullYear(), by = b.getFullYear();
+    if (ay === by && am === bm) return M[am] + ' ' + a.getDate() + '\u2013' + b.getDate() + ', ' + ay;
+    if (ay === by) return M[am] + ' ' + a.getDate() + ' \u2013 ' + M[bm] + ' ' + b.getDate() + ', ' + ay;
+    return M[am] + ' ' + a.getDate() + ', ' + ay + ' \u2013 ' + M[bm] + ' ' + b.getDate() + ', ' + by;
+  }
+  openEditMeeting = (id) => { const m = this.state.meetings.find(x => x.id === id); this.setState({ modal: 'meeting', editMeetingId: id, form: { num: m.num, city: m.city, country: m.country, dateStart: m.startDate || '', dateEnd: m.endDate || '', venue: m.venue, tz: m.tz || 'UTC', subOpenDate: m.subOpenDate || '', subOpenTime: m.subOpenTime || '09:00', buffer: m.buffer != null ? String(m.buffer) : '0', minNotice: m.minNotice != null ? String(m.minNotice) : '0' } }); };
+  requestDeleteMeeting = (id) => this.setState({ modal: 'confirmMeeting', confirmMeetingId: id });
+  confirmDeleteMeeting = () => this.setState(s => {
+    const id = s.confirmMeetingId;
+    const meetings = s.meetings.filter(m => m.id !== id);
+    let activeMeetingId = s.activeMeetingId;
+    if (activeMeetingId === id) { const act = meetings.find(m => m.status === 'active') || meetings[0]; activeMeetingId = act ? act.id : null; }
+    this.showToast('Meeting deleted', 'var(--bad)');
+    return { meetings, activeMeetingId, modal: null, confirmMeetingId: null };
+  });
+  formField = (k, v) => this.setState(s => ({ form: { ...s.form, [k]: v } }));
+  openEditRoom = (id) => { const r = this.roomById(id); this.setState({ modal: 'room', editRoomId: id, form: { name: r.name, cap: String(r.cap), floor: r.floor, desc: r.desc || '', color: r.color || this.roomColors[0].value, sched: this.cloneSched(r.sched) } }); };
+  addPeriod = (di) => this.setState(s => {
+    const sch = this.cloneSched(s.form.sched);
+    const last = sch[di][sch[di].length - 1];
+    let start = last ? last.e + 30 : 540;
+    if (start > 1350) start = 540;
+    sch[di].push({ s: start, e: Math.min(start + 60, 1410) });
+    return { form: { ...s.form, sched: sch } };
+  });
+  removePeriod = (di, idx) => this.setState(s => { const sch = this.cloneSched(s.form.sched); sch[di].splice(idx, 1); return { form: { ...s.form, sched: sch } }; });
+  setPeriod = (di, idx, key, val) => this.setState(s => {
+    const sch = this.cloneSched(s.form.sched); const p = sch[di][idx];
+    p[key] = val;
+    if (p.e <= p.s) { if (key === 's') p.e = Math.min(p.s + 30, 1410); else p.s = Math.max(p.e - 30, 0); }
+    return { form: { ...s.form, sched: sch } };
+  });
+  deleteRoom = (id) => this.setState({ modal: 'confirmRoom', confirmRoomId: id });
+  confirmDeleteRoom = () => this.setState(s => {
+    const id = s.confirmRoomId;
+    const rooms = s.rooms.filter(r => r.id !== id);
+    const requests = s.requests.filter(r => r.roomId !== id);
+    const selectedRoomId = s.selectedRoomId === id ? (rooms.find(r => r.meetingId === s.viewMeetingId) ? rooms.find(r => r.meetingId === s.viewMeetingId).id : null) : s.selectedRoomId;
+    this.showToast('Room and its bookings deleted', 'var(--bad)');
+    return { rooms, requests, selectedRoomId, modal: null, confirmRoomId: null };
+  });
+  submitModal = () => {
+    const { modal, form, editRoomId } = this.state;
+    if (modal === 'room') {
+      if (editRoomId) {
+        this.setState(s => ({ rooms: s.rooms.map(r => r.id === editRoomId ? { ...r, name: form.name || r.name, cap: parseInt(form.cap) || r.cap, floor: form.floor || r.floor, desc: form.desc || '', color: form.color || r.color, sched: this.cloneSched(form.sched) } : r) }));
+        this.showToast('Room updated', 'var(--accent)');
+      } else {
+        const id = 'r' + (this.state.rooms.length + 1) + Date.now().toString().slice(-3);
+        this.setState(s => ({ rooms: [...s.rooms, { id, meetingId: s.viewMeetingId, name: form.name || 'New room', cap: parseInt(form.cap) || 20, floor: form.floor || 'Level 1', desc: form.desc || '', color: form.color || this.roomColors[0].value, sched: this.cloneSched(form.sched || this.defaultSched()) }] }));
+        this.showToast('Room added', 'var(--accent)');
+      }
+    } else if (modal === 'meeting') {
+      const dates = (form.dateStart && form.dateEnd) ? this.formatDates(form.dateStart, form.dateEnd) : null;
+      if (this.state.editMeetingId) {
+        const eid = this.state.editMeetingId;
+        this.setState(s => ({ meetings: s.meetings.map(m => m.id === eid ? { ...m, num: form.num || m.num, code: 'IETF ' + (form.num || m.num), city: form.city || m.city, country: form.country || m.country, startDate: form.dateStart || m.startDate, endDate: form.dateEnd || m.endDate, dates: dates || m.dates, venue: form.venue || m.venue, tz: form.tz || m.tz, subOpenDate: form.subOpenDate || m.subOpenDate, subOpenTime: form.subOpenTime || m.subOpenTime, buffer: form.buffer != null ? (parseInt(form.buffer) || 0) : m.buffer, minNotice: form.minNotice != null ? (parseInt(form.minNotice) || 0) : m.minNotice } : m) }));
+        this.showToast('Meeting updated', 'var(--accent)');
+      } else {
+        const id = 'm' + Date.now();
+        this.setState(s => ({ meetings: [...s.meetings, { id, num: form.num || '?', code: 'IETF ' + (form.num || '?'), city: form.city || 'TBD', country: form.country || '', startDate: form.dateStart || '', endDate: form.dateEnd || '', dates: dates || 'TBD', venue: form.venue || 'TBD', status: 'planning', rooms: 0, sidem: 0, tz: form.tz || 'UTC', subOpenDate: form.subOpenDate || '', subOpenTime: form.subOpenTime || '09:00', buffer: parseInt(form.buffer) || 0, minNotice: parseInt(form.minNotice) || 0 }] }));
+        this.showToast('Meeting created', 'var(--accent)');
+      }
+    } else if (modal === 'user') {
+      if (this.state.editUserId) {
+        const eid = this.state.editUserId;
+        this.setState(s => ({ users: s.users.map(u => u.id === eid ? { ...u, name: form.name || u.name, email: form.email || u.email, role: form.role || u.role } : u) }));
+        this.showToast('User updated', 'var(--accent)');
+      } else {
+        const id = 'u' + Date.now();
+        this.setState(s => ({ users: [...s.users, { id, name: form.name || 'New user', email: form.email || '', role: form.role || 'User', reqs: 0, last: 'invited', blocked: false }] }));
+        this.showToast('Invitation sent', 'var(--accent)');
+      }
+    }
+    this.closeModal();
+  };
+
+  navStyle(v) {
+    const active = this.state.view === v || (v === 'requests' && this.state.view === 'detail');
+    return { display:'flex', alignItems:'center', gap:'11px', width:'100%', padding:'9px 11px', border:'none', borderRadius:'9px', cursor:'pointer', font:'inherit', fontSize:'14px', fontWeight: active ? '600' : '500', textAlign:'left', transition:'background .14s', background: active ? 'var(--sidebar-active-bg)' : 'transparent', color: active ? 'var(--sidebar-active-text)' : 'var(--sidebar-text)' };
+  }
+  themeBtn(name) {
+    const active = this.state.theme === name;
+    return { padding:'6px 11px', border:'none', borderRadius:'7px', font:'inherit', fontSize:'12px', fontWeight:'600', cursor:'pointer', transition:'all .14s', background: active ? 'var(--surface)' : 'transparent', color: active ? 'var(--text)' : 'var(--text-dim)', boxShadow: active ? '0 1px 2px rgba(0,0,0,.08)' : 'none' };
+  }
+  filterStyle(key) {
+    const active = this.state.filter === key;
+    return { padding:'8px 14px', borderRadius:'9px', font:'inherit', fontSize:'13px', fontWeight:'600', cursor:'pointer', display:'inline-flex', alignItems:'center', gap:'7px', transition:'all .14s', background: active ? 'var(--accent)' : 'var(--surface)', color: active ? 'var(--accent-text)' : 'var(--text-dim)', border: active ? '1px solid var(--accent)' : '1px solid var(--border)' };
+  }
+
+  renderVals() {
+    const S = this.state;
+    const activeMeeting = S.meetings.find(m => m.id === S.activeMeetingId) || S.meetings[0];
+    const meeting = S.meetings.find(m => m.id === S.viewMeetingId) || activeMeeting;
+    this.days = this.computeDays(meeting);
+    const mid = meeting ? meeting.id : null;
+    const reqs = S.requests.filter(r => r.meetingId === mid);
+    const viewRooms = S.rooms.filter(r => r.meetingId === mid);
+    const count = st => reqs.filter(r => r.status === st).length;
+    const pendingCount = count('pending');
+
+    // nav
+    const out = {
+      navDashboard: this.navStyle('dashboard'),
+      navRequests: this.navStyle('requests'),
+      navRooms: this.navStyle('rooms'),
+      navMeetings: this.navStyle('meetings'),
+      navUsers: this.navStyle('users'),
+      navSettings: this.navStyle('settings'),
+      goDashboard: () => this.navigate('dashboard'),
+      goRequests: () => this.navigate('requests'),
+      goRooms: () => this.navigate('rooms'),
+      goMeetings: () => this.navigate('meetings'),
+      goUsers: () => this.navigate('users'),
+      goSettings: () => this.navigate('settings'),
+      meetingCode: meeting.code,
+      meetingCity: meeting.city + ', ' + meeting.country,
+      userMenuOpen: !!S.userMenu,
+      toggleUserMenu: () => this.setState(s => ({ userMenu: !s.userMenu })),
+      closeUserMenu: () => this.setState({ userMenu: false }),
+      logout: () => { this.setState({ userMenu: false }); this.showToast('Signed out', 'var(--muted)'); },
+      viewNum: meeting.num,
+      viewMeetingId: S.viewMeetingId,
+      openPickMeeting: this.openPickMeeting,
+      notViewingActive: S.viewMeetingId !== S.activeMeetingId,
+      viewMeetingLabel: meeting.code + ' \u00b7 ' + meeting.city,
+      viewStatusLabel: ({ active:'the active meeting', past:'a past meeting', planning:'an upcoming meeting' })[meeting.status] || meeting.status,
+      activeMeetingCode: activeMeeting ? (activeMeeting.code + ' \u00b7 ' + activeMeeting.city) : '',
+      backToActive: () => this.setViewMeeting(S.activeMeetingId),
+      pendingCount: pendingCount || '',
+      search: S.search,
+      onSearch: e => { const v = e.target.value; this.setState(st => ({ search: v, view: (st.view === 'dashboard' || st.view === 'requests') ? 'requests' : st.view })); },
+      isDashboard: S.view === 'dashboard',
+      isRequests: S.view === 'requests',
+      isDetail: S.view === 'detail',
+      isRooms: S.view === 'rooms',
+      isMeetings: S.view === 'meetings',
+      isUsers: S.view === 'users',
+      isSettings: S.view === 'settings',
+      setFromEmail: S.settings.fromEmail, setReplyTo: S.settings.replyTo,
+      onFromEmail: e => this.setSettingField('fromEmail', e.target.value),
+      onReplyTo: e => this.setSettingField('replyTo', e.target.value),
+      approverList: S.settings.approvers.map((a, i) => ({ email: a, onRemove: () => this.removeApprover(i) })),
+      hasApprovers: S.settings.approvers.length > 0,
+      newApprover: S.newApprover || '',
+      onNewApprover: e => this.setState({ newApprover: e.target.value }),
+      onNewApproverKey: e => { if (e.key === 'Enter') { e.preventDefault(); this.addApprover(); } },
+      addApprover: this.addApprover,
+      saveSettings: this.saveSettings,
+      toast: S.toast,
+      toastColor: S.toastColor,
+      stop: e => e.stopPropagation(),
+    };
+
+    // page title + top action
+    const titles = {
+      dashboard: ['Dashboard', meeting.code + ' \u00b7 ' + meeting.dates + ' \u00b7 ' + meeting.city],
+      requests: ['Bookings', reqs.length + ' total \u00b7 ' + pendingCount + ' awaiting review'],
+      detail: ['Booking details', 'Review, edit and decide'],
+      rooms: ['Rooms', viewRooms.length + ' rooms at ' + meeting.venue],
+      meetings: ['Meetings', 'Manage IETF meetings'],
+      users: ['Users', S.users.length + ' people \u00b7 organizers and admins'],
+      settings: ['Settings', 'Notification email configuration'],
+    };
+    out.pageTitle = titles[S.view][0];
+    out.pageSub = titles[S.view][1];
+    out.topAction = ({ rooms:'Add room', meetings:'New meeting', users:'Add user' })[S.view] || '';
+    out.topActionFn = () => this.openModal(({ rooms:'room', meetings:'meeting', users:'user' })[S.view]);
+
+    // dashboard
+    out.stats = [
+      { label:'Pending requests', value: pendingCount, sub:'awaiting your review', color:'var(--warn)' },
+      { label:'Approved', value: count('approved'), sub:'bookings', color:'var(--ok)' },
+      { label:'Rooms available', value: viewRooms.length, sub:'at ' + meeting.city, color:'var(--accent)' },
+    ];
+    const pend = reqs.filter(r => r.status === 'pending');
+    out.hasPending = pend.length > 0;
+    out.noPending = pend.length === 0;
+    out.pendingList = pend.slice(0, 5).map(r => ({
+      title: r.title, orgName: r.org.name, roomName: this.roomName(r.roomId),
+      timeShort: this.timeShort(r),
+      onOpen: () => this.openRequest(r.id), onApprove: () => this.approve(r.id), onReject: () => this.reject(r.id),
+    }));
+    out.roomUtil = viewRooms.map(rm => {
+      let win = 0, bk = 0;
+      this.days.forEach((_, di) => {
+        this.windowsFor(rm, di).forEach(w => win += w.e - w.s);
+        this.bookingsFor(rm, di, null).forEach(r => bk += r.duration);
+      });
+      return { name: rm.name, label: (Math.round(bk / 60 * 10) / 10) + 'h / ' + Math.round(win / 60) + 'h booked', pct: (win ? Math.round(bk / win * 100) : 0) + '%' };
+    });
+    out.activity = S.activity.map(a => ({ ...a, color: 'var(--' + a.kind + ')' }));
+
+    // requests list
+    const tabs = [['all','All'],['pending','Pending'],['approved','Approved'],['rejected','Rejected'],['cancelled','Cancelled']];
+    out.filterTabs = tabs.map(([key, label]) => ({
+      label, count: key === 'all' ? reqs.length : count(key), style: this.filterStyle(key),
+      onClick: () => this.setState({ filter: key }),
+    }));
+    const q = S.search.trim().toLowerCase();
+    let rows = reqs.filter(r => S.filter === 'all' || r.status === S.filter);
+    if (q) rows = rows.filter(r => (r.title + ' ' + r.org.name + ' ' + r.org.aff).toLowerCase().includes(q));
+    out.hasRequests = rows.length > 0;
+    out.noRequests = rows.length === 0;
+    out.requestRows = rows.map(r => {
+      const m = this.statusMeta(r.status); const b = this.badge(m.color);
+      return {
+        title: r.title, orgName: r.org.name, orgAff: r.org.aff, roomName: this.roomName(r.roomId),
+        dayLabel: this.days[r.dayIndex].d + ' ' + this.days[r.dayIndex].n, timeRange: this.fmt(r.start) + '\u2013' + this.fmt(r.start + r.duration),
+        statusLabel: m.label, badgeColor: b.color, badgeBg: b.bg, badgeBorder: b.border,
+        isPending: r.status === 'pending',
+        titleDeco: (r.status === 'rejected' || r.status === 'cancelled') ? 'line-through' : 'none',
+        titleColor: (r.status === 'rejected' || r.status === 'cancelled') ? 'var(--text-faint)' : 'var(--text)',
+        onOpen: () => this.openRequest(r.id), onApprove: () => this.approve(r.id), onReject: () => this.reject(r.id),
+      };
+    });
+
+    // detail
+    const d = S.editDraft;
+    if (d) {
+      const m = this.statusMeta(d.status); const b = this.badge(m.color);
+      let _tzAbbr = ''; try { const _p = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short' }).formatToParts(new Date()).find(x => x.type === 'timeZoneName'); _tzAbbr = _p ? _p.value : ''; } catch (e) {}
+      out.detailTitle = d.title; out.detailId = d.id; out.detailSubmitted = d.submitted + ' at ' + (d.submittedTime || '') + (_tzAbbr ? ' ' + _tzAbbr : ''); out.detailUuid = d.uuid || '';
+      out.detailStatusLabel = m.label; out.detailBadgeColor = b.color; out.detailBadgeBg = b.bg; out.detailBadgeBorder = b.border;
+      out.detailOrgName = d.org.name; out.detailOrgEmail = d.org.email;
+      out.hasExtra = d.extra && d.extra.length > 0;
+      out.extraSummary = (d.extra || []).map(x => typeof x === 'string' ? { name: x, email: '', hasEmail: false } : { name: x.name, email: x.email || '', hasEmail: !!x.email });
+      out.detailRoom = this.roomName(d.roomId); out.detailAttendees = '~' + d.attendees;
+      out.detailWhen = d.start == null ? 'No time selected' : (this.days[d.dayIndex].d + ' ' + this.days[d.dayIndex].n + ' \u00b7 ' + this.fmt(d.start) + '\u2013' + this.fmt(d.start + d.duration) + ' \u00b7 ' + d.duration + ' min');
+      out.detailLink = d.link; out.detailLinkType = d.linkType === 'webex' ? 'Webex (default)' : 'Custom link provided by organizer';
+      out.draftTitle = d.title; out.draftDesc = d.desc; out.draftRoom = d.roomId; out.draftDay = String(d.dayIndex); out.draftLink = d.link;
+      out.draftOrgName = d.org.name; out.draftOrgEmail = d.org.email;
+      out.onDraftOrgName = e => this.editOrg('name', e.target.value);
+      out.onDraftOrgEmail = e => this.editOrg('email', e.target.value);
+      out.extraList = (d.extra || []).map((x, i) => ({ name: typeof x === 'string' ? x : x.name, email: typeof x === 'string' ? '' : (x.email || ''), hasEmail: typeof x !== 'string' && !!x.email, onRemove: () => this.removeExtra(i) }));
+      out.hasExtraEdit = (d.extra || []).length > 0;
+      out.newExtraName = S.newExtraName || '';
+      out.newExtraEmail = S.newExtraEmail || '';
+      out.onNewExtraName = e => this.setState({ newExtraName: e.target.value });
+      out.onNewExtraEmail = e => this.setState({ newExtraEmail: e.target.value });
+      out.onNewExtraKey = e => { if (e.key === 'Enter') { e.preventDefault(); this.addExtra(); } };
+      out.addExtra = this.addExtra;
+      out.draftIsIRTF = !!d.isIRTF;
+      out.onToggleIRTF = this.toggleIRTF;
+      out.showAreas = !d.isIRTF;
+      out.areaChips = this.areas.map(a => {
+        const on = (d.areas || []).includes(a);
+        return { name: a, onClick: () => this.toggleArea(a),
+          style: { padding:'7px 14px', borderRadius:'8px', font:'inherit', fontSize:'13px', fontWeight:'600', cursor:'pointer', letterSpacing:'.03em', transition:'all .12s', background: on ? 'var(--accent-weak)' : 'var(--surface)', color: on ? 'var(--accent)' : 'var(--text-dim)', border: on ? '1px solid var(--accent)' : '1px solid var(--border-strong)' } };
+      });
+      out.checkboxStyle = { width:'20px', height:'20px', borderRadius:'6px', flex:'0 0 20px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', transition:'all .12s', background: d.isIRTF ? 'var(--accent)' : 'var(--surface)', border: d.isIRTF ? '1px solid var(--accent)' : '1px solid var(--border-strong)' };
+      out.detailAreaPills = d.isIRTF ? [{ label: 'IRTF' }] : ((d.areas || []).length ? d.areas.map(a => ({ label: a })) : [{ label: 'No area set' }]);
+      out.detailTrack = d.isIRTF ? 'IRTF' : ((d.areas || []).length ? d.areas.join(', ') : 'IETF \u2014 no area set');
+      out.draftDuration = String(d.duration);
+      out.draftStart = d.start == null ? '' : String(d.start);
+      out.onDraftTitle = e => this.editField('title', e.target.value);
+      out.onDraftDesc = e => this.editField('desc', e.target.value);
+      out.onDraftRoom = e => this.setDraftField('roomId', e.target.value);
+      out.onDraftDay = e => this.setDraftField('dayIndex', parseInt(e.target.value));
+      out.onDraftDuration = e => this.setDraftField('duration', parseInt(e.target.value));
+      out.onDraftStart = e => this.editField('start', parseInt(e.target.value));
+      out.onDraftLink = e => this.editField('link', e.target.value);
+      out.roomOptions = viewRooms.map(r => ({ id: r.id, name: r.name + ' (cap ' + r.cap + ')' }));
+      out.dayOptions = this.days.map((x, i) => ({ i: String(i), label: x.d + ' ' + x.n }));
+      out.durationOptions = this.durations.map(x => ({ v: String(x), label: x + ' minutes' }));
+      const startsAvail = this.availableStarts(this.roomById(d.roomId), d.dayIndex, d.duration, d.id);
+      out.startOptions = startsAvail.map(s => ({ v: String(s), label: this.fmt(s) + ' \u2013 ' + this.fmt(s + d.duration) }));
+      out.noStarts = startsAvail.length === 0;
+      const lb = on => ({ flex:'1', padding:'8px 10px', borderRadius:'8px', font:'inherit', fontSize:'12.5px', fontWeight:'600', cursor:'pointer', background: on ? 'var(--accent-weak)' : 'var(--surface)', color: on ? 'var(--accent)' : 'var(--text-dim)', border: on ? '1px solid var(--accent)' : '1px solid var(--border-strong)' });
+      out.linkWebexBtn = lb(d.linkType === 'webex');
+      out.linkCustomBtn = lb(d.linkType === 'custom');
+      out.setLinkWebex = () => this.setState(s => ({ editDraft: { ...s.editDraft, linkType: 'webex', link: 'https://ietf.webex.com/meet/' + s.editDraft.id.toLowerCase().replace('-','') } }));
+      out.setLinkCustom = () => this.editField('linkType', 'custom');
+      out.saveEdit = this.saveEdit; out.resetEdit = this.resetEdit;
+      out.approveDetail = () => { this.approve(d.id); this.editField('status', 'approved'); };
+      out.rejectDetail = () => { this.reject(d.id); this.editField('status', 'rejected'); };
+      out.cancelDetail = () => { this.cancelReq(d.id); this.editField('status', 'cancelled'); };
+    }
+
+    // rooms
+    out.roomCards = viewRooms.map(rm => {
+      let win = 0, bkMin = 0, booked = 0;
+      this.days.forEach((_, di) => {
+        this.windowsFor(rm, di).forEach(w => win += w.e - w.s);
+        const bs = this.bookingsFor(rm, di, null);
+        booked += bs.length; bs.forEach(r => bkMin += r.duration);
+      });
+      const blkMin = Object.keys(S.blocked).filter(k => k.startsWith(rm.id + ':') && S.blocked[k]).length * 30;
+      const freeH = Math.max(0, win - bkMin - blkMin) / 60;
+      const sel = rm.id === S.selectedRoomId;
+      return {
+        name: rm.name, cap: rm.cap, floor: rm.floor, desc: rm.desc || 'No description.', color: rm.color || 'var(--text-faint)', booked, free: (Math.round(freeH * 10) / 10) + 'h',
+        onSelect: () => this.selectRoom(rm.id),
+        onEdit: (e) => { e.stopPropagation(); this.openEditRoom(rm.id); },
+        onDelete: (e) => { e.stopPropagation(); this.deleteRoom(rm.id); },
+        style: { flex:'1', minWidth:'248px', maxWidth:'360px', textAlign:'left', padding:'16px', borderRadius:'13px', cursor:'pointer', font:'inherit', background:'var(--surface)', transition:'all .14s', boxShadow: sel ? 'var(--shadow), inset 0 0 0 1px rgba(45,212,191,.5), inset 0 0 26px rgba(45,212,191,.22)' : 'var(--shadow)', border: sel ? '2px solid var(--accent)' : '1px solid var(--border)' },
+      };
+    });
+    out.hasRooms = viewRooms.length > 0;
+    out.noRooms = viewRooms.length === 0;
+    const selRoom = viewRooms.find(r => r.id === S.selectedRoomId) || viewRooms[0] || { id:'__none', name:'', desc:'', sched:[[],[],[],[],[]] };
+    out.selectedRoomName = selRoom.name || '';
+    out.selectedRoomDesc = selRoom.desc || '';
+    out.roomHours = this.days.map((dy, di) => ({
+      day: dy.d, n: dy.n,
+      txt: this.windowsFor(selRoom, di).map(w => this.fmt(w.s) + '\u2013' + this.fmt(w.e)).join(', ') || 'Closed',
+    }));
+    let gmin = Infinity, gmax = -Infinity;
+    this.days.forEach((_, di) => this.windowsFor(selRoom, di).forEach(w => { if (w.s < gmin) gmin = w.s; if (w.e > gmax) gmax = w.e; }));
+    if (!isFinite(gmin)) { gmin = 540; gmax = 1020; }
+    const rowCount = (gmax - gmin) / 30;
+    out.gridStyle = { display:'grid', gridTemplateColumns:'58px repeat(5,1fr)', gridTemplateRows:'repeat(' + rowCount + ',26px)', minWidth:'720px' };
+    const cells = [];
+    for (let i = 0; i < rowCount; i++) {
+      const t = gmin + i * 30; const onHour = t % 60 === 0;
+      cells.push({ text: onHour ? this.fmt(t) : '', onClick: null, style: { gridColumn:'1', gridRow: String(i + 1), fontSize:'10px', fontFamily:"'IBM Plex Mono',monospace", color: onHour ? 'var(--text-dim)' : 'var(--text-faint)', display:'flex', justifyContent:'flex-end', paddingRight:'8px', transform:'translateY(-7px)' } });
+    }
+    this.days.forEach((dy, di) => {
+      for (let i = 0; i < rowCount; i++) {
+        const t = gmin + i * 30; const onHour = t % 60 === 0;
+        const within = this.windowsFor(selRoom, di).some(w => t >= w.s && t < w.e);
+        const key = selRoom.id + ':' + di + ':' + t;
+        const base = { gridColumn: String(di + 2), gridRow: String(i + 1), borderTop: '1px solid ' + (onHour ? 'var(--border)' : 'var(--surface-3)'), borderLeft: '1px solid var(--surface-3)' };
+        if (!within) {
+          cells.push({ text:'', onClick: null, style: { ...base, background:'repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 5px,var(--surface-3) 5px,var(--surface-3) 10px)' } });
+        } else {
+          cells.push({ text:'', onClick: null, style: { ...base, background:'var(--surface)' } });
+        }
+      }
+    });
+    this.days.forEach((dy, di) => {
+      this.bookingsFor(selRoom, di, null).forEach(r => {
+        const startRow = (r.start - gmin) / 30 + 1; const span = r.duration / 30;
+        const c = r.status === 'approved' ? 'var(--ok)' : 'var(--warn)';
+        cells.push({ text: r.title + '  ' + this.fmt(r.start) + '\u2013' + this.fmt(r.start + r.duration), onClick: () => this.openRequest(r.id), style: { gridColumn: String(di + 2), gridRow: startRow + ' / span ' + span, background:'color-mix(in srgb,' + c + ' 18%, var(--surface))', border:'1px solid color-mix(in srgb,' + c + ' 50%,transparent)', borderLeft:'3px solid ' + c, borderRadius:'6px', margin:'1px 3px', padding:'4px 7px', fontSize:'11px', fontWeight:'600', color:'var(--text)', cursor:'pointer', overflow:'hidden', zIndex:'2', lineHeight:'1.25' } });
+      });
+    });
+    out.gridCells = cells;
+
+    // meetings
+    out.meetingCards = [...S.meetings].sort((a, b) => (b.startDate || '').localeCompare(a.startDate || '')).map(m => {
+      const sm = ({ active:['Active','var(--ok)'], past:['Past','var(--muted)'], planning:['Planning','var(--accent)'] })[m.status];
+      const viewing = m.id === S.viewMeetingId;
+      const subOpen = (m.subOpenDate && m.subOpenTime) ? (m.subOpenDate + ' ' + m.subOpenTime) : null;
+      const now = new Date();
+      const openAt = subOpen ? new Date(m.subOpenDate + 'T' + m.subOpenTime + ':00') : null;
+      const closeAt = m.endDate ? new Date(m.endDate + 'T23:59:59') : null;
+      let subState = 'unset';
+      if (subOpen) {
+        if (now < openAt) subState = 'pending';
+        else if (closeAt && now > closeAt) subState = 'closed';
+        else subState = 'open';
+      }
+      const subMeta = {
+        unset: ['Submissions window not set', 'var(--muted)'],
+        pending: ['Submissions not yet open', 'var(--warn)'],
+        open: ['Submissions open', 'var(--ok)'],
+        closed: ['Submissions closed', 'var(--muted)'],
+      }[subState];
+      return {
+        num: m.num, code: m.code, city: m.city, dates: m.dates, venue: m.venue,
+        subOpenLabel: subOpen ? (subOpen + ' · ' + (m.tz || 'UTC')) : 'Not set',
+        hasSubOpen: !!subOpen,
+        subStatusLabel: subMeta[0],
+        subStatusColor: subMeta[1],
+        rooms: S.rooms.filter(r => r.meetingId === m.id).length,
+        sidem: S.requests.filter(r => r.meetingId === m.id).length,
+        tz: m.tz || '\u2014',
+        buffer: (m.buffer || 0) + ' min', minNotice: (m.minNotice || 0) + ' min',
+        statusLabel: sm[0], statusColor: sm[1], statusBg: 'color-mix(in srgb,' + sm[1] + ' 14%,transparent)',
+        borderColor: m.status === 'active' ? 'var(--accent)' : 'var(--border)',
+        cardShadow: m.status === 'active' ? 'var(--shadow), inset 0 0 0 1px rgba(45,212,191,.5), inset 0 0 26px rgba(45,212,191,.22)' : 'var(--shadow)',
+        viewing,
+        onView: () => this.setViewMeeting(m.id),
+        viewBtnStyle: { padding:'6px 12px', borderRadius:'8px', font:'inherit', fontSize:'12.5px', fontWeight:'600', whiteSpace:'nowrap', cursor: viewing ? 'default' : 'pointer', display:'inline-flex', alignItems:'center', gap:'6px', background: viewing ? 'var(--accent-weak)' : 'var(--surface)', color: viewing ? 'var(--accent)' : 'var(--text)', border: viewing ? '1px solid var(--accent)' : '1px solid var(--border-strong)' },
+        viewBtnLabel: viewing ? 'Viewing' : 'View',
+        onActivate: () => this.setActiveMeeting(m.id),
+        onEdit: () => this.openEditMeeting(m.id),
+        onDelete: () => this.requestDeleteMeeting(m.id),
+        btnLabel: m.status === 'active' ? 'Active' : 'Set active',
+        btnStyle: { padding:'6px 12px', borderRadius:'8px', font:'inherit', fontSize:'12.5px', fontWeight:'600', whiteSpace:'nowrap', cursor: m.status==='active' ? 'default' : 'pointer', background: m.status==='active' ? 'var(--accent-weak)' : 'var(--surface)', color: m.status==='active' ? 'var(--accent)' : 'var(--text)', border: m.status==='active' ? '1px solid var(--accent)' : '1px solid var(--border-strong)' },
+      };
+    });
+
+    // users
+    const uq = (S.userSearch || '').trim().toLowerCase();
+    out.userSearch = S.userSearch || '';
+    out.onUserSearch = e => this.setState({ userSearch: e.target.value });
+    out.userRows = S.users.filter(u => !uq || (u.name + ' ' + u.email).toLowerCase().includes(uq)).map((u, i) => ({
+      name: u.name, email: u.email, role: u.role, reqs: u.reqs, you: !!u.you, blocked: !!u.blocked,
+      roleColor: u.role === 'Admin' ? 'var(--accent)' : 'var(--text-dim)',
+      roleBg: u.role === 'Admin' ? 'color-mix(in srgb, var(--accent) 14%, transparent)' : 'var(--surface-3)',
+      initial: u.name.charAt(0), avBg: u.blocked ? 'var(--muted)' : this.avatarColors[i % this.avatarColors.length],
+      isAdmin: u.role === 'Admin',
+      blockLabel: u.role === 'Admin' ? 'Admins can\u2019t be blocked' : (u.blocked ? 'Unblock' : 'Block'),
+      deleteLabel: u.role === 'Admin' ? 'Admins can\u2019t be deleted' : 'Delete user',
+      onEdit: () => this.openEditUser(u.id),
+      onDelete: u.role === 'Admin' ? undefined : () => this.deleteUser(u.id),
+      onBlock: u.role === 'Admin' ? undefined : () => this.toggleBlockUser(u.id),
+      blockBtnStyle: { width:'30px', height:'30px', borderRadius:'8px', border:'1px solid var(--border-strong)', background:'var(--surface)', display:'flex', alignItems:'center', justifyContent:'center', color: u.role === 'Admin' ? 'var(--text-faint)' : (u.blocked ? 'var(--ok)' : 'var(--warn)'), opacity: u.role === 'Admin' ? '.4' : '1', cursor: u.role === 'Admin' ? 'not-allowed' : 'pointer' },
+      deleteBtnStyle: { width:'30px', height:'30px', borderRadius:'8px', border:'1px solid var(--border-strong)', background:'var(--surface)', display:'flex', alignItems:'center', justifyContent:'center', color: u.role === 'Admin' ? 'var(--text-faint)' : 'var(--bad)', opacity: u.role === 'Admin' ? '.4' : '1', cursor: u.role === 'Admin' ? 'not-allowed' : 'pointer' },
+    }));
+
+    // modal
+    out.modal = S.modal;
+    if (S.modal) {
+      const cfg = {
+        room: { title: S.editRoomId ? 'Edit room' : 'Add room', sub: S.editRoomId ? 'Update this room\u2019s details.' : ('Add a bookable room for ' + meeting.code + '.'), cta: S.editRoomId ? 'Save room' : 'Add room', fields:[['name','Room name','e.g. Albéniz'],['cap','Capacity','e.g. 30'],['floor','Floor / location','e.g. Level 1'],['desc','Description','Short description of the room']] },
+        meeting: { title: S.editMeetingId ? 'Edit meeting' : 'New meeting', sub: S.editMeetingId ? 'Update this meeting\u2019s details.' : 'Create a new IETF meeting.', cta: S.editMeetingId ? 'Save meeting' : 'Create meeting', fields:[['num','Meeting number','e.g. 128'],['city','City','e.g. Vienna'],['country','Country','e.g. Austria'],['venue','Venue','Conference center']] },
+        user: { title: S.editUserId ? 'Edit user' : 'Add user', sub: S.editUserId ? 'Update this user\u2019s details and role.' : 'Add a new user and assign their role.', cta: S.editUserId ? 'Save user' : 'Add user', fields:[['name','Full name',''],['email','Email','']] },
+      }[S.modal];
+      out.closeModal = this.closeModal; out.submitModal = this.submitModal;
+      out.showFormModal = !!cfg;
+      out.isRoomModal = S.modal === 'room';
+      out.isMeetingModal = S.modal === 'meeting';
+      out.isUserModal = S.modal === 'user';
+      out.modalMaxW = S.modal === 'room' ? '640px' : '440px';
+      if (S.modal === 'user') {
+        out.roleOptions = [{ v:'Admin', label:'Admin' }, { v:'User', label:'User' }];
+        out.draftRole = S.form.role || 'User';
+        out.onDraftRole = e => this.formField('role', e.target.value);
+      }
+      if (cfg) {
+        out.modalTitle = cfg.title; out.modalSub = cfg.sub; out.modalCta = cfg.cta;
+        out.modalFields = cfg.fields.map(([k, label, ph]) => ({ label, placeholder: ph, value: S.form[k] || '', onInput: e => this.formField(k, e.target.value) }));
+      }
+      if (S.modal === 'meeting') {
+        out.tzOptions = this.timezones.map(t => ({ v: t, label: t }));
+        out.draftTz = S.form.tz || 'UTC';
+        out.onDraftTz = e => this.formField('tz', e.target.value);
+        out.draftDateStart = S.form.dateStart || '';
+        out.draftDateEnd = S.form.dateEnd || '';
+        out.onDraftDateStart = e => this.formField('dateStart', e.target.value);
+        out.onDraftDateEnd = e => this.formField('dateEnd', e.target.value);
+        const iso = /^\d{4}-\d{2}-\d{2}$/;
+        const validRange = iso.test(S.form.dateStart || '') && iso.test(S.form.dateEnd || '');
+        out.draftDatePreview = validRange ? this.formatDates(S.form.dateStart, S.form.dateEnd) : '';
+        out.hasDatePreview = validRange;
+        out.draftSubDate = S.form.subOpenDate || '';
+        out.draftSubTime = S.form.subOpenTime || '';
+        out.onDraftSubDate = e => this.formField('subOpenDate', e.target.value);
+        out.onDraftSubTime = e => this.formField('subOpenTime', e.target.value);
+        out.draftBuffer = S.form.buffer != null ? S.form.buffer : '0';
+        out.draftMinNotice = S.form.minNotice != null ? S.form.minNotice : '0';
+        out.onDraftBuffer = e => this.formField('buffer', e.target.value);
+        out.onDraftMinNotice = e => this.formField('minNotice', e.target.value);
+      }
+      if (S.modal === 'pickMeeting') {
+        out.showPick = true;
+        out.pickSearch = S.pickSearch || '';
+        out.onPickSearch = e => this.setState({ pickSearch: e.target.value });
+        const pq = (S.pickSearch || '').trim().toLowerCase();
+        const sorted = [...S.meetings].sort((a, b) => (b.startDate || '').localeCompare(a.startDate || ''));
+        const filtered = pq ? sorted.filter(m => (m.code + ' ' + m.city + ' ' + m.country + ' ' + m.venue).toLowerCase().includes(pq)) : sorted;
+        out.pickEmpty = filtered.length === 0;
+        out.pickList = filtered.map(m => {
+          const sm = ({ active:['Active','var(--ok)'], past:['Past','var(--muted)'], planning:['Planning','var(--accent)'] })[m.status];
+          const selected = m.id === S.viewMeetingId;
+          return {
+            num: m.num, code: m.code, place: m.city + ', ' + m.country, dates: m.dates, venue: m.venue,
+            statusLabel: sm[0], statusColor: sm[1], statusBg: 'color-mix(in srgb,' + sm[1] + ' 14%,transparent)',
+            isActive: m.id === S.activeMeetingId, selected,
+            onPick: () => this.setViewMeeting(m.id),
+            rowStyle: { display:'flex', alignItems:'center', gap:'14px', width:'100%', textAlign:'left', padding:'14px', borderRadius:'12px', cursor:'pointer', font:'inherit', color:'var(--text)', transition:'all .12s', background: selected ? 'var(--accent-weak)' : 'var(--surface-2)', border: selected ? '1px solid var(--accent)' : '1px solid var(--border)', boxShadow: selected ? 'inset 0 0 0 1px rgba(45,212,191,.5), inset 0 0 26px rgba(45,212,191,.22)' : 'none' },
+          };
+        });
+      }
+      if (S.modal === 'confirmMeeting') {
+        const cm = S.meetings.find(m => m.id === S.confirmMeetingId);
+        out.showConfirm = true;
+        out.confirmName = cm ? (cm.code + ' \u00b7 ' + cm.city) : '';
+        out.confirmRooms = cm ? S.rooms.filter(r => r.meetingId === cm.id).length : 0;
+        out.confirmSidem = cm ? S.requests.filter(r => r.meetingId === cm.id).length : 0;
+        out.onConfirmDelete = this.confirmDeleteMeeting;
+      }
+      if (S.modal === 'confirmRoom') {
+        const cr = this.roomById(S.confirmRoomId);
+        out.showConfirmRoom = true;
+        out.confirmRoomName = cr ? cr.name : '';
+        out.confirmRoomBookings = cr ? S.requests.filter(r => r.roomId === S.confirmRoomId).length : 0;
+        out.onConfirmDeleteRoom = this.confirmDeleteRoom;
+      }
+      if (S.modal === 'confirmUser') {
+        const cu = S.users.find(u => u.id === S.confirmUserId);
+        out.showConfirmUser = true;
+        out.confirmUserName = cu ? cu.name : '';
+        out.confirmUserBookings = cu ? S.requests.filter(r => r.org && r.org.email === cu.email).length : 0;
+        out.onConfirmDeleteUser = this.confirmDeleteUser;
+      }
+      if (S.modal === 'room') {
+        out.roomColorOptions = this.roomColors.map(c => ({ name: c.name, value: c.value, selected: (S.form.color || this.roomColors[0].value) === c.value, onPick: () => this.formField('color', c.value) }));
+        const sch = S.form.sched || [[], [], [], [], []];
+        const tOpts = [];
+        for (let t = 420; t <= 1410; t += 30) tOpts.push({ v: String(t), label: this.fmt(t) });
+        out.timeOptions = tOpts;
+        out.roomModalSched = this.days.map((dy, di) => ({
+          day: dy.d, n: dy.n,
+          onAdd: () => this.addPeriod(di),
+          hasPeriods: (sch[di] || []).length > 0,
+          noPeriods: (sch[di] || []).length === 0,
+          periods: (sch[di] || []).map((p, idx) => ({
+            sVal: String(p.s), eVal: String(p.e),
+            onS: e => this.setPeriod(di, idx, 's', parseInt(e.target.value)),
+            onE: e => this.setPeriod(di, idx, 'e', parseInt(e.target.value)),
+            onRemove: () => this.removePeriod(di, idx),
+          })),
+        }));
+      }
+    }
+
+    return out;
+  }
+}
+</script>
+</body>
+</html>

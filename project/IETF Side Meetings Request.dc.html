@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: 'Hanken Grotesk', system-ui, sans-serif; }
+  :root {
+    --bg:#0d1016; --surface:#151a22; --surface-2:#1a2029; --surface-3:#222a35;
+    --border:#272f3b; --border-strong:#36404e;
+    --text:#e7ebf1; --text-dim:#9aa4b4; --text-faint:#6b7585;
+    --accent:#2dd4bf; --accent-text:#04241f; --accent-weak:#13312e;
+    --ok:#34d399; --warn:#e3a93b; --bad:#f0716a; --muted:#7a8493;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:8px; border:2px solid var(--bg); }
+  ::-webkit-scrollbar-track { background:transparent; }
+  input:hover:not(:focus), textarea:hover:not(:focus) { border-color: var(--text-faint) !important; }
+  input:focus, textarea:focus { border-color: var(--accent) !important; }
+  button { transition: box-shadow .14s ease, background-color .14s ease, filter .14s ease, transform .14s ease; }
+  @keyframes scIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:none; } }
+  @keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(14px) scale(.98); } to { opacity:1; transform: translateX(-50%) translateY(0) scale(1); } }
+  @keyframes popIn { from { opacity:0; transform: scale(.85); } to { opacity:1; transform: scale(1); } }
+</style>
+</helmet>
+<div style="min-height:100vh; width:100%; background:var(--bg); color:var(--text); overflow-y:auto; font-size:14px; line-height:1.45; display:flex; flex-direction:column; align-items:center; padding:0 24px 80px;">
+
+  <!-- TOP BAR -->
+  <header style="width:100%; max-width:960px; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 2px 4px;">
+    <div style="display:flex; align-items:center; gap:11px;">
+      <div style="width:34px; height:34px; border-radius:9px; background:var(--accent); color:var(--accent-text); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; letter-spacing:-.02em;">SM</div>
+      <div>
+        <div style="font-weight:700; font-size:14px; letter-spacing:-.01em;">Side Meetings</div>
+        <div style="font-size:11px; color:var(--text-faint); font-weight:500;">Request a room</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-radius:11px; padding:8px 12px;">
+      <div style="width:30px;height:30px;border-radius:8px;background:var(--accent-weak);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;font-family:'IBM Plex Mono',monospace;flex:0 0 30px;">{{ meetingNum }}</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;line-height:1.2;">{{ meetingCode }}</div>
+        <div style="font-size:11px;color:var(--text-dim);">{{ meetingWhere }}</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STEPPER -->
+  <div style="width:100%; max-width:680px; display:flex; align-items:center; padding:26px 0 30px;">
+    <sc-for list="{{ stepItems }}" as="s" hint-placeholder-count="4">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="{{ s.circleStyle }}">
+          <sc-if value="{{ s.done }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+          <sc-if value="{{ s.showNum }}" hint-placeholder-val="{{ true }}">{{ s.num }}</sc-if>
+        </div>
+        <div style="{{ s.labelStyle }}">{{ s.label }}</div>
+      </div>
+      <sc-if value="{{ s.notLast }}" hint-placeholder-val="{{ true }}"><div style="{{ s.lineStyle }}"></div></sc-if>
+    </sc-for>
+  </div>
+
+  <!-- STEP 1: ROOMS -->
+  <sc-if value="{{ isRooms }}" hint-placeholder-val="{{ true }}">
+  <div data-screen-label="Choose room" style="width:100%; max-width:960px; animation:scIn .25s ease;">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="font-size:26px; font-weight:800; letter-spacing:-.025em;">Choose a room</div>
+      <div style="font-size:14px; color:var(--text-dim); margin-top:6px;">Pick the space that fits your side meeting. You'll choose a time next.</div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;">
+      <sc-for list="{{ roomCards }}" as="rc" hint-placeholder-count="3">
+        <button onClick="{{ rc.onSelect }}" style="text-align:left; cursor:pointer; font:inherit; color:var(--text); background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:18px; display:flex; flex-direction:column; gap:0;" style-hover="border-color:var(--accent); transform:translateY(-3px)">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+            <div style="font-size:16px; font-weight:700; display:flex; align-items:center; gap:9px;"><span style="width:10px; height:10px; border-radius:50%; flex:0 0 10px; background:{{ rc.color }};"></span>{{ rc.name }}</div>
+          </div>
+          <div style="font-size:13px; color:var(--text-dim); margin-top:10px; line-height:1.5; flex:1;">{{ rc.desc }}</div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding-top:14px; border-top:1px solid var(--surface-3);">
+            <span style="font-size:12.5px; color:var(--text-faint); display:flex; align-items:center; gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M18 20a5.2 5.2 0 0 0-3-4.7"></path></svg>capacity <b style="font-weight:700; color:var(--text);">{{ rc.cap }}</b></span>
+            <span style="font-size:13px; font-weight:700; color:var(--accent); display:flex; align-items:center; gap:6px;">Select<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+          </div>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- STEP 2: TIME -->
+  <sc-if value="{{ isTime }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Pick time" style="width:100%; max-width:960px; animation:scIn .25s ease;">
+    <button onClick="{{ backToRooms }}" style="display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:var(--text-dim);background:none;border:none;cursor:pointer;margin-bottom:16px;padding:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"></path></svg>Choose a different room
+    </button>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); overflow:hidden;">
+      <!-- room header -->
+      <div style="padding:18px 20px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div style="max-width:560px;">
+          <div style="font-size:17px; font-weight:700; display:flex; align-items:center; gap:9px;"><span style="width:10px; height:10px; border-radius:50%; flex:0 0 10px; background:{{ selRoomColor }};"></span>{{ selRoomName }} <span style="font-size:12.5px; color:var(--text-faint); display:inline-flex; align-items:center; gap:6px; font-weight:500; border:1px solid var(--border); border-radius:20px; padding:3px 11px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M18 20a5.2 5.2 0 0 0-3-4.7"></path></svg>capacity <b style="font-weight:700; color:var(--text);">{{ selRoomCap }}</b></span></div>
+          <div style="font-size:12.5px; color:var(--text-dim); margin-top:7px; line-height:1.5;">{{ selRoomDesc }}</div>
+        </div>
+      </div>
+
+      <!-- duration toggle -->
+      <div style="padding:16px 20px; border-bottom:1px solid var(--border); background:var(--surface-2); display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+        <div style="font-size:12.5px; font-weight:600; color:var(--text-dim);">Side Meeting length</div>
+        <div style="display:flex; gap:8px;">
+          <sc-for list="{{ durBtns }}" as="d" hint-placeholder-count="3">
+            <button onClick="{{ d.onClick }}" style="{{ d.style }}">{{ d.label }}</button>
+          </sc-for>
+        </div>
+        <div style="flex:1;"></div>
+        <div style="font-size:12px; text-align:right; line-height:1.5;"><span style="color:var(--text);">All times are in the <b style="font-weight:700;">{{ meetingTz }}</b> timezone</span><br><span style="color:var(--text-faint);">Pick any open slot below</span></div>
+      </div>
+
+      <!-- day columns -->
+      <div style="overflow-x:auto;">
+        <div style="display:grid; grid-template-columns:repeat(5,minmax(150px,1fr)); gap:0; min-width:760px;">
+          <sc-for list="{{ timeCols }}" as="c" hint-placeholder-count="5">
+            <div style="{{ c.colStyle }}">
+              <div style="text-align:center; padding-bottom:12px; border-bottom:1px solid var(--surface-3); margin-bottom:12px;">
+                <div style="font-size:13px; font-weight:700;">{{ c.day }}</div>
+                <div style="font-size:12px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace;">{{ c.dateLabel }}</div>
+              </div>
+              <sc-if value="{{ c.hasSlots }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-direction:column; gap:7px;">
+                  <sc-for list="{{ c.slots }}" as="sl" hint-placeholder-count="4">
+                    <button onClick="{{ sl.onClick }}" style="{{ sl.style }}"><span style="width:7px; height:7px; border-radius:50%; flex:0 0 7px; background:var(--ok);"></span>{{ sl.label }}</button>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ c.closed }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center; font-size:12px; color:var(--text-faint); padding:18px 0;">Closed</div>
+              </sc-if>
+              <sc-if value="{{ c.full }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center; font-size:12px; color:var(--text-faint); padding:18px 0; line-height:1.5;">No open<br>{{ durationLabel }} slots</div>
+              </sc-if>
+              <sc-if value="{{ c.hasBooked }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:12px; padding-top:11px; border-top:1px dashed var(--surface-3);">
+                  <div style="font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--text-faint); margin-bottom:6px;">Already booked</div>
+                  <div style="display:flex; flex-direction:column; gap:5px;">
+                    <sc-for list="{{ c.booked }}" as="b" hint-placeholder-count="2">
+                      <div style="font-size:11px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; text-decoration:line-through;">{{ b.label }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- STEP 3: DETAILS -->
+  <sc-if value="{{ isDetails }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Details" style="width:100%; max-width:680px; animation:scIn .25s ease;">
+    <button onClick="{{ backToTime }}" style="display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:13px;font-weight:600;color:var(--text-dim);background:none;border:none;cursor:pointer;margin-bottom:16px;padding:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m15 18-6-6 6-6"></path></svg>Pick a different time
+    </button>
+
+    <!-- selected slot banner -->
+    <div style="display:flex; align-items:center; gap:14px; padding:15px 18px; border-radius:13px; background:var(--accent-weak); border:1px solid color-mix(in srgb,var(--accent) 40%,transparent); margin-bottom:20px;">
+      <div style="width:40px;height:40px;border-radius:10px;flex:0 0 40px;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3v4M8 3v4M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Z"></path></svg></div>
+      <div>
+        <div style="font-size:15px; font-weight:700; color:var(--text);">{{ bannerWhen }} <span style="font-weight:500; color:color-mix(in srgb, var(--accent) 65%, var(--text-dim));">({{ meetingTz }})</span></div>
+        <div style="font-size:12.5px; color:var(--text-dim);">{{ bannerRoom }}</div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:24px; display:flex; flex-direction:column; gap:18px;">
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Organizer</label>
+        <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:9px 8px 9px 13px; display:flex; align-items:center; gap:10px;">
+          <div style="width:28px;height:28px;border-radius:50%;flex:0 0 28px;background:var(--accent);color:var(--accent-text);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;">{{ orgInitial }}</div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600;">{{ orgName }} <span style="font-size:10px; font-weight:700; color:var(--accent); background:var(--accent-weak); padding:1px 6px; border-radius:5px;">You</span></div>
+            <div style="font-size:12px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace;">{{ orgEmail }}</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Title <span style="color:var(--bad);">*</span></label>
+        <input value="{{ fTitle }}" onInput="{{ onTitle }}" placeholder="e.g. DNSOP Hackathon Sync" style="width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Description <span style="color:var(--bad);">*</span></label>
+        <textarea value="{{ fDesc }}" onInput="{{ onDesc }}" rows="3" placeholder="What is this side meeting about?" style="width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:13.5px;outline:none;resize:vertical;line-height:1.5;"></textarea>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:7px;">Meeting type</label>
+        <div style="display:flex; gap:9px;">
+          <button onClick="{{ setIETF }}" style="{{ ietfBtn }}">
+            <div style="font-size:13.5px; font-weight:700;">IETF side meeting</div>
+          </button>
+          <button onClick="{{ setIRTF }}" style="{{ irtfBtn }}">
+            <div style="font-size:13.5px; font-weight:700;">IRTF side meeting</div>
+          </button>
+        </div>
+      </div>
+
+      <sc-if value="{{ showAreas }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:7px;">IETF area(s) <span style="color:var(--text-faint);font-weight:400;">· optional · select one or more</span></label>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <sc-for list="{{ areaChips }}" as="a" hint-placeholder-count="7">
+              <button onClick="{{ a.onClick }}" style="{{ a.style }}">{{ a.name }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Custom video tool link <span style="color:var(--text-faint);font-weight:400;">· optional</span></label>
+        <input value="{{ fLink }}" onInput="{{ onLink }}" placeholder="https://…" style="width:100%;padding:11px 13px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-family:'IBM Plex Mono',monospace;outline:none;">
+        <div style="font-size:11.5px; color:var(--text-faint); margin-top:6px;">If left empty, a Webex meeting link will be created for you.</div>
+      </div>
+
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;">Additional co-organizers <span style="color:var(--text-faint);font-weight:400;">· optional</span></label>
+        <sc-if value="{{ hasExtra }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; flex-direction:column; gap:7px; margin-bottom:9px;">
+            <sc-for list="{{ extraList }}" as="x" hint-placeholder-count="2">
+              <div style="display:flex; align-items:center; gap:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:8px 8px 8px 13px;">
+                <div style="flex:1; min-width:0;">
+                  <div style="font-size:13px; font-weight:600;">{{ x.name }}</div>
+                  <sc-if value="{{ x.hasEmail }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px; color:var(--text-dim); font-family:'IBM Plex Mono',monospace;">{{ x.email }}</div></sc-if>
+                </div>
+                <button onClick="{{ x.onRemove }}" title="Remove" style="width:24px;height:24px;flex:0 0 24px;border-radius:7px;border:none;background:var(--surface-3);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                </button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <div style="display:flex; gap:8px;">
+          <input value="{{ newExtraName }}" onInput="{{ onNewExtraName }}" onKeyDown="{{ onNewExtraKey }}" placeholder="Name" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:14px;outline:none;">
+          <input value="{{ newExtraEmail }}" onInput="{{ onNewExtraEmail }}" onKeyDown="{{ onNewExtraKey }}" placeholder="Email" style="flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-family:'IBM Plex Mono',monospace;outline:none;">
+          <button onClick="{{ addExtra }}" style="padding:10px 16px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface-2);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Add</button>
+        </div>
+      </div>
+
+      <div onClick="{{ onToggleAgree }}" style="display:flex; align-items:flex-start; gap:11px; padding:13px 15px; border:1px solid var(--border-strong); border-radius:10px; cursor:pointer; background:var(--surface-2);">
+        <div style="{{ agreeBoxStyle }}">
+          <sc-if value="{{ agreed }}" hint-placeholder-val="{{ false }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-text)" stroke-width="3"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+        </div>
+        <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">I agree to follow IETF processes and policies, a reminder of which is given in the <a href="https://www.ietf.org/about/note-well/" target="_blank" onClick="{{ stopLink }}" style="color:var(--accent); text-decoration:none;">IETF Note Well</a>, and in doing so I consent to the use of my information in accordance with the <a href="https://www.ietf.org/privacy-statement/" target="_blank" onClick="{{ stopLink }}" style="color:var(--accent); text-decoration:none;">IETF/IRTF/IAB Privacy Statement</a>. I acknowledge that all organizers and attendees must be registered IETF participants; that side meetings must be open and free to all registered participants; and that any recording may occur only with the active consent of all participants.<div style="margin-top:8px;">For more information: <a href="https://www.ietf.org/meeting/side-meetings/" target="_blank" onClick="{{ stopLink }}" style="color:var(--accent); text-decoration:none; font-family:'IBM Plex Mono',monospace; word-break:break-all;">https://www.ietf.org/meeting/side-meetings/</a></div></div>
+      </div>
+
+      <div style="display:flex; gap:10px; padding-top:6px; border-top:1px solid var(--border); padding-top:18px;">
+        <button onClick="{{ submitReq }}" disabled="{{ submitDisabled }}" style="{{ submitStyle }}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Submit request
+        </button>
+        <button onClick="{{ backToTime }}" style="padding:12px 18px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--text-dim);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">Back</button>
+      </div>
+      <sc-if value="{{ submitDisabled }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:12px; color:var(--text-faint); margin-top:-8px;">{{ submitHint }}</div>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- STEP 4: CONFIRMATION -->
+  <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Confirmation" style="width:100%; max-width:600px; animation:scIn .25s ease;">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div style="width:64px;height:64px;border-radius:50%;margin:0 auto 18px;background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok);display:flex;align-items:center;justify-content:center;animation:popIn .35s cubic-bezier(.34,1.56,.64,1);"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"></path></svg></div>
+      <div style="font-size:26px; font-weight:800; letter-spacing:-.025em;">Request submitted</div>
+      <div style="font-size:14px; color:var(--text-dim); margin-top:8px; line-height:1.55;">Your side meeting request has been received and will be reviewed soon. We'll send an email to <span style="color:var(--text); font-weight:600;">{{ orgEmail }}</span> with the details. Once approved, your co-organizers will also receive the email.</div>
+    </div>
+
+    <div style="background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:22px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <div style="font-size:15px; font-weight:700;">{{ cTitle }}</div>
+        <span style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:3px 11px; border-radius:20px; color:var(--warn); background:color-mix(in srgb,var(--warn) 14%,transparent); border:1px solid color-mix(in srgb,var(--warn) 26%,transparent);"><span style="width:7px;height:7px;border-radius:50%;background:var(--warn);"></span>Pending review</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Room</div><div style="font-size:13.5px;font-weight:600;margin-top:3px;">{{ cRoom }}</div></div>
+        <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">When</div><div style="font-size:13.5px;font-weight:600;margin-top:3px;">{{ cWhen }} <span style="font-weight:500; color:var(--text-faint);">({{ meetingTz }})</span></div></div>
+        <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Video link</div><div style="font-size:12.5px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;margin-top:3px;word-break:break-all;">{{ cLink }}</div></div>
+        <div><div style="font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.04em;">Organizers</div><div style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"><sc-for list="{{ cOrganizers }}" as="o" hint-placeholder-count="1"><div style="font-size:13px;"><span style="font-weight:600;">{{ o.name }}</span> <span style="color:var(--text-dim); font-family:'IBM Plex Mono',monospace; font-size:12px;">{{ o.email }}</span></div></sc-for></div></div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; justify-content:center; gap:10px; margin-top:22px; flex-wrap:wrap;">
+      <button onClick="{{ viewMeetings }}" style="display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border:none;border-radius:10px;background:var(--accent);color:var(--accent-text);font:inherit;font-size:13px;font-weight:700;cursor:pointer;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>View side meetings
+      </button>
+      <button onClick="{{ restart }}" style="display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border:1px solid var(--border-strong);border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"></path></svg>Request another side meeting
+      </button>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--text); color:var(--surface); padding:12px 18px; border-radius:11px; box-shadow:0 12px 32px rgba(0,0,0,.4); font-size:13.5px; font-weight:600; display:flex; align-items:center; gap:9px; z-index:60; animation:toastIn .25s ease;">
+      <span style="width:8px; height:8px; border-radius:50%; background:var(--accent);"></span>{{ toast }}
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;midnight&quot;,&quot;options&quot;:[&quot;midnight&quot;,&quot;daylight&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;accentColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#2dd4bf&quot;,&quot;options&quot;:[&quot;#2dd4bf&quot;,&quot;#4f46e5&quot;,&quot;#1f7a52&quot;,&quot;#d97706&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;defaultDuration&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;60&quot;,&quot;options&quot;:[&quot;60&quot;,&quot;90&quot;,&quot;120&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Booking&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.durations = [60, 90, 120];
+    this.areas = ['ART', 'GEN', 'INT', 'OPS', 'RTG', 'SEC', 'WIT'];
+    this.themes = {
+      midnight: { '--bg':'#0d1016','--surface':'#151a22','--surface-2':'#1a2029','--surface-3':'#222a35','--border':'#272f3b','--border-strong':'#36404e','--text':'#e7ebf1','--text-dim':'#9aa4b4','--text-faint':'#6b7585','--accent':'#2dd4bf','--accent-text':'#04241f','--accent-weak':'#13312e','--ok':'#34d399','--warn':'#e3a93b','--bad':'#f0716a','--muted':'#7a8493','--shadow':'0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35)' },
+      daylight: { '--bg':'#f4f5f7','--surface':'#ffffff','--surface-2':'#f7f8fa','--surface-3':'#eef0f3','--border':'#e6e8ec','--border-strong':'#d4d8df','--text':'#171a20','--text-dim':'#5b6472','--text-faint':'#9aa2b1','--accent':'#4f46e5','--accent-text':'#ffffff','--accent-weak':'#ecebfd','--ok':'#15935f','--warn':'#c1820a','--bad':'#d4453b','--muted':'#8a93a3','--shadow':'0 1px 2px rgba(18,22,31,.04), 0 4px 16px rgba(18,22,31,.05)' },
+    };
+    this.meeting = { num:'126', code:'IETF 126', city:'Madrid', country:'Spain', startDate:'2026-07-18', dates:'July 18\u201324, 2026', venue:'Madrid Marriott Auditorium', tz:'Europe/Madrid' };
+    this.days = this.computeDays(this.meeting);
+    this.rooms = [
+      {id:'r1', name:'Auditorium Foyer A', cap:30, floor:'Level 0', color:'#38bdf8', desc:'Open foyer space by the main auditorium \u2014 best for informal gatherings, standing meetings and hackathon syncs. No fixed seating.', sched:[[{s:540,e:660},{s:780,e:960}],[{s:570,e:720},{s:780,e:900}],[{s:540,e:720}],[{s:780,e:1020}],[{s:540,e:660},{s:840,e:960}]]},
+      {id:'r2', name:'Monteverdi', cap:50, floor:'Level 1', color:'#a855f7', desc:'Mid-size meeting room with projector, screen and rounded-table seating. Suited to working lunches and larger side meetings.', sched:[[{s:480,e:720},{s:780,e:1080}],[{s:480,e:1080}],[{s:660,e:840},{s:1020,e:1200}],[{s:540,e:780}],[{s:540,e:1020}]]},
+      {id:'r3', name:'Liszt', cap:20, floor:'Level 1', color:'#10b981', desc:'Compact breakout room with a whiteboard. Ideal for design teams and small focused group work.', sched:[[{s:600,e:780}],[{s:540,e:690},{s:840,e:990}],[{s:450,e:570}],[{s:780,e:1080},{s:1140,e:1260}],[{s:720,e:900}]]},
+    ];
+    // existing bookings (for conflict / availability)
+    this.bookings = [
+      {roomId:'r2', dayIndex:0, start:780, duration:90}, {roomId:'r1', dayIndex:0, start:780, duration:120},
+      {roomId:'r3', dayIndex:1, start:540, duration:90}, {roomId:'r1', dayIndex:1, start:780, duration:60},
+      {roomId:'r3', dayIndex:2, start:450, duration:60}, {roomId:'r2', dayIndex:2, start:660, duration:120},
+      {roomId:'r1', dayIndex:3, start:780, duration:60}, {roomId:'r3', dayIndex:3, start:1140, duration:90},
+      {roomId:'r2', dayIndex:4, start:570, duration:60}, {roomId:'r3', dayIndex:4, start:720, duration:90},
+    ];
+    this.organizer = { name:'Lars Eggert', email:'lars@eggert.org' };
+    this.state = {
+      step: 'rooms',
+      selectedRoomId: null,
+      duration: parseInt(this.props.defaultDuration || '60') || 60,
+      selectedDay: null,
+      selectedStart: null,
+      form: { title:'', desc:'', isIRTF:false, areas:[], link:'' },
+      extra: [],
+      newExtraName: '', newExtraEmail: '',
+      agreed: false,
+      toast: null,
+      submitted: null,
+    };
+  }
+
+  computeDays(m) {
+    const WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const base = (m && m.startDate) ? new Date(m.startDate + 'T00:00:00') : new Date('2026-07-18T00:00:00');
+    const dow = base.getDay();
+    const add = dow === 0 ? 1 : (dow === 1 ? 0 : (8 - dow) % 7);
+    const mon = new Date(base); mon.setDate(base.getDate() + add);
+    const out = [];
+    for (let i = 0; i < 5; i++) { const dd = new Date(mon); dd.setDate(mon.getDate() + i); out.push({ d: WD[dd.getDay()], n: dd.getDate(), mo: MO[dd.getMonth()] }); }
+    return out;
+  }
+  componentDidMount() { this.applyTheme(); }
+  componentDidUpdate(prev) { if (prev.theme !== this.props.theme || prev.accentColor !== this.props.accentColor) this.applyTheme(); }
+  applyTheme() {
+    const name = this.props.theme || 'midnight';
+    const t = this.themes[name] || this.themes.midnight;
+    const r = document.documentElement;
+    Object.entries(t).forEach(([k, v]) => r.style.setProperty(k, v));
+    const ac = this.props.accentColor;
+    if (ac) {
+      r.style.setProperty('--accent', ac);
+      r.style.setProperty('--accent-weak', 'color-mix(in srgb, ' + ac + ' 16%, var(--surface))');
+      r.style.setProperty('--accent-text', name === 'daylight' ? '#ffffff' : '#04241f');
+    }
+  }
+
+  roomById(id) { return this.rooms.find(r => r.id === id); }
+  fmt(m) { const h = Math.floor(m / 60), mm = m % 60; return String(h).padStart(2,'0') + ':' + String(mm).padStart(2,'0'); }
+  windowsFor(room, di) { return (room && room.sched && room.sched[di]) || []; }
+  bookingsFor(room, di) { return this.bookings.filter(r => r.roomId === room.id && r.dayIndex === di); }
+  conflict(room, di, start, dur) {
+    for (const r of this.bookingsFor(room, di)) { if (start < r.start + r.duration && r.start < start + dur) return true; }
+    return false;
+  }
+  availableStarts(room, di, dur) {
+    const res = [];
+    for (const w of this.windowsFor(room, di)) {
+      for (let s = w.s; s + dur <= w.e; s += 30) { if (!this.conflict(room, di, s, dur)) res.push(s); }
+    }
+    return res;
+  }
+  showToast = (msg) => { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: null }), 2600); };
+
+  selectRoom = (id) => this.setState({ selectedRoomId: id, step: 'time', selectedDay: null, selectedStart: null });
+  setDuration = (d) => this.setState({ duration: d, selectedDay: null, selectedStart: null });
+  pickSlot = (di, s) => this.setState({ selectedDay: di, selectedStart: s, step: 'details' });
+  backToRooms = () => this.setState({ step: 'rooms' });
+  backToTime = () => this.setState({ step: 'time' });
+
+  setFormField = (k, v) => this.setState(s => ({ form: { ...s.form, [k]: v } }));
+  toggleArea = (a) => this.setState(s => {
+    const set = new Set(s.form.areas || []);
+    if (set.has(a)) set.delete(a); else set.add(a);
+    return { form: { ...s.form, areas: this.areas.filter(x => set.has(x)) } };
+  });
+  addExtra = () => this.setState(s => {
+    const name = (s.newExtraName || '').trim();
+    if (!name) return {};
+    return { extra: [...s.extra, { name, email: (s.newExtraEmail || '').trim() }], newExtraName: '', newExtraEmail: '' };
+  });
+  removeExtra = (i) => this.setState(s => ({ extra: s.extra.filter((_, idx) => idx !== i) }));
+
+  toggleAgree = () => this.setState(s => ({ agreed: !s.agreed }));
+  submitReq = () => {
+    const s = this.state;
+    if (!(s.form.title || '').trim()) { this.showToast('Please add a title'); return; }
+    if (!(s.form.desc || '').trim()) { this.showToast('Please add a description'); return; }
+    if (!s.agreed) { this.showToast('Please accept the agreement'); return; }
+    const room = this.roomById(s.selectedRoomId);
+    const dy = this.days[s.selectedDay];
+    const link = (s.form.link || '').trim() || ('https://ietf.webex.com/meet/sm-' + Math.random().toString(36).slice(2, 7));
+    this.setState({
+      step: 'done',
+      submitted: {
+        title: s.form.title.trim(),
+        room: room.name,
+        when: dy.d + ' ' + dy.mo + ' ' + dy.n + ' \u00b7 ' + this.fmt(s.selectedStart) + '\u2013' + this.fmt(s.selectedStart + s.duration) + ' \u00b7 ' + s.duration + ' min',
+        isIRTF: s.form.isIRTF, areas: [...s.form.areas], link,
+        organizers: [{ name: this.organizer.name, email: this.organizer.email }, ...s.extra],
+      },
+    });
+    this.showToast('Request submitted for review');
+  };
+  restart = () => this.setState({ step: 'rooms', selectedRoomId: null, duration: parseInt(this.props.defaultDuration || '60') || 60, selectedDay: null, selectedStart: null, form: { title:'', desc:'', isIRTF:false, areas:[], link:'' }, extra: [], newExtraName:'', newExtraEmail:'', agreed: false, submitted: null });
+
+  durStyle(on) { return { padding:'8px 16px', borderRadius:'9px', font:'inherit', fontSize:'13px', fontWeight:'600', cursor:'pointer', transition:'all .12s', background: on ? 'var(--accent)' : 'var(--surface)', color: on ? 'var(--accent-text)' : 'var(--text-dim)', border: on ? '1px solid var(--accent)' : '1px solid var(--border-strong)' }; }
+  typeStyle(on) { return { flex:'1', textAlign:'left', padding:'12px 14px', borderRadius:'10px', font:'inherit', cursor:'pointer', transition:'all .12s', background: on ? 'var(--accent-weak)' : 'var(--surface)', color: on ? 'var(--accent)' : 'var(--text-dim)', border: on ? '1px solid var(--accent)' : '1px solid var(--border-strong)' }; }
+
+  renderVals() {
+    const S = this.state;
+    const out = {
+      meetingNum: this.meeting.num,
+      meetingCode: this.meeting.code,
+      meetingWhere: this.meeting.city + ' \u00b7 ' + this.meeting.dates,
+      isRooms: S.step === 'rooms', isTime: S.step === 'time', isDetails: S.step === 'details', isDone: S.step === 'done',
+      toast: S.toast,
+      orgName: this.organizer.name, orgEmail: this.organizer.email, orgInitial: this.organizer.name.charAt(0),
+      durationLabel: S.duration + ' min',
+      meetingTz: this.meeting.tz,
+    };
+
+    // stepper
+    const labels = ['Choose a room', 'Pick a time', 'Meeting details', 'Confirmation'];
+    const cur = { rooms:0, time:1, details:2, done:3 }[S.step];
+    out.stepItems = labels.map((label, i) => {
+      const done = i < cur, active = i === cur;
+      return {
+        label, num: i + 1, done, showNum: !done, notLast: i < labels.length - 1,
+        circleStyle: { width:'28px', height:'28px', flex:'0 0 28px', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'12.5px', fontWeight:'700', transition:'all .2s', background: (done || active) ? 'var(--accent)' : 'var(--surface-2)', color: (done || active) ? 'var(--accent-text)' : 'var(--text-faint)', border: (done || active) ? '1px solid var(--accent)' : '1px solid var(--border)' },
+        labelStyle: { fontSize:'12.5px', fontWeight: active ? '700' : '600', whiteSpace:'nowrap', color: active ? 'var(--text)' : (done ? 'var(--text-dim)' : 'var(--text-faint)') },
+        lineStyle: { flex:'1', height:'2px', minWidth:'18px', margin:'0 12px', borderRadius:'2px', background: i < cur ? 'var(--accent)' : 'var(--border)' },
+      };
+    });
+
+    // step 1: rooms
+    out.roomCards = this.rooms.map(rm => ({
+      name: rm.name, cap: rm.cap, floor: rm.floor, color: rm.color, desc: rm.desc,
+      onSelect: () => this.selectRoom(rm.id),
+    }));
+
+    // step 2: time
+    const room = this.roomById(S.selectedRoomId);
+    if (room) {
+      out.selRoomName = room.name; out.selRoomCap = room.cap; out.selRoomDesc = room.desc; out.selRoomColor = room.color;
+      out.durBtns = this.durations.map(d => ({ label: d + ' min', onClick: () => this.setDuration(d), style: this.durStyle(d === S.duration) }));
+      out.timeCols = this.days.map((dy, di) => {
+        const windows = this.windowsFor(room, di);
+        const starts = this.availableStarts(room, di, S.duration);
+        const booked = this.bookingsFor(room, di).slice().sort((a, b) => a.start - b.start);
+        return {
+          day: dy.d, dateLabel: dy.mo + ' ' + dy.n,
+          colStyle: { padding:'16px 12px', borderRight: di < 4 ? '1px solid var(--surface-3)' : 'none' },
+          closed: windows.length === 0,
+          full: windows.length > 0 && starts.length === 0,
+          hasSlots: starts.length > 0,
+          slots: starts.map(s => ({
+            label: this.fmt(s) + '\u2013' + this.fmt(s + S.duration),
+            onClick: () => this.pickSlot(di, s),
+            style: { width:'100%', padding:'9px 10px', borderRadius:'8px', font:'inherit', fontSize:'12.5px', fontWeight:'600', fontFamily:"'IBM Plex Mono',monospace", cursor:'pointer', transition:'all .12s', background:'var(--surface-2)', color:'var(--text)', border:'1px solid var(--border-strong)', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px' },
+          })),
+          hasBooked: booked.length > 0,
+          booked: booked.map(b => ({ label: this.fmt(b.start) + '\u2013' + this.fmt(b.start + b.duration) })),
+        };
+      });
+      out.timeColsHoverNote = '';
+    }
+
+    // step 3: details
+    const f = S.form;
+    out.fTitle = f.title; out.fDesc = f.desc; out.fLink = f.link;
+    out.onTitle = e => this.setFormField('title', e.target.value);
+    out.onDesc = e => this.setFormField('desc', e.target.value);
+    out.onLink = e => this.setFormField('link', e.target.value);
+    out.setIETF = () => this.setFormField('isIRTF', false);
+    out.setIRTF = () => this.setFormField('isIRTF', true);
+    out.ietfBtn = this.typeStyle(!f.isIRTF);
+    out.irtfBtn = this.typeStyle(f.isIRTF);
+    out.showAreas = !f.isIRTF;
+    out.areaChips = this.areas.map(a => {
+      const on = (f.areas || []).includes(a);
+      return { name: a, onClick: () => this.toggleArea(a),
+        style: { padding:'7px 14px', borderRadius:'8px', font:'inherit', fontSize:'13px', fontWeight:'600', cursor:'pointer', letterSpacing:'.03em', transition:'all .12s', background: on ? 'var(--accent-weak)' : 'var(--surface)', color: on ? 'var(--accent)' : 'var(--text-dim)', border: on ? '1px solid var(--accent)' : '1px solid var(--border-strong)' } };
+    });
+    out.hasExtra = S.extra.length > 0;
+    out.extraList = S.extra.map((x, i) => ({ name: x.name, email: x.email, hasEmail: !!x.email, onRemove: () => this.removeExtra(i) }));
+    out.newExtraName = S.newExtraName; out.newExtraEmail = S.newExtraEmail;
+    out.onNewExtraName = e => this.setState({ newExtraName: e.target.value });
+    out.onNewExtraEmail = e => this.setState({ newExtraEmail: e.target.value });
+    out.onNewExtraKey = e => { if (e.key === 'Enter') { e.preventDefault(); this.addExtra(); } };
+    out.addExtra = this.addExtra;
+    if (room && S.selectedDay != null && S.selectedStart != null) {
+      const dy = this.days[S.selectedDay];
+      out.bannerWhen = dy.d + ' ' + dy.mo + ' ' + dy.n + ' \u00b7 ' + this.fmt(S.selectedStart) + '\u2013' + this.fmt(S.selectedStart + S.duration);
+      out.bannerRoom = room.name + ' \u00b7 ' + S.duration + ' minutes';
+    }
+    const hasTitle = (f.title || '').trim().length > 0;
+    const hasDesc = (f.desc || '').trim().length > 0;
+    const can = hasTitle && hasDesc && S.agreed;
+    out.submitDisabled = !can;
+    out.agreed = S.agreed;
+    out.onToggleAgree = this.toggleAgree;
+    out.stopLink = e => e.stopPropagation();
+    out.agreeBoxStyle = { width:'20px', height:'20px', borderRadius:'6px', flex:'0 0 20px', marginTop:'1px', display:'flex', alignItems:'center', justifyContent:'center', transition:'all .12s', background: S.agreed ? 'var(--accent)' : 'var(--surface)', border: S.agreed ? '1px solid var(--accent)' : '1px solid var(--border-strong)' };
+    out.submitHint = !hasTitle ? 'Add a title to submit your request.' : (!hasDesc ? 'Add a description to submit your request.' : 'Please accept the agreement to submit your request.');
+    out.submitStyle = { display:'inline-flex', alignItems:'center', gap:'8px', padding:'12px 20px', border:'none', borderRadius:'10px', font:'inherit', fontSize:'14px', fontWeight:'700', cursor: can ? 'pointer' : 'not-allowed', background: can ? 'var(--accent)' : 'var(--surface-3)', color: can ? 'var(--accent-text)' : 'var(--text-faint)', opacity: can ? '1' : '.7' };
+    out.submitReq = this.submitReq;
+    out.backToRooms = this.backToRooms; out.backToTime = this.backToTime;
+
+    // step 4: confirmation
+    const sub = S.submitted;
+    if (sub) {
+      out.cTitle = sub.title; out.cRoom = sub.room; out.cWhen = sub.when; out.cLink = sub.link;
+      out.cTypePills = sub.isIRTF ? [{ label: 'IRTF' }] : (sub.areas.length ? sub.areas.map(a => ({ label: a })) : [{ label: 'IETF \u2014 no area set' }]);
+      out.cOrganizers = sub.organizers.map(o => ({ name: o.name, email: o.email }));
+    }
+    out.restart = this.restart;
+    out.viewMeetings = () => this.showToast('Opening side meetings…');
+
+    return out;
+  }
+}
+</script>
+</body>
+</html>
