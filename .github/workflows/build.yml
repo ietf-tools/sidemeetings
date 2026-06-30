@@ -3,6 +3,16 @@ run-name: Build ${{ github.run_number }} of branch ${{ github.ref_name }} by @${
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy to K8S'
+        default: 'Skip'
+        required: true
+        type: choice
+        options:
+          - Skip
+          - Staging Only
+          - Staging + Prod
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,9 +28,11 @@ jobs:
     permissions:
       contents: write
       packages: write
+    outputs:
+      pkg_version: ${{ steps.semver.outputs.nextStrict  }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Get Next Version
         id: semver
@@ -36,7 +48,7 @@ jobs:
           yq -iP '.version = "${{ steps.semver.outputs.nextStrict }}"' package.json -o json
 
       - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -46,13 +58,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         env:
           DOCKER_BUILD_SUMMARY: false
         with:
           context: .
           file: docker/release.Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: |
             ghcr.io/ietf-tools/sidemeetings:${{ steps.semver.outputs.nextStrict }}
@@ -91,3 +103,48 @@ jobs:
           name: ${{ steps.semver.outputs.nextStrict }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
+
+  # -----------------------------------------------------------------
+  # STAGING
+  # -----------------------------------------------------------------
+  staging:
+    name: Deploy to Staging
+    if: ${{ !failure() && !cancelled() && (inputs.deploy == 'Staging Only' || inputs.deploy == 'Staging + Prod') }}
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+    env:
+      PKG_VERSION: ${{needs.build.outputs.pkg_version}}
+
+    steps:
+      - name: Deploy to staging
+        uses: ietf-tools/workflow-dispatch-action@v1
+        with:
+          workflow: deploy.yml
+          repo: ietf-tools/infra-k8s
+          ref: main
+          token: ${{ secrets.GH_INFRA_K8S_TOKEN }}
+          inputs: '{ "environment":"${{ secrets.GHA_K8S_CLUSTER }}", "app":"sidemeetings", "appVersion":"${{ env.PKG_VERSION }}", "remoteRef":"${{ github.sha }}" }'
+
+  # -----------------------------------------------------------------
+  # PROD
+  # -----------------------------------------------------------------
+  prod:
+    name: Deploy to Production
+    if: ${{ !failure() && !cancelled() && (inputs.deploy == 'Staging + Prod') }}
+    needs: [build, staging]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    env:
+      PKG_VERSION: ${{needs.build.outputs.pkg_version}}
+    steps:
+      - name: Deploy to production
+        uses: ietf-tools/workflow-dispatch-action@v1
+        with:
+          workflow: deploy.yml
+          repo: ietf-tools/infra-k8s
+          ref: main
+          token: ${{ secrets.GH_INFRA_K8S_TOKEN }}
+          inputs: '{ "environment":"${{ secrets.GHA_K8S_CLUSTER }}", "app":"sidemeetings", "appVersion":"${{ env.PKG_VERSION }}", "remoteRef":"${{ github.sha }}" }'

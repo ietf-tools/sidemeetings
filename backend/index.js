@@ -176,7 +176,7 @@ await seedInitialAdmin()
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 
-const port = Number(process.env.PORT) || 4000
+const port = Number(process.env.BACKEND_PORT) || 4000
 
 try {
   await fastify.listen({ port, host: '0.0.0.0' })
