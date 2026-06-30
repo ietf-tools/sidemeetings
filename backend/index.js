@@ -1,11 +1,15 @@
 import 'dotenv/config'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { existsSync } from 'node:fs'
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
 import fastifySession from '@fastify/session'
 import fastifyCors from '@fastify/cors'
 import fastifySensible from '@fastify/sensible'
+import fastifyStatic from '@fastify/static'
 
-import { db } from './db/index.js'
+import { db, runMigrations } from './db/index.js'
 import { users } from './db/schema.js'
 
 import authRoutes from './routes/auth.js'
@@ -104,6 +108,47 @@ await fastify.register(settingsRoutes, { prefix: '/api/settings' })
 await fastify.register(publicRoutes, { prefix: '/api/public' })
 
 await fastify.register(calendarRoutes, { prefix: '/calendar' })
+
+// ─── Static client (SPA) ──────────────────────────────────────────────────────
+// Serve the precompiled Nuxt SPA from the same origin as the API. Registered
+// after the API/calendar routes so those always win. `nuxt generate` emits the
+// client into ../.output/public, including a 200.html SPA fallback. Requests for
+// real assets are served directly; any other unmatched GET falls back to the SPA
+// entrypoint so client-side routing (e.g. /admin/rooms) resolves on the browser.
+const clientDir = join(dirname(fileURLToPath(import.meta.url)), '../.output/public')
+
+if (existsSync(clientDir)) {
+  await fastify.register(fastifyStatic, {
+    root: clientDir,
+    wildcard: false
+  })
+
+  fastify.setNotFoundHandler((request, reply) => {
+    if (
+      request.method !== 'GET' ||
+      request.url.startsWith('/api') ||
+      request.url.startsWith('/calendar')
+    ) {
+      return reply.notFound()
+    }
+    return reply.sendFile('200.html')
+  })
+
+  fastify.log.warn(`Serving static client from ${clientDir}`)
+} else {
+  fastify.log.warn(`No client build at ${clientDir} — running API only (run "npm run build")`)
+}
+
+// ─── Database migrations ──────────────────────────────────────────────────────
+// Optionally apply pending Drizzle migrations on boot. Enabled with
+// AUTO_MIGRATE=true so single-container deployments stay schema-current without a
+// separate migration job; leave it unset when migrations run as a dedicated step.
+// Runs before admin seeding, which depends on the tables existing.
+if (process.env.AUTO_MIGRATE === 'true') {
+  fastify.log.warn('AUTO_MIGRATE enabled — applying pending migrations…')
+  await runMigrations()
+  fastify.log.warn('Database migrations up to date')
+}
 
 // ─── Initial admin seeding ──────────────────────────────────────────────────
 // On a fresh deployment the database has no users, so nobody can log in and

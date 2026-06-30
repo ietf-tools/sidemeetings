@@ -1,0 +1,65 @@
+name: Build and Release (v1)
+run-name: Build (v1) ${{ github.run_number }} of branch ${{ github.ref_name }} by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # -----------------------------------------------------------------
+  # BUILD
+  # -----------------------------------------------------------------
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26.x
+
+      - name: Get Next Version
+        id: semver
+        run: |
+          echo "nextStrict=1.10.${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Set package.json version
+        run: |
+          yq -iP '.version = "${{ steps.semver.outputs.nextStrict }}"' package.json -o json
+
+      - name: Build client
+        run: |
+          npm ci
+          npm run build
+          yq -iP '.root = "/app"' dist/vite.config.json -o json
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v6
+        env:
+          DOCKER_BUILD_SUMMARY: false
+        with:
+          context: .
+          file: docker/release.Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/ietf-tools/sidemeetings:${{ steps.semver.outputs.nextStrict }}

@@ -1,22 +1,33 @@
-FROM node:26
-LABEL maintainer="IETF Tools Team <tools-discuss@ietf.org>"
+# syntax=docker/dockerfile:1
 
-ENV NODE_ENV=production
-
-RUN mkdir -p /app && \
-    chown node:node /app
+# ─── Stage 1: build the Nuxt SPA ──────────────────────────────────────────────
+# Installs all dependencies (including devDependencies) and runs `npm run build`,
+# which `nuxt generate`s the static client into .output/public with apiUrl baked
+# to the same-origin "/api".
+FROM node:26-slim AS builder
 WORKDIR /app
 
-COPY .npmrc .npmrc
-COPY index.js index.js
-COPY meeting.json meeting.json
-COPY package.json package.json
-COPY package-lock.json package-lock.json
-COPY vite.config.js vite.config.js
-COPY dist dist
+COPY .npmrc package.json package-lock.json ./
+RUN npm ci
 
-RUN npm ci --omit=dev
+COPY . .
+RUN npm run build
 
-USER node:node
-EXPOSE 3000
-CMD ["node", "index.js"]
+# ─── Stage 2: runtime (Fastify API + precompiled client) ──────────────────────
+FROM node:26-slim AS runtime
+LABEL maintainer="IETF Tools Team <tools-discuss@ietf.org>"
+ENV NODE_ENV=production
+WORKDIR /app
+
+# Production dependencies only — the frontend build toolchain stays in stage 1.
+COPY .npmrc package.json package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Backend source + the static client produced by the builder stage. Fastify
+# serves .output/public from the same origin as the API (see backend/index.js).
+COPY backend ./backend
+COPY --from=builder /app/.output/public ./.output/public
+
+USER node
+EXPOSE 4000
+CMD ["node", "backend/index.js"]

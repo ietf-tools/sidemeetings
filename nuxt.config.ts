@@ -5,7 +5,9 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
   runtimeConfig: {
     public: {
-      apiUrl: process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:4000/api'
+      // Same-origin default for the integrated build (Fastify serves this SPA).
+      // Dev overrides it via .env to point at the standalone backend on :4000.
+      apiUrl: process.env.NUXT_PUBLIC_API_URL ?? '/api'
     }
   },
   app: {
