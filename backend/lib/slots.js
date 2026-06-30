@@ -60,6 +60,10 @@ export function getMeetingDays(meeting) {
  * @returns {{ [dayOffset: number]: number[] }}
  *   Keys 0–4 (Mon–Fri), values are arrays of available start times in minutes since midnight.
  */
+// Smallest bookable side-meeting length (minutes). A gap shorter than this plus
+// a buffer can never hold another meeting, so we don't want to create one.
+const MIN_DURATION = 60
+
 export function calculateAvailableSlots(room, meeting, existingBookings, duration, buffer) {
   const effectiveBuffer = buffer ?? meeting.buffer ?? 15
   const meetingDays = getMeetingDays(meeting)
@@ -95,8 +99,12 @@ export function calculateAvailableSlots(room, meeting, existingBookings, duratio
       })
       .map(({ zdt, duration: bd }) => ({
         startMin: zdt.hour * 60 + zdt.minute,
-        duration: bd,
+        duration: bd
       }))
+
+    // Buffered end times of existing bookings — the earliest a new meeting may
+    // start after each one.
+    const bufferedEnds = dayBookings.map((b) => b.startMin + b.duration + effectiveBuffer)
 
     const slots = []
 
@@ -104,8 +112,8 @@ export function calculateAvailableSlots(room, meeting, existingBookings, duratio
       const windowStart = window.s
       const windowEnd = window.e
 
-      // Candidate start times: every 30 minutes within the window.
-      for (let startMin = windowStart; startMin + duration <= windowEnd; startMin += 30) {
+      // Candidate start times: every 15 minutes within the window.
+      for (let startMin = windowStart; startMin + duration <= windowEnd; startMin += 15) {
         const endMin = startMin + duration
 
         // Check conflicts: a conflict exists when the candidate slot overlaps any existing
@@ -117,7 +125,19 @@ export function calculateAvailableSlots(room, meeting, existingBookings, duratio
           return startMin < existingBufferedEnd && endMin > existingBufferedStart
         })
 
-        if (!hasConflict) {
+        if (hasConflict) continue
+
+        // Anti-fragmentation: the free space immediately before this start runs
+        // from the latest preceding boundary (window start or a prior booking's
+        // buffered end) up to startMin. Only offer the slot if that gap is either
+        // zero (flush) or big enough to still hold the smallest possible meeting.
+        // Otherwise booking here would strand an unusable gap.
+        let regionStart = windowStart
+        for (const be of bufferedEnds) {
+          if (be <= startMin && be > regionStart) regionStart = be
+        }
+        const gap = startMin - regionStart
+        if (gap === 0 || gap >= MIN_DURATION + effectiveBuffer) {
           slots.push(startMin)
         }
       }
@@ -127,4 +147,84 @@ export function calculateAvailableSlots(room, meeting, existingBookings, duratio
   }
 
   return result
+}
+
+/**
+ * Summarise how a room's weekly availability window is used, accounting for the
+ * inter-meeting buffer and the minimum bookable meeting length.
+ *
+ * @returns {{ windowMinutes: number, bookedMinutes: number, bookableFreeMinutes: number }}
+ *   windowMinutes        — total availability across the week
+ *   bookedMinutes        — minutes occupied by active (pending/confirmed) bookings
+ *   bookableFreeMinutes  — free minutes that could still host a booking (≥ the
+ *                          minimum length, once required buffers are removed).
+ *   The remainder (window − booked − bookableFree) is "unallocatable": buffers
+ *   and gaps too small to ever book.
+ */
+export function summarizeRoomUsage(room, meeting, existingBookings, buffer) {
+  const effectiveBuffer = buffer ?? meeting.buffer ?? 15
+  const meetingDays = getMeetingDays(meeting)
+  const timezone = meeting.timezone
+  const availability =
+    Array.isArray(room.availability) && room.availability.length === 5
+      ? room.availability
+      : [[], [], [], [], []]
+
+  const activeStates = new Set(['pending', 'confirmed'])
+  const active = existingBookings.filter((b) => activeStates.has(b.state))
+
+  let windowMinutes = 0
+  let bookedMinutes = 0
+  let bookableFreeMinutes = 0
+
+  for (let dayOffset = 0; dayOffset < 5; dayOffset++) {
+    const plainDate = meetingDays[dayOffset]
+    const windows = Array.isArray(availability[dayOffset]) ? availability[dayOffset] : []
+
+    // Bookings on this calendar day (in the meeting timezone), as {start, end} minutes.
+    const dayBookings = active
+      .map((b) => {
+        const zdt = Temporal.Instant.from(
+          typeof b.startsAt === 'string' ? b.startsAt : b.startsAt.toISOString()
+        ).toZonedDateTimeISO(timezone)
+        return { zdt, duration: b.duration }
+      })
+      .filter(({ zdt }) => Temporal.PlainDate.compare(zdt.toPlainDate(), plainDate) === 0)
+      .map(({ zdt, duration }) => {
+        const start = zdt.hour * 60 + zdt.minute
+        return { start, end: start + duration, duration }
+      })
+
+    for (const window of windows) {
+      const ws = window.s
+      const we = window.e
+      windowMinutes += Math.max(0, we - ws)
+
+      const within = dayBookings
+        .filter((b) => b.end > ws && b.start < we)
+        .sort((a, b) => a.start - b.start)
+
+      // Add booked time (clamped to the window).
+      for (const b of within) {
+        bookedMinutes += Math.max(0, Math.min(b.end, we) - Math.max(b.start, ws))
+      }
+
+      // Walk the free gaps; a gap can host a booking only if, after removing the
+      // buffer beside any adjacent booking, it still fits the minimum length.
+      const addGap = (start, end, leftBooking, rightBooking) => {
+        const usable =
+          end - start - (leftBooking ? effectiveBuffer : 0) - (rightBooking ? effectiveBuffer : 0)
+        if (usable >= MIN_DURATION) bookableFreeMinutes += usable
+      }
+
+      let cursor = ws
+      for (const b of within) {
+        addGap(cursor, b.start, cursor > ws, true)
+        cursor = Math.max(cursor, b.end)
+      }
+      addGap(cursor, we, cursor > ws, false)
+    }
+  }
+
+  return { windowMinutes, bookedMinutes, bookableFreeMinutes }
 }

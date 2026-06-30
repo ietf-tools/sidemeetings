@@ -151,7 +151,7 @@
               <input
                 v-model="form.startDate"
                 type="text"
-                class="form-input font-mono text-xs"
+                class="form-input font-mono"
                 placeholder="e.g. 2026-07-20" />
             </div>
             <div>
@@ -159,7 +159,7 @@
               <input
                 v-model="form.endDate"
                 type="text"
-                class="form-input font-mono text-xs"
+                class="form-input font-mono"
                 placeholder="e.g. 2026-07-24" />
             </div>
           </div>

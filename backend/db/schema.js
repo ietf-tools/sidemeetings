@@ -62,7 +62,6 @@ export const rooms = pgTable(
     slug: varchar('slug', { length: 255 }).notNull(),
     description: text('description'),
     capacity: integer('capacity').notNull().default(0),
-    floor: varchar('floor', { length: 100 }),
     color: varchar('color', { length: 50 }).notNull().default('sky'),
     // availability: array of 5 elements (Mon–Fri), each is array of {s, e} window objects (minutes since midnight)
     availability: jsonb('availability').notNull().default([[], [], [], [], []]),

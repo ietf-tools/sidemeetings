@@ -35,7 +35,14 @@
 
         <div>
           <label class="form-label">Description</label>
-          <textarea v-model="form.description" rows="3" class="form-input resize-y leading-relaxed" placeholder="What will this meeting cover?"></textarea>
+          <textarea
+            ref="descRef"
+            v-model="form.description"
+            rows="3"
+            class="form-input resize-none leading-relaxed overflow-y-auto"
+            style="max-height: 250px; min-height: 76px"
+            placeholder="What will this meeting cover?"
+            @input="autoGrowDesc"></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-3.5">
@@ -238,7 +245,7 @@
           </p>
           <div class="flex flex-col gap-2.5">
             <button
-              class="flex items-center justify-center gap-2 p-3 rounded-[10px] bg-ok text-white text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+              class="flex items-center justify-center gap-2 p-3 rounded-[10px] bg-ok text-[#022c1c] text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
               :disabled="booking.state === 'confirmed'"
               @click="confirm">
               <Check class="w-4 h-4" :stroke-width="2.6" /> Approve request
@@ -286,6 +293,15 @@ const rooms = ref<any[]>([])
 
 const newCoName = ref('')
 const newCoEmail = ref('')
+
+// Auto-grow the description textarea with its content, up to a max height.
+const descRef = ref<HTMLTextAreaElement | null>(null)
+function autoGrowDesc() {
+  const el = descRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${Math.min(el.scrollHeight, 250)}px`
+}
 
 const form = reactive({
   title: '',
@@ -373,6 +389,7 @@ function applyForm(b: any) {
     customVideo: !!b.videoLinkUrl,
     videoLinkUrl: b.videoLinkUrl || '',
   })
+  nextTick(autoGrowDesc)
 }
 
 // Revert unsaved edits back to the last loaded booking.
@@ -400,6 +417,8 @@ async function loadBooking() {
     toast.show('Failed to load booking', 'bad')
   } finally {
     loading.value = false
+    // Size the description once the form is actually in the DOM.
+    nextTick(autoGrowDesc)
   }
 }
 

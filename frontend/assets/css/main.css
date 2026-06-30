@@ -33,7 +33,7 @@
 body {
   background: #0d1016;
   color: #e7ebf1;
-  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   margin: 0;
   padding: 0;
 }
@@ -84,6 +84,15 @@ body {
   }
   .form-input:focus {
     @apply border-accent;
+  }
+  /* Render <select> as a plain styled box with a custom chevron. Native select
+     widgets repaint/jump on hover when a CSS transition is applied; appearance:
+     none avoids that. */
+  select.form-input {
+    @apply appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239aa4b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+    background-position: right 0.65rem center;
+    background-size: 1rem;
   }
   .form-label {
     @apply block text-xs font-semibold text-text-dim mb-1.5;

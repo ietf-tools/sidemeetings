@@ -1,1 +1,0 @@
-ALTER TABLE "meetings" DROP COLUMN "name";

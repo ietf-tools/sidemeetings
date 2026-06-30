@@ -14,7 +14,7 @@ export default async function authRoutes(fastify) {
     OAUTH_CLIENT_SECRET,
     OAUTH_ISSUER_URL,
     OAUTH_CALLBACK_URL,
-    FRONTEND_URL,
+    FRONTEND_URL
   } = process.env
 
   // Normalise issuer URL – ensure trailing slash for URL concatenation.
@@ -33,7 +33,7 @@ export default async function authRoutes(fastify) {
       client_id: OAUTH_CLIENT_ID,
       redirect_uri: OAUTH_CALLBACK_URL,
       scope: 'openid email profile',
-      state,
+      state
     })
 
     const authorizeUrl = `${issuerBase()}authorize?${params.toString()}`
@@ -67,8 +67,8 @@ export default async function authRoutes(fastify) {
           code,
           redirect_uri: OAUTH_CALLBACK_URL,
           client_id: OAUTH_CLIENT_ID,
-          client_secret: OAUTH_CLIENT_SECRET,
-        }),
+          client_secret: OAUTH_CLIENT_SECRET
+        })
       })
 
       if (!tokenRes.ok) {
@@ -89,7 +89,7 @@ export default async function authRoutes(fastify) {
     let userInfo
     try {
       const userRes = await fetch(`${issuerBase()}userinfo`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
+        headers: { Authorization: `Bearer ${accessToken}` }
       })
 
       if (!userRes.ok) {
@@ -124,7 +124,7 @@ export default async function authRoutes(fastify) {
           .set({
             name: name || existing[0].name,
             authUserId: sub,
-            updatedAt: new Date(),
+            updatedAt: new Date()
           })
           .where(eq(users.email, email.toLowerCase()))
           .returning()
@@ -135,7 +135,7 @@ export default async function authRoutes(fastify) {
           .values({
             email: email.toLowerCase(),
             name: name || email,
-            authUserId: sub,
+            authUserId: sub
           })
           .returning()
         user = inserted[0]
@@ -166,20 +166,24 @@ export default async function authRoutes(fastify) {
 
   // ── GET /api/auth/me ──────────────────────────────────────────────────────
 
-  fastify.get('/me', {
-    preHandler: fastify.authenticate,
-  }, async (request, reply) => {
-    const user = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, request.session.userId))
-      .limit(1)
+  fastify.get(
+    '/me',
+    {
+      preHandler: fastify.authenticate
+    },
+    async (request, reply) => {
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, request.session.userId))
+        .limit(1)
 
-    if (!user.length) {
-      return reply.unauthorized('User not found')
+      if (!user.length) {
+        return reply.unauthorized('User not found')
+      }
+
+      const { id, email, name, isAdmin, isActive, createdAt } = user[0]
+      return { id, email, name, isAdmin, isActive, createdAt }
     }
-
-    const { id, email, name, isAdmin, isActive, createdAt } = user[0]
-    return { id, email, name, isAdmin, isActive, createdAt }
-  })
+  )
 }

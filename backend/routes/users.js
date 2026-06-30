@@ -30,7 +30,7 @@ export default async function usersRoutes(fastify) {
         isAdmin: users.isAdmin,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
-        bookingCount: sql`(SELECT COUNT(*) FROM bookings WHERE bookings.organizer_id = ${users.id})`.mapWith(Number),
+        bookingCount: sql`(SELECT COUNT(*) FROM bookings WHERE bookings.organizer_id = users.id)`.mapWith(Number),
       })
       .from(users)
       .orderBy(users.name)

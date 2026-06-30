@@ -32,7 +32,6 @@ CREATE TABLE "bookings" (
 CREATE TABLE "meetings" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"num" varchar(10) NOT NULL,
-	"name" varchar(255) NOT NULL,
 	"city" varchar(255) NOT NULL,
 	"country" varchar(255) NOT NULL,
 	"venue" varchar(255) NOT NULL,
@@ -54,7 +53,6 @@ CREATE TABLE "rooms" (
 	"slug" varchar(255) NOT NULL,
 	"description" text,
 	"capacity" integer DEFAULT 0 NOT NULL,
-	"floor" varchar(100),
 	"color" varchar(50) DEFAULT 'sky' NOT NULL,
 	"availability" jsonb DEFAULT '[[],[],[],[],[]]'::jsonb NOT NULL,
 	"video_link_url" varchar(2048),

@@ -56,7 +56,7 @@
               <X class="w-4 h-4" />
             </button>
             <button
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ok text-white text-[12.5px] font-semibold transition-opacity hover:opacity-90 flex-shrink-0"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ok text-[#022c1c] text-[12.5px] font-semibold transition-opacity hover:opacity-90 flex-shrink-0"
               title="Approve"
               @click="approve(b.id)">
               <Check class="w-3.5 h-3.5" :stroke-width="2.6" /> Approve
@@ -80,9 +80,18 @@
                 <span class="font-semibold text-text">{{ r.roomName }}</span>
                 <span class="text-text-dim font-mono text-[11.5px]">{{ Math.round(r.bookedMinutes / 60) }}h / {{ Math.round(r.totalAvailableMinutes / 60) }}h</span>
               </div>
-              <div class="h-[7px] rounded-md bg-s3 overflow-hidden">
-                <div class="h-full rounded-md bg-accent transition-all" :style="{ width: Math.min(100, r.totalAvailableMinutes ? (r.bookedMinutes / r.totalAvailableMinutes) * 100 : 0) + '%' }"></div>
+              <div class="h-[7px] rounded-md bg-s3 overflow-hidden flex">
+                <div class="h-full bg-accent transition-all" :style="{ width: utilPct(r.bookedMinutes, r.totalAvailableMinutes) + '%' }"></div>
+                <div class="h-full bg-warn transition-all" :style="{ width: utilPct(r.totalAvailableMinutes - r.bookedMinutes - (r.bookableFreeMinutes ?? 0), r.totalAvailableMinutes) + '%' }"></div>
               </div>
+            </div>
+            <div class="flex items-center gap-3 pt-1 text-[10px] text-text-faint">
+              <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-sm bg-accent"></span> Booked
+              </span>
+              <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-sm bg-warn"></span> Unallocatable
+              </span>
             </div>
           </div>
         </div>
@@ -125,6 +134,12 @@ const { formatSubmittedAt } = useTemporal()
 
 const loading = ref(true)
 const dashboard = ref<any>(null)
+
+// Clamp a part/total ratio to a 0–100 percentage for the utilization bar.
+function utilPct(part: number, total: number) {
+  if (!total || total <= 0) return 0
+  return Math.max(0, Math.min(100, (part / total) * 100))
+}
 
 // Dot color for an activity entry, keyed by action.
 function activityColor(action: string) {

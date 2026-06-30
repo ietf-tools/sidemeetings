@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <aside class="w-[252px] flex-shrink-0 flex flex-col" style="background: #0a0d12; border-right: 1px solid #1a2029;">
       <!-- Logo -->
-      <div class="flex items-center gap-3 px-4 pt-5 pb-4">
+      <NuxtLink to="/" class="flex items-center gap-3 px-4 pt-5 pb-4 transition-opacity hover:opacity-80">
         <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-accent-text font-bold text-sm flex-shrink-0">
           SM
         </div>
@@ -11,7 +11,7 @@
           <div class="text-text font-semibold text-[14px] leading-tight">Side Meetings</div>
           <div class="text-sidebar-text-dim text-[11px]">Admin console</div>
         </div>
-      </div>
+      </NuxtLink>
 
       <!-- Meeting Picker Button -->
       <div class="px-3.5 pb-1 pt-0.5">
@@ -23,12 +23,12 @@
           title="Switch the meeting you are viewing"
           @click="pickerOpen = true"
         >
-          <div class="w-8 h-8 rounded-lg bg-accent-weak flex items-center justify-center flex-shrink-0">
+          <div class="w-8 h-8 rounded-lg bg-accent-weak border border-accent/30 flex items-center justify-center flex-shrink-0">
             <span class="text-accent text-xs font-bold font-mono">{{ meetingStore.viewingMeeting?.num ?? '—' }}</span>
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-[13px] font-bold text-sidebar-text truncate">{{ meetingCode }}</div>
-            <div class="text-[11px] text-sidebar-text-dim truncate">{{ meetingCity }}</div>
+            <div class="text-[13px] font-bold text-white truncate">{{ meetingCode }}</div>
+            <div class="text-[11px] text-sidebar-text truncate">{{ meetingCity }}</div>
           </div>
           <ChevronsUpDown class="w-3.5 h-3.5 text-sidebar-text-dim flex-shrink-0" />
         </button>
@@ -56,6 +56,7 @@
           <p class="text-[10px] font-semibold text-sidebar-text-dim uppercase tracking-wider px-2 mb-1.5">Organizer</p>
           <div class="space-y-0.5">
             <AdminNavItem to="/request" :icon="CalendarPlus" label="Request a meeting" />
+            <AdminNavItem to="/" :icon="Globe" label="Public view" :exact="true" />
           </div>
         </div>
       </nav>
@@ -147,7 +148,7 @@
                     : 'bg-s2 border-border hover:border-border-strong'
                 "
                 @click="selectMeeting(m)">
-                <div class="w-11 h-11 rounded-[11px] bg-accent-weak flex items-center justify-center flex-shrink-0">
+                <div class="w-11 h-11 rounded-[11px] bg-accent-weak border border-accent/30 flex items-center justify-center flex-shrink-0">
                   <span class="text-accent text-sm font-extrabold font-mono">{{ m.num }}</span>
                 </div>
                 <div class="flex-1 min-w-0">
@@ -191,7 +192,7 @@
 </template>
 
 <script setup lang="ts">
-import { LayoutGrid, List, Building2, CalendarDays, Users, Settings, CalendarPlus, ChevronsUpDown, LogOut, Search, Check } from 'lucide-vue-next'
+import { LayoutGrid, List, Building2, CalendarDays, Users, Settings, CalendarPlus, Globe, ChevronsUpDown, LogOut, Search, Check } from 'lucide-vue-next'
 
 // Provide page meta via useState
 const pageTitle = useState('page-title', () => 'Dashboard')

@@ -5,6 +5,9 @@ import fastifySession from '@fastify/session'
 import fastifyCors from '@fastify/cors'
 import fastifySensible from '@fastify/sensible'
 
+import { db } from './db/index.js'
+import { users } from './db/schema.js'
+
 import authRoutes from './routes/auth.js'
 import dashboardRoutes from './routes/dashboard.js'
 import meetingsRoutes from './routes/meetings.js'
@@ -13,6 +16,8 @@ import bookingsRoutes from './routes/bookings.js'
 import usersRoutes from './routes/users.js'
 import settingsRoutes from './routes/settings.js'
 import publicRoutes from './routes/public.js'
+import calendarRoutes from './routes/calendar.js'
+import { invalidatePublicCache } from './lib/cache.js'
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -67,6 +72,17 @@ fastify.decorate('authenticateAdmin', async function authenticateAdmin(request, 
   }
 })
 
+// ─── Public cache invalidation ──────────────────────────────────────────────
+// Any successful mutating request (admin create/update/delete, booking actions,
+// etc.) drops the public read cache so the schedule/calendar reflect changes
+// immediately. Read-only GET/HEAD requests leave the cache intact.
+fastify.addHook('onResponse', async (request, reply) => {
+  const method = request.method
+  if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS' && reply.statusCode < 400) {
+    invalidatePublicCache()
+  }
+})
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 await fastify.register(authRoutes, { prefix: '/api/auth' })
@@ -86,6 +102,32 @@ await fastify.register(usersRoutes, { prefix: '/api/users' })
 await fastify.register(settingsRoutes, { prefix: '/api/settings' })
 
 await fastify.register(publicRoutes, { prefix: '/api/public' })
+
+await fastify.register(calendarRoutes, { prefix: '/calendar' })
+
+// ─── Initial admin seeding ──────────────────────────────────────────────────
+// On a fresh deployment the database has no users, so nobody can log in and
+// promote others to admin. If SETUP_ADMIN_EMAIL is set and the users table is
+// empty, seed a single admin with that email. On their first OAuth login the
+// auth callback upserts by email and links the account, preserving admin rights.
+async function seedInitialAdmin() {
+  const email = process.env.SETUP_ADMIN_EMAIL?.trim().toLowerCase()
+  if (!email) return
+
+  const existing = await db.select({ id: users.id }).from(users).limit(1)
+  if (existing.length > 0) return
+
+  await db.insert(users).values({
+    email,
+    name: 'Administrator',
+    isAdmin: true,
+    isActive: true
+  })
+
+  fastify.log.warn(`Seeded initial admin account: ${email}`)
+}
+
+await seedInitialAdmin()
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 

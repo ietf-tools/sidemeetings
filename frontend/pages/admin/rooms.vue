@@ -11,7 +11,7 @@
         <div
           v-for="room in rooms"
           :key="room.id"
-          class="card p-4 cursor-pointer transition-all flex-1 min-w-[248px] max-w-[360px] hover:border-border-strong"
+          class="card p-4 cursor-pointer transition-all flex-1 min-w-[248px] max-w-[50%] hover:border-border-strong"
           :class="selectedRoom?.id === room.id ? '!border-accent shadow-room-selected' : ''"
           @click="selectedRoom = room">
           <div class="flex items-start justify-between gap-3">
@@ -30,11 +30,32 @@
             {{ room.description || 'No description.' }}
           </p>
           <div class="flex items-center gap-3.5 text-[12.5px] text-text-dim mt-2.5">
-            <span>{{ room.floor || '—' }}</span>
             <span>
               <b class="text-text">{{ room.bookingCount ?? 0 }}</b> booked ·
               <b class="text-text">{{ roomFreeHours(room) }}h</b> free
             </span>
+          </div>
+          <div class="mt-2.5">
+            <div class="flex items-center justify-between text-[11px] mb-1">
+              <span class="text-text-faint">Utilization</span>
+              <span class="font-mono text-text-dim">{{ roomUtilizationPct(room) }}%</span>
+            </div>
+            <div class="h-[7px] rounded-md bg-s3 overflow-hidden flex">
+              <div
+                class="h-full bg-accent transition-all"
+                :style="{ width: roomBookedPct(room) + '%' }"></div>
+              <div
+                class="h-full bg-warn transition-all"
+                :style="{ width: roomBlockedPct(room) + '%' }"></div>
+            </div>
+            <div class="flex items-center gap-3 mt-1.5 text-[10px] text-text-faint">
+              <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-sm bg-accent"></span> Booked
+              </span>
+              <span class="flex items-center gap-1">
+                <span class="w-2 h-2 rounded-sm bg-warn"></span> Unallocatable
+              </span>
+            </div>
           </div>
           <div class="flex gap-2 mt-3">
             <button
@@ -92,24 +113,14 @@
           <label class="form-label">Room name *</label>
           <input v-model="roomForm.name" type="text" class="form-input" placeholder="e.g. Albéniz" />
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="form-label">Capacity *</label>
-            <input
-              v-model.number="roomForm.capacity"
-              type="number"
-              class="form-input"
-              min="1"
-              placeholder="e.g. 30" />
-          </div>
-          <div>
-            <label class="form-label">Floor / location</label>
-            <input
-              v-model="roomForm.floor"
-              type="text"
-              class="form-input"
-              placeholder="e.g. Level 1" />
-          </div>
+        <div>
+          <label class="form-label">Capacity *</label>
+          <input
+            v-model.number="roomForm.capacity"
+            type="number"
+            class="form-input"
+            min="1"
+            placeholder="e.g. 30" />
         </div>
         <div>
           <label class="form-label">Description *</label>
@@ -118,6 +129,29 @@
             rows="2"
             class="form-input resize-none"
             placeholder="Short description of the room"></textarea>
+        </div>
+        <div class="grid grid-cols-[1fr_2fr] gap-3">
+          <div>
+            <label class="form-label">Video tool name</label>
+            <input
+              v-model="roomForm.videoLinkName"
+              type="text"
+              class="form-input"
+              placeholder="e.g. Webex" />
+          </div>
+          <div>
+            <label class="form-label">
+              Video Tool Link <span class="text-text-faint font-normal">· optional</span>
+            </label>
+            <input
+              v-model="roomForm.videoLinkUrl"
+              type="url"
+              class="form-input font-mono"
+              placeholder="https://…" />
+          </div>
+        </div>
+        <div class="text-[11.5px] text-text-faint -mt-2">
+          Used as the default meeting link when an organizer doesn't provide their own.
         </div>
         <div>
           <label class="form-label">Color</label>
@@ -271,9 +305,10 @@ const TIME_OPTIONS = (() => {
 const roomForm = reactive({
   name: '',
   capacity: 20,
-  floor: '',
   color: 'sky',
   description: '',
+  videoLinkName: 'Webex',
+  videoLinkUrl: '',
   availability: [[], [], [], [], []] as { s: number; e: number }[][],
 })
 
@@ -281,8 +316,10 @@ function roomColorHex(colorName: string) {
   return ROOM_COLORS.find((c) => c.name === colorName)?.hex || '#2dd4bf'
 }
 
-// Total weekly availability window for a room, in minutes.
+// Total weekly availability window for a room, in minutes (falls back to the
+// server value when present).
 function roomWindowMinutes(room: any) {
+  if (typeof room.windowMinutes === 'number') return room.windowMinutes
   const avail = Array.isArray(room.availability) ? room.availability : []
   let total = 0
   for (const day of avail) {
@@ -293,15 +330,41 @@ function roomWindowMinutes(room: any) {
   return total
 }
 
-// Remaining free hours = available window minus already-booked time.
+function clampPct(part: number, total: number) {
+  if (!total) return 0
+  return Math.max(0, Math.min(100, (part / total) * 100))
+}
+
+// Minutes still bookable (server-computed, buffer- and min-length-aware).
+function roomBookableFree(room: any) {
+  return room.bookableFreeMinutes ?? Math.max(0, roomWindowMinutes(room) - (room.bookedMinutes ?? 0))
+}
+
+// Free hours that can still actually be booked.
 function roomFreeHours(room: any) {
-  const free = Math.max(0, roomWindowMinutes(room) - (room.bookedMinutes ?? 0))
-  return Math.round((free / 60) * 10) / 10
+  return Math.round((roomBookableFree(room) / 60) * 10) / 10
+}
+
+// Bar segments: teal = booked, orange = unallocatable (buffers + gaps too small).
+function roomBookedPct(room: any) {
+  return clampPct(room.bookedMinutes ?? 0, roomWindowMinutes(room))
+}
+function roomBlockedPct(room: any) {
+  const total = roomWindowMinutes(room)
+  const blocked = Math.max(0, total - (room.bookedMinutes ?? 0) - roomBookableFree(room))
+  return clampPct(blocked, total)
+}
+
+// Headline utilization = everything that can no longer be booked.
+function roomUtilizationPct(room: any) {
+  const total = roomWindowMinutes(room)
+  if (!total) return 0
+  return Math.round(clampPct(total - roomBookableFree(room), total))
 }
 
 function openAddRoom() {
   editingRoom.value = null
-  Object.assign(roomForm, { name: '', capacity: 20, floor: '', color: 'sky', description: '', availability: [[], [], [], [], []] })
+  Object.assign(roomForm, { name: '', capacity: 20, color: 'sky', description: '', videoLinkName: 'Webex', videoLinkUrl: '', availability: [[], [], [], [], []] })
   roomModalOpen.value = true
 }
 
@@ -313,9 +376,10 @@ function openEditRoom(room: any) {
   Object.assign(roomForm, {
     name: room.name,
     capacity: room.capacity,
-    floor: room.floor || '',
     color: room.color || 'sky',
     description: room.description || '',
+    videoLinkName: room.videoLinkName || 'Webex',
+    videoLinkUrl: room.videoLinkUrl || '',
     availability: avail,
   })
   roomModalOpen.value = true
@@ -337,16 +401,21 @@ async function saveRoom() {
   }
   saving.value = true
   try {
+    const body = {
+      ...roomForm,
+      videoLinkUrl: roomForm.videoLinkUrl.trim() || null,
+      videoLinkName: roomForm.videoLinkName.trim() || 'Webex',
+    }
     if (editingRoom.value) {
       await useApiFetch(`/rooms/${editingRoom.value.id}`, {
         method: 'PUT',
-        body: { ...roomForm },
+        body,
       })
       toast.show('Room updated', 'ok')
     } else {
       await useApiFetch(`/meetings/${meetingStore.viewingMeeting!.id}/rooms`, {
         method: 'POST',
-        body: { ...roomForm },
+        body,
       })
       toast.show('Room added', 'ok')
     }

@@ -36,7 +36,7 @@ export default {
         'sidebar-border': '#1a2029'
       },
       fontFamily: {
-        sans: ['Hanken Grotesk', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['IBM Plex Mono', 'monospace']
       },
       boxShadow: {

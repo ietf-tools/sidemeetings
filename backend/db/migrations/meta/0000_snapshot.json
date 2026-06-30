@@ -1,5 +1,5 @@
 {
-  "id": "1bb0f7b6-53ee-4528-9d2f-e4839fe67886",
+  "id": "ee07e252-af31-4d2a-895c-239dadbcce4c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -345,12 +345,6 @@
           "primaryKey": false,
           "notNull": true
         },
-        "name": {
-          "name": "name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
         "city": {
           "name": "city",
           "type": "varchar(255)",
@@ -478,12 +472,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
-        },
-        "floor": {
-          "name": "floor",
-          "type": "varchar(100)",
-          "primaryKey": false,
-          "notNull": false
         },
         "color": {
           "name": "color",

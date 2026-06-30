@@ -1,6 +1,6 @@
 import { db } from '../db/index.js'
-import { meetings, rooms, bookings } from '../db/schema.js'
-import { eq, desc, count, sql } from 'drizzle-orm'
+import { meetings } from '../db/schema.js'
+import { eq, desc, sql } from 'drizzle-orm'
 
 export default async function meetingsRoutes(fastify) {
   // ── GET /api/meetings/ ────────────────────────────────────────────────────
@@ -10,7 +10,7 @@ export default async function meetingsRoutes(fastify) {
     {
       preHandler: fastify.authenticateAdmin
     },
-    async (request, reply) => {
+    async (_request, _reply) => {
       const rows = await db
         .select({
           id: meetings.id,
@@ -27,12 +27,11 @@ export default async function meetingsRoutes(fastify) {
           minNotice: meetings.minNotice,
           createdAt: meetings.createdAt,
           updatedAt: meetings.updatedAt,
-          roomCount:
-            sql`(SELECT COUNT(*) FROM rooms WHERE rooms.meeting_id = ${meetings.id})`.mapWith(
-              Number
-            ),
+          roomCount: sql`(SELECT COUNT(*) FROM rooms WHERE rooms.meeting_id = meetings.id)`.mapWith(
+            Number
+          ),
           bookingCount:
-            sql`(SELECT COUNT(*) FROM bookings WHERE bookings.meeting_id = ${meetings.id})`.mapWith(
+            sql`(SELECT COUNT(*) FROM bookings WHERE bookings.meeting_id = meetings.id)`.mapWith(
               Number
             )
         })
