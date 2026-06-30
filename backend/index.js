@@ -26,14 +26,16 @@ import { invalidatePublicCache } from './lib/cache.js'
 const isProd = process.env.NODE_ENV === 'production'
 
 const fastify = Fastify({
-  logger: {
-    transport: {
-      target: isProd ? 'pino' : 'pino-pretty',
-      options: {
-        ignore: 'pid,hostname'
+  logger: isProd
+    ? true
+    : {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            ignore: 'pid,hostname'
+          }
+        }
       }
-    }
-  }
 })
 
 // ─── Plugins ──────────────────────────────────────────────────────────────────
