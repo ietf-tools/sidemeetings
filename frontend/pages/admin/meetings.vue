@@ -199,10 +199,14 @@
                 v-model.number="form.buffer"
                 type="text"
                 inputmode="numeric"
-                class="form-input font-mono pr-11" />
+                class="form-input font-mono pr-11"
+                :class="bufferError ? '!border-bad' : ''" />
               <span class="absolute right-3 text-xs text-text-faint pointer-events-none">min</span>
             </div>
-            <div class="text-[11.5px] text-text-faint mt-1.5">
+            <div v-if="bufferError" class="text-[11.5px] text-bad mt-1.5">
+              {{ bufferError }}
+            </div>
+            <div v-else class="text-[11.5px] text-text-faint mt-1.5">
               Gap required between back-to-back side meetings.
             </div>
           </div>
@@ -225,7 +229,7 @@
       <template #footer>
         <div class="flex justify-end gap-2 px-6 py-4 border-t border-border">
           <button class="btn-secondary" @click="modalOpen = false">Cancel</button>
-          <button class="btn-primary" :disabled="saving" @click="save">
+          <button class="btn-primary" :disabled="saving || !!bufferError" @click="save">
             {{ saving ? 'Saving…' : editing ? 'Save changes' : 'Add meeting' }}
           </button>
         </div>
@@ -282,6 +286,18 @@ const form = reactive({
   subOpenTime: '09:00',
   buffer: 15,
   minNotice: 120
+})
+
+// The inter-meeting buffer must be a non-negative multiple of 15 minutes
+// (0 is allowed) so it lines up with the 15-min booking granularity.
+const bufferError = computed(() => {
+  const v = form.buffer
+  if (v === null || (v as any) === '' || typeof v !== 'number' || Number.isNaN(v)) {
+    return 'Enter a number of minutes.'
+  }
+  if (!Number.isInteger(v) || v < 0) return 'Must be 0 or a positive whole number.'
+  if (v % 15 !== 0) return 'Must be in 15-minute increments (0, 15, 30, …).'
+  return ''
 })
 
 // Human-readable preview of the entered start/end dates, e.g. "July 20–24, 2026".
@@ -423,6 +439,10 @@ function openEdit(m: any) {
 }
 
 async function save() {
+  if (bufferError.value) {
+    toast.show(bufferError.value, 'bad')
+    return
+  }
   saving.value = true
   try {
     // Combine the date + time (entered in the meeting's time zone) into an

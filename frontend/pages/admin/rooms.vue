@@ -85,24 +85,48 @@
       <div v-else-if="selectedRoom" class="card overflow-hidden">
         <div class="px-[18px] py-4 border-b border-border flex items-start justify-between gap-3">
           <div class="max-w-[540px]">
-            <div class="text-[15px] font-bold text-text">{{ selectedRoom.name }} · week schedule</div>
+            <div class="text-[15px] font-bold text-text">
+              {{ selectedRoom.name }} · week schedule
+            </div>
             <div v-if="selectedRoom.description" class="text-xs text-text-dim mt-1">
               {{ selectedRoom.description }}
             </div>
-            <div class="text-[11.5px] text-text-faint mt-1">Click a booked slot to open the request</div>
+            <div class="text-[11.5px] text-text-faint mt-1">
+              Click a booked slot to open the request
+            </div>
           </div>
-          <div class="flex items-center gap-3.5 text-[11.5px] text-text-dim flex-wrap flex-shrink-0">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:color-mix(in srgb,#34d399 22%,transparent); border:1px solid #34d399;"></span> Approved</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm inline-block" style="background:color-mix(in srgb,#e3a93b 22%,transparent); border:1px solid #e3a93b;"></span> Pending</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-sm inline-block cell-closed border border-border-strong"></span> Closed</span>
+          <div
+            class="flex items-center gap-3.5 text-[11.5px] text-text-dim flex-wrap flex-shrink-0">
+            <span class="flex items-center gap-1.5"
+              ><span
+                class="w-2.5 h-2.5 rounded-sm inline-block"
+                style="
+                  background: color-mix(in srgb, #34d399 22%, transparent);
+                  border: 1px solid #34d399;
+                "></span>
+              Approved</span
+            >
+            <span class="flex items-center gap-1.5"
+              ><span
+                class="w-2.5 h-2.5 rounded-sm inline-block"
+                style="
+                  background: color-mix(in srgb, #e3a93b 22%, transparent);
+                  border: 1px solid #e3a93b;
+                "></span>
+              Pending</span
+            >
+            <span class="flex items-center gap-1.5"
+              ><span
+                class="w-2.5 h-2.5 rounded-sm inline-block cell-closed border border-border-strong"></span>
+              Closed</span
+            >
           </div>
         </div>
         <AdminScheduleGrid
           :room="selectedRoom"
           :meeting="meetingStore.viewingMeeting"
           :bookings="roomBookings"
-          @booking-click="(id) => navigateTo('/admin/bookings/' + id)"
-        />
+          @booking-click="(id) => navigateTo('/admin/bookings/' + id)" />
       </div>
     </div>
 
@@ -111,7 +135,11 @@
       <div class="space-y-4 px-6 py-4">
         <div>
           <label class="form-label">Room name *</label>
-          <input v-model="roomForm.name" type="text" class="form-input" placeholder="e.g. Albéniz" />
+          <input
+            v-model="roomForm.name"
+            type="text"
+            class="form-input"
+            placeholder="e.g. Albéniz" />
         </div>
         <div>
           <label class="form-label">Capacity *</label>
@@ -140,9 +168,7 @@
               placeholder="e.g. Webex" />
           </div>
           <div>
-            <label class="form-label">
-              Video Tool Link <span class="text-text-faint font-normal">· optional</span>
-            </label>
+            <label class="form-label">Video Tool Link</label>
             <input
               v-model="roomForm.videoLinkUrl"
               type="url"
@@ -187,13 +213,17 @@
                   v-for="(period, pi) in roomForm.availability[day.key]"
                   :key="pi"
                   class="flex items-center gap-2">
-                  <select v-model="period.s" class="form-input font-mono text-[13px] py-2 flex-1 !bg-surface">
+                  <select
+                    v-model="period.s"
+                    class="form-input font-mono text-[13px] py-2 flex-1 !bg-surface">
                     <option v-for="t in TIME_OPTIONS" :key="t.value" :value="t.value">
                       {{ t.label }}
                     </option>
                   </select>
                   <span class="text-text-dim text-xs">to</span>
-                  <select v-model="period.e" class="form-input font-mono text-[13px] py-2 flex-1 !bg-surface">
+                  <select
+                    v-model="period.e"
+                    class="form-input font-mono text-[13px] py-2 flex-1 !bg-surface">
                     <option v-for="t in TIME_OPTIONS" :key="t.value" :value="t.value">
                       {{ t.label }}
                     </option>
@@ -216,7 +246,10 @@
       <template #footer>
         <div class="flex justify-end gap-2 px-6 py-4 border-t border-border">
           <button class="btn-secondary" @click="roomModalOpen = false">Cancel</button>
-          <button class="btn-primary" :disabled="saving || !roomForm.description.trim()" @click="saveRoom">
+          <button
+            class="btn-primary"
+            :disabled="saving || !roomForm.description.trim()"
+            @click="saveRoom">
             {{ saving ? 'Saving…' : editingRoom ? 'Save changes' : 'Add room' }}
           </button>
         </div>
@@ -231,8 +264,7 @@
       :message="`Are you sure you want to delete ${confirmDeleteRoom?.name}? All associated bookings will be affected.`"
       confirm-text="Delete room"
       @confirm="deleteRoom"
-      @cancel="confirmDeleteRoom = null"
-    />
+      @cancel="confirmDeleteRoom = null" />
   </div>
 </template>
 
@@ -260,7 +292,9 @@ const editingRoom = ref<any>(null)
 const confirmDeleteRoom = ref<any>(null)
 const confirmDeleteRoomOpen = computed({
   get: () => !!confirmDeleteRoom.value,
-  set: (v) => { if (!v) confirmDeleteRoom.value = null },
+  set: (v) => {
+    if (!v) confirmDeleteRoom.value = null
+  }
 })
 
 const ROOM_COLORS = [
@@ -268,7 +302,7 @@ const ROOM_COLORS = [
   { name: 'yellow', hex: '#fbbf24' },
   { name: 'purple', hex: '#a78bfa' },
   { name: 'emerald', hex: '#34d399' },
-  { name: 'indigo', hex: '#818cf8' },
+  { name: 'indigo', hex: '#818cf8' }
 ]
 
 const DAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
@@ -309,7 +343,7 @@ const roomForm = reactive({
   description: '',
   videoLinkName: 'Webex',
   videoLinkUrl: '',
-  availability: [[], [], [], [], []] as { s: number; e: number }[][],
+  availability: [[], [], [], [], []] as { s: number; e: number }[][]
 })
 
 function roomColorHex(colorName: string) {
@@ -337,7 +371,9 @@ function clampPct(part: number, total: number) {
 
 // Minutes still bookable (server-computed, buffer- and min-length-aware).
 function roomBookableFree(room: any) {
-  return room.bookableFreeMinutes ?? Math.max(0, roomWindowMinutes(room) - (room.bookedMinutes ?? 0))
+  return (
+    room.bookableFreeMinutes ?? Math.max(0, roomWindowMinutes(room) - (room.bookedMinutes ?? 0))
+  )
 }
 
 // Free hours that can still actually be booked.
@@ -364,15 +400,24 @@ function roomUtilizationPct(room: any) {
 
 function openAddRoom() {
   editingRoom.value = null
-  Object.assign(roomForm, { name: '', capacity: 20, color: 'sky', description: '', videoLinkName: 'Webex', videoLinkUrl: '', availability: [[], [], [], [], []] })
+  Object.assign(roomForm, {
+    name: '',
+    capacity: 20,
+    color: 'sky',
+    description: '',
+    videoLinkName: 'Webex',
+    videoLinkUrl: '',
+    availability: [[], [], [], [], []]
+  })
   roomModalOpen.value = true
 }
 
 function openEditRoom(room: any) {
   editingRoom.value = room
-  const avail = Array.isArray(room.availability) && room.availability.length === 5
-    ? JSON.parse(JSON.stringify(room.availability))
-    : [[], [], [], [], []]
+  const avail =
+    Array.isArray(room.availability) && room.availability.length === 5
+      ? JSON.parse(JSON.stringify(room.availability))
+      : [[], [], [], [], []]
   Object.assign(roomForm, {
     name: room.name,
     capacity: room.capacity,
@@ -380,7 +425,7 @@ function openEditRoom(room: any) {
     description: room.description || '',
     videoLinkName: room.videoLinkName || 'Webex',
     videoLinkUrl: room.videoLinkUrl || '',
-    availability: avail,
+    availability: avail
   })
   roomModalOpen.value = true
 }
@@ -404,18 +449,18 @@ async function saveRoom() {
     const body = {
       ...roomForm,
       videoLinkUrl: roomForm.videoLinkUrl.trim() || null,
-      videoLinkName: roomForm.videoLinkName.trim() || 'Webex',
+      videoLinkName: roomForm.videoLinkName.trim() || 'Webex'
     }
     if (editingRoom.value) {
       await useApiFetch(`/rooms/${editingRoom.value.id}`, {
         method: 'PUT',
-        body,
+        body
       })
       toast.show('Room updated', 'ok')
     } else {
       await useApiFetch(`/meetings/${meetingStore.viewingMeeting!.id}/rooms`, {
         method: 'POST',
-        body,
+        body
       })
       toast.show('Room added', 'ok')
     }
@@ -465,10 +510,13 @@ async function loadBookings() {
   }
 }
 
-watch(() => meetingStore.viewingMeeting?.id, () => {
-  loadRooms()
-  loadBookings()
-})
+watch(
+  () => meetingStore.viewingMeeting?.id,
+  () => {
+    loadRooms()
+    loadBookings()
+  }
+)
 
 onMounted(async () => {
   await meetingStore.fetchMeetings()

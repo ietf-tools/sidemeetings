@@ -27,14 +27,20 @@
             <span v-if="slot.isHour" class="text-[10px] font-mono text-text-faint">{{ slot.label }}</span>
           </div>
 
-          <!-- Day cells -->
+          <!-- Day cells: two stacked 15-min sub-cells so closed/open shading
+               matches the 15-min booking granularity, not just 30-min steps. -->
           <div
             v-for="day in days"
             :key="day.date"
             class="border-l border-border relative"
-            :class="isClosed(day, slot) ? 'cell-closed' : ''"
             style="height: 24px;"
           >
+            <div
+              v-for="sub in slot.subSlots"
+              :key="sub"
+              :class="isClosed(day, { value: sub }) ? 'cell-closed' : ''"
+              style="height: 12px;"
+            ></div>
           </div>
         </div>
 
@@ -88,6 +94,8 @@ const timeSlots = computed(() => {
     const min = m % 60
     slots.push({
       value: m,
+      // 15-min sub-slots within this 30-min row, shaded independently.
+      subSlots: [m, m + 15],
       label: `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`,
       isHour: min === 0,
     })

@@ -305,12 +305,43 @@ export default async function bookingsRoutes(fastify) {
         isIrtf,
         areas,
         coOrganizers,
+        organizerName,
+        organizerEmail,
         videoLinkUrl,
         videoLinkName,
         state
       } = request.body
 
       const updateData = { updatedAt: new Date() }
+
+      // Reassign the main organizer. Organizers are keyed by email: link to the
+      // existing user with that address, or create one with the given name.
+      if (organizerEmail !== undefined) {
+        const email = String(organizerEmail).trim().toLowerCase()
+        const name = String(organizerName ?? '').trim()
+        if (!email) {
+          return reply.badRequest('organizerEmail cannot be empty')
+        }
+
+        const [existingUser] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1)
+
+        if (existingUser) {
+          updateData.organizerId = existingUser.id
+        } else {
+          if (!name) {
+            return reply.badRequest('organizerName is required to create a new organizer')
+          }
+          const [createdUser] = await db
+            .insert(users)
+            .values({ name, email })
+            .returning({ id: users.id })
+          updateData.organizerId = createdUser.id
+        }
+      }
 
       if (title !== undefined) {
         updateData.title = title

@@ -52,7 +52,7 @@
           </div>
           <div>
             <label class="form-label">Organizer email</label>
-            <input v-model="form.organizerEmail" type="email" class="form-input font-mono text-xs" placeholder="name@example.org" />
+            <input v-model="form.organizerEmail" type="email" class="form-input font-mono" placeholder="name@example.org" />
           </div>
         </div>
 
@@ -79,7 +79,7 @@
           </div>
           <div class="flex gap-2">
             <input v-model="newCoName" type="text" class="form-input" placeholder="Name" @keydown.enter.prevent="addCoOrg" />
-            <input v-model="newCoEmail" type="email" class="form-input font-mono text-xs" placeholder="Email" @keydown.enter.prevent="addCoOrg" />
+            <input v-model="newCoEmail" type="email" class="form-input font-mono" placeholder="Email" @keydown.enter.prevent="addCoOrg" />
             <button type="button" class="btn-secondary flex-shrink-0" @click="addCoOrg">Add</button>
           </div>
         </div>
@@ -167,7 +167,7 @@
             v-if="form.customVideo"
             v-model="form.videoLinkUrl"
             type="url"
-            class="form-input font-mono text-xs"
+            class="form-input font-mono"
             placeholder="https://…" />
         </div>
 
@@ -439,6 +439,8 @@ async function save() {
       body: {
         title: form.title,
         description: form.description,
+        organizerName: form.organizerName,
+        organizerEmail: form.organizerEmail,
         coOrganizers: form.coOrganizers,
         isIrtf: form.isIrtf,
         areas: form.isIrtf ? [] : form.areas,
