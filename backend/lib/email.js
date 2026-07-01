@@ -5,6 +5,9 @@ import { eq } from 'drizzle-orm'
 
 const SETTINGS_ID = 1
 const SUPPORT_EMAIL = 'support@ietf.org'
+// Shared "need help?" footer, included on every email except the approver one.
+const SUPPORT_FOOTER_HTML = `If you have any questions, please contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.`
+const SUPPORT_FOOTER_TEXT = `If you have any questions, please contact ${SUPPORT_EMAIL}.`
 
 // ─── SMTP transport ───────────────────────────────────────────────────────────
 // Built once, lazily, from environment variables. Returns null when SMTP isn't
@@ -310,8 +313,8 @@ export async function sendBookingPending(ctx, logger = console) {
       replyTo,
       to: ctx.organizer.email,
       subject: `Side meeting request received: ${ctx.booking.title}`,
-      html: layout({ heading, intro: introHtml, ctx }),
-      text: plainText({ heading, introText, ctx }),
+      html: layout({ heading, intro: introHtml, ctx, footer: SUPPORT_FOOTER_HTML }),
+      text: plainText({ heading, introText, ctx, footerText: SUPPORT_FOOTER_TEXT }),
       enabled: emailEnabled
     },
     logger
@@ -380,8 +383,8 @@ export async function sendBookingApproved(ctx, logger = console) {
       replyTo,
       to: recipients,
       subject: `Side meeting approved: ${ctx.booking.title}`,
-      html: layout({ heading, intro: introHtml, ctx }),
-      text: plainText({ heading, introText, ctx }),
+      html: layout({ heading, intro: introHtml, ctx, footer: SUPPORT_FOOTER_HTML }),
+      text: plainText({ heading, introText, ctx, footerText: SUPPORT_FOOTER_TEXT }),
       attachments: [
         {
           filename: 'side-meeting.ics',
@@ -401,8 +404,8 @@ export async function sendBookingRejected(ctx, logger = console) {
   const heading = 'Your side meeting request was declined'
   const introHtml = 'Unfortunately, your side meeting request was <strong>not approved</strong>.'
   const introText = 'Unfortunately, your side meeting request was not approved.'
-  const footer = `If you have any questions, please contact <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>.`
-  const footerText = `If you have any questions, please contact ${SUPPORT_EMAIL}.`
+  const footer = SUPPORT_FOOTER_HTML
+  const footerText = SUPPORT_FOOTER_TEXT
 
   return send(
     {
