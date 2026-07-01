@@ -2,13 +2,13 @@
   <!-- Top bar -->
   <header class="w-full max-w-[1100px] flex items-center justify-between gap-4 pt-6 pb-2 flex-wrap">
     <NuxtLink to="/" class="flex items-center gap-3 transition-opacity hover:opacity-80">
-      <div
-        class="w-[34px] h-[34px] rounded-[9px] bg-accent text-accent-text flex items-center justify-center font-extrabold text-[15px] tracking-tight">
-        SM
-      </div>
+      <img
+        src="https://static.ietf.org/logos/ietf-square-inverted.svg"
+        alt="IETF"
+        class="w-[34px] h-[34px] flex-shrink-0" />
       <div>
         <div class="font-bold text-sm text-text leading-tight">Side Meetings</div>
-        <div class="text-[11px] text-text-faint font-medium">Public schedule</div>
+        <div class="text-[11px] text-text-faint font-medium">Schedule</div>
       </div>
     </NuxtLink>
     <NuxtLink v-if="canRequest" to="/request" class="btn-primary"
@@ -132,10 +132,7 @@
                 {{ opt.label }}
               </button>
             </div>
-            <select
-              class="form-input !text-xs !py-1.5"
-              :value="activeTz"
-              @change="onTzSelect">
+            <select class="form-input !text-xs !py-1.5" :value="activeTz" @change="onTzSelect">
               <option v-for="tz in TIMEZONES" :key="tz" :value="tz">{{ tz }}</option>
             </select>
           </div>
@@ -373,7 +370,10 @@ const requestDisabledReason = computed(() => {
       return "Side meeting requests haven't opened yet"
     }
     const endInstant = Temporal.PlainDate.from(m.endDate)
-      .toZonedDateTime({ timeZone: m.timezone || 'UTC', plainTime: Temporal.PlainTime.from('23:59:59') })
+      .toZonedDateTime({
+        timeZone: m.timezone || 'UTC',
+        plainTime: Temporal.PlainTime.from('23:59:59')
+      })
       .toInstant()
     if (Temporal.Instant.compare(now, endInstant) > 0) return 'This meeting has ended'
   } catch {

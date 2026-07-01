@@ -2,10 +2,10 @@
   <div class="w-full max-w-sm mx-auto">
     <div class="card p-8 text-center">
       <div class="flex items-center justify-center mb-6">
-        <div
-          class="w-12 h-12 rounded-xl bg-accent flex items-center justify-center text-accent-text font-bold text-base mr-3">
-          SM
-        </div>
+        <img
+          src="https://static.ietf.org/logos/ietf-square-inverted.svg"
+          alt="IETF"
+          class="w-12 h-12 flex-shrink-0 mr-3" />
         <div class="text-left">
           <div class="text-lg font-bold text-text">Side Meetings</div>
           <div class="text-xs text-text-dim">IETF Meeting System</div>

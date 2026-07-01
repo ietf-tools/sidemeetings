@@ -4,9 +4,10 @@
     <aside class="w-[252px] flex-shrink-0 flex flex-col" style="background: #0a0d12; border-right: 1px solid #1a2029;">
       <!-- Logo -->
       <NuxtLink to="/" class="flex items-center gap-3 px-4 pt-5 pb-4 transition-opacity hover:opacity-80">
-        <div class="w-9 h-9 rounded-lg bg-accent flex items-center justify-center text-accent-text font-bold text-sm flex-shrink-0">
-          SM
-        </div>
+        <img
+          src="https://static.ietf.org/logos/ietf-square-inverted.svg"
+          alt="IETF"
+          class="w-9 h-9 flex-shrink-0" />
         <div>
           <div class="text-text font-semibold text-[14px] leading-tight">Side Meetings</div>
           <div class="text-sidebar-text-dim text-[11px]">Admin console</div>

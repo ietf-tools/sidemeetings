@@ -2,7 +2,10 @@
   <!-- Top bar -->
   <header class="w-full max-w-[960px] flex items-center justify-between gap-3 gap-y-3 flex-wrap pt-6 pb-1 px-0.5">
     <NuxtLink to="/" class="flex items-center gap-3 transition-opacity hover:opacity-80">
-      <div class="w-[34px] h-[34px] rounded-[9px] bg-accent text-accent-text flex items-center justify-center font-extrabold text-[15px] tracking-tight">SM</div>
+      <img
+        src="https://static.ietf.org/logos/ietf-square-inverted.svg"
+        alt="IETF"
+        class="w-[34px] h-[34px] flex-shrink-0" />
       <div>
         <div class="font-bold text-sm text-text leading-tight">Side Meetings</div>
         <div class="text-[11px] text-text-faint font-medium">Request a room</div>
@@ -146,8 +149,8 @@
             class="px-3 py-4"
             :class="di < meetingDays.length - 1 ? 'border-r border-s3' : ''">
             <div class="text-center pb-3 border-b border-s3 mb-3">
-              <div class="text-[13px] font-bold text-text">{{ day.label.split(' ')[0] }}</div>
-              <div class="text-xs text-text-faint font-mono">{{ day.label.split(' ')[1] }}</div>
+              <div class="text-[15px] font-bold text-text">{{ day.weekday }}</div>
+              <div class="text-[11px] text-text-dim">{{ day.dateLabel }}</div>
             </div>
             <div v-if="getAvailableSlots(day).length" class="flex flex-col gap-1.5">
               <button
@@ -441,9 +444,21 @@ const userInitials = computed(() => {
   return (auth.user?.name || '').split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
 })
 
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 const meetingDays = computed(() => {
   if (!activeMeeting.value) return []
-  return getMeetingDays(activeMeeting.value)
+  // Enrich each day with the full weekday name and long date label so the
+  // "pick a time" grid header matches the public homepage schedule.
+  return getMeetingDays(activeMeeting.value).map((day) => {
+    const pd = Temporal.PlainDate.from(day.date)
+    return {
+      ...day,
+      weekday: WEEKDAYS[pd.dayOfWeek - 1],
+      dateLabel: `${MONTHS[pd.month - 1]} ${pd.day}, ${pd.year}`,
+    }
+  })
 })
 
 const canSubmit = computed(() =>
