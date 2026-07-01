@@ -132,6 +132,7 @@ export const bookings = pgTable(
 
 export const settings = pgTable('settings', {
   id: integer('id').primaryKey().default(1),
+  emailEnabled: boolean('email_enabled').notNull().default(true),
   fromEmail: varchar('from_email', { length: 255 }),
   replyTo: varchar('reply_to', { length: 255 }),
   approvers: varchar('approvers', { length: 255 })
@@ -140,6 +141,21 @@ export const settings = pgTable('settings', {
     .default(sql`'{}'::varchar[]`),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 })
+
+// ─── Sessions ─────────────────────────────────────────────────────────────────
+// Server-side session store (see lib/sessionStore.js) so logins survive backend
+// restarts and redeploys. `sess` holds the serialized @fastify/session object;
+// `expire` is indexed for cheap pruning of stale rows.
+
+export const sessions = pgTable(
+  'sessions',
+  {
+    sid: varchar('sid', { length: 255 }).primaryKey(),
+    sess: jsonb('sess').notNull(),
+    expire: timestamp('expire').notNull()
+  },
+  (table) => [index('sessions_expire_idx').on(table.expire)]
+)
 
 // ─── Activity Log ─────────────────────────────────────────────────────────────
 

@@ -11,6 +11,7 @@ import fastifyStatic from '@fastify/static'
 
 import { db, runMigrations } from './db/index.js'
 import { users } from './db/schema.js'
+import { PostgresSessionStore } from './lib/sessionStore.js'
 
 import authRoutes from './routes/auth.js'
 import dashboardRoutes from './routes/dashboard.js'
@@ -54,6 +55,8 @@ await fastify.register(fastifyCookie)
 
 await fastify.register(fastifySession, {
   secret: process.env.SESSION_SECRET,
+  // Persist sessions in Postgres so logins survive backend restarts/redeploys.
+  store: new PostgresSessionStore(),
   cookie: {
     secure: isProd,
     httpOnly: true,

@@ -8,6 +8,13 @@
       "when": 1782787522635,
       "tag": "0000_supreme_excalibur",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782878717321,
+      "tag": "0001_wealthy_captain_america",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,29 @@
 
       <div v-if="loading" class="py-8 text-center text-text-dim">Loading…</div>
       <form v-else class="space-y-5" @submit.prevent="save">
+        <div class="flex items-center justify-between gap-4 pb-5 border-b border-border">
+          <div>
+            <div class="text-[13.5px] font-semibold text-text">Email notifications</div>
+            <div class="text-[11.5px] text-text-faint mt-0.5">
+              Master switch for all submission, approval and rejection emails. When off, no
+              notifications are sent.
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="form.emailEnabled"
+            title="Toggle email notifications"
+            class="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors"
+            :class="form.emailEnabled ? 'bg-accent' : 'bg-s3'"
+            @click="form.emailEnabled = !form.emailEnabled">
+            <span
+              class="inline-block h-5 w-5 rounded-full bg-white transition-transform mt-0.5"
+              :class="form.emailEnabled ? 'translate-x-[22px]' : 'translate-x-0.5'"></span>
+          </button>
+        </div>
+
+        <div :class="form.emailEnabled ? '' : 'opacity-50 pointer-events-none'" class="space-y-5">
         <div>
           <label class="form-label">"From" email address</label>
           <input
@@ -67,6 +90,7 @@
             </button>
           </div>
         </div>
+        </div>
 
         <div class="flex pt-[18px] border-t border-border">
           <button type="submit" class="btn-primary" :disabled="saving">
@@ -94,6 +118,7 @@ const saving = ref(false)
 const newApprover = ref('')
 
 const form = reactive({
+  emailEnabled: true,
   fromEmail: '',
   replyTo: '',
   approvers: [] as string[]
@@ -127,6 +152,7 @@ onMounted(async () => {
   try {
     const data = await useApiFetch<any>('/settings')
     Object.assign(form, {
+      emailEnabled: data.emailEnabled !== false,
       fromEmail: data.fromEmail || '',
       replyTo: data.replyTo || '',
       approvers: data.approvers || []

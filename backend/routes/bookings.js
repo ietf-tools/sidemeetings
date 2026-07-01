@@ -1,6 +1,75 @@
 import { db } from '../db/index.js'
 import { bookings, meetings, rooms, users, activityLog } from '../db/schema.js'
 import { eq, and, or, ilike, desc, sql } from 'drizzle-orm'
+import {
+  sendBookingPending,
+  sendApproverNotification,
+  sendBookingApproved,
+  sendBookingRejected
+} from '../lib/email.js'
+
+/**
+ * Load everything the email templates need for a booking: the booking itself
+ * plus its organizer, room and meeting. Returns null if the booking is gone.
+ * @param {string} id
+ * @returns {Promise<{booking: object, organizer: object, room: object, meeting: object}|null>}
+ */
+async function loadBookingContext(id) {
+  const [row] = await db
+    .select({
+      id: bookings.id,
+      title: bookings.title,
+      description: bookings.description,
+      state: bookings.state,
+      isIrtf: bookings.isIrtf,
+      areas: bookings.areas,
+      coOrganizers: bookings.coOrganizers,
+      startsAt: bookings.startsAt,
+      duration: bookings.duration,
+      videoLinkUrl: bookings.videoLinkUrl,
+      organizerName: users.name,
+      organizerEmail: users.email,
+      roomName: rooms.name,
+      roomVideoLinkName: rooms.videoLinkName,
+      meetingNum: meetings.num,
+      meetingCity: meetings.city,
+      meetingCountry: meetings.country,
+      meetingVenue: meetings.venue,
+      meetingTimezone: meetings.timezone
+    })
+    .from(bookings)
+    .innerJoin(users, eq(bookings.organizerId, users.id))
+    .innerJoin(rooms, eq(bookings.roomId, rooms.id))
+    .innerJoin(meetings, eq(bookings.meetingId, meetings.id))
+    .where(eq(bookings.id, id))
+    .limit(1)
+
+  if (!row) return null
+
+  return {
+    booking: {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      state: row.state,
+      isIrtf: row.isIrtf,
+      areas: row.areas,
+      coOrganizers: row.coOrganizers,
+      startsAt: row.startsAt,
+      duration: row.duration,
+      videoLinkUrl: row.videoLinkUrl
+    },
+    organizer: { name: row.organizerName, email: row.organizerEmail },
+    room: { name: row.roomName, videoLinkName: row.roomVideoLinkName },
+    meeting: {
+      num: row.meetingNum,
+      city: row.meetingCity,
+      country: row.meetingCountry,
+      venue: row.meetingVenue,
+      timezone: row.meetingTimezone
+    }
+  }
+}
 
 /**
  * Check whether a proposed booking conflicts with existing bookings.
@@ -221,6 +290,16 @@ export default async function bookingsRoutes(fastify) {
         action: 'submitted',
         meta: { title: booking.title }
       })
+
+      // Notify the organizer (pending) and the approvers (needs review).
+      // Fire-and-forget: email problems must never fail the submission.
+      loadBookingContext(booking.id)
+        .then((ctx) => {
+          if (!ctx) return
+          sendBookingPending(ctx, request.log)
+          sendApproverNotification(ctx, request.log)
+        })
+        .catch((err) => request.log.error({ err }, 'submission notifications failed'))
 
       return reply.code(201).send(booking)
     }
@@ -447,6 +526,13 @@ export default async function bookingsRoutes(fastify) {
         meta: { previousState: existing.state }
       })
 
+      // Notify organizer + co-organizers with an .ics attachment. Fire-and-forget.
+      loadBookingContext(id)
+        .then((ctx) => {
+          if (ctx) sendBookingApproved(ctx, request.log)
+        })
+        .catch((err) => request.log.error({ err }, 'approval notification failed'))
+
       return updated
     }
   )
@@ -484,6 +570,13 @@ export default async function bookingsRoutes(fastify) {
         action: 'rejected',
         meta: { previousState: existing.state }
       })
+
+      // Notify the organizer only. Fire-and-forget.
+      loadBookingContext(id)
+        .then((ctx) => {
+          if (ctx) sendBookingRejected(ctx, request.log)
+        })
+        .catch((err) => request.log.error({ err }, 'rejection notification failed'))
 
       return updated
     }

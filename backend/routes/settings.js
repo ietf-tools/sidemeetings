@@ -6,6 +6,7 @@ const SETTINGS_ID = 1
 
 const DEFAULT_SETTINGS = {
   id: SETTINGS_ID,
+  emailEnabled: true,
   fromEmail: null,
   replyTo: null,
   approvers: []
@@ -40,13 +41,16 @@ export default async function settingsRoutes(fastify) {
       preHandler: fastify.authenticateAdmin
     },
     async (request, _reply) => {
-      const { fromEmail, replyTo, approvers } = request.body
+      const { emailEnabled, fromEmail, replyTo, approvers } = request.body
 
       const upsertData = {
         id: SETTINGS_ID,
         updatedAt: new Date()
       }
 
+      if (emailEnabled !== undefined) {
+        upsertData.emailEnabled = !!emailEnabled
+      }
       if (fromEmail !== undefined) {
         upsertData.fromEmail = fromEmail || null
       }
