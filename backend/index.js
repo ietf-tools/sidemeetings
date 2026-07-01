@@ -26,6 +26,10 @@ import { invalidatePublicCache } from './lib/cache.js'
 const isProd = process.env.NODE_ENV === 'production'
 
 const fastify = Fastify({
+  // Behind a TLS-terminating proxy/ingress in staging & production, so trust
+  // X-Forwarded-* headers. Without this, request.protocol stays 'http' and
+  // @fastify/session refuses to set the secure session cookie (breaks OAuth).
+  trustProxy: isProd,
   logger: isProd
     ? true
     : {
