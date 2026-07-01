@@ -16,6 +16,9 @@ const SUPPORT_EMAIL = 'support@ietf.org'
 //   SMTP_USER   - auth username (optional; omit for unauthenticated relays)
 //   SMTP_PASS   - auth password
 //   SMTP_FROM   - fallback From address when Settings has no fromEmail
+//   SMTP_TLS_REJECT_UNAUTHORIZED - "false" disables TLS certificate validation
+//                                  (self-signed/mismatched certs). Insecure —
+//                                  use only on trusted staging relays.
 let cachedTransport
 let transportResolved = false
 
@@ -36,7 +39,10 @@ function getTransport() {
     secure: process.env.SMTP_SECURE === 'true' || port === 465,
     auth: process.env.SMTP_USER
       ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-      : undefined
+      : undefined,
+    // Applies to both implicit TLS and STARTTLS upgrades. Defaults to secure
+    // (validate certs); set SMTP_TLS_REJECT_UNAUTHORIZED=false to disable.
+    tls: { rejectUnauthorized: process.env.SMTP_TLS_REJECT_UNAUTHORIZED !== 'false' }
   })
   return cachedTransport
 }
