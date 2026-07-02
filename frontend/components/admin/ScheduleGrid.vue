@@ -73,7 +73,9 @@ defineEmits<{
 
 const { getMeetingDays, minutesToTime } = useTemporal()
 
-const SLOT_HEIGHT = 24 // px per 30-min slot
+const SLOT_HEIGHT = 24 // content px per 30-min slot
+const ROW_BORDER = 1 // 1px bottom border rendered between rows
+const ROW_HEIGHT = SLOT_HEIGHT + ROW_BORDER // actual vertical pitch per 30-min row
 const START_HOUR = 7
 const END_HOUR = 23
 
@@ -143,8 +145,10 @@ function bookingStyle(booking: any) {
   if (dayIndex === -1) return 'display: none;'
 
   const startOffset = booking._startMin - START_HOUR * 60
-  const topPx = (startOffset / 30) * SLOT_HEIGHT
-  const heightPx = (booking.duration / 30) * SLOT_HEIGHT
+  // Position/size against the real row pitch (content + border) so blocks don't
+  // drift upward relative to the time labels as you go down the grid.
+  const topPx = (startOffset / 30) * ROW_HEIGHT
+  const heightPx = (booking.duration / 30) * ROW_HEIGHT
   const colWidth = `calc((100% - 3.5rem) / ${days.value.length})`
   const leftOffset = `calc(3.5rem + ${dayIndex} * ${colWidth} + 1px)`
   const bg = booking.state === 'confirmed' ? '#166534' : '#78350f'
