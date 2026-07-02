@@ -1,7 +1,7 @@
 <template>
   <!-- Top bar -->
-  <header class="w-full max-w-[960px] flex items-center justify-between gap-3 gap-y-3 flex-wrap pt-6 pb-1 px-0.5">
-    <NuxtLink to="/" class="flex items-center gap-3 transition-opacity hover:opacity-80">
+  <header class="w-full max-w-[1100px] flex items-center justify-between gap-3 gap-y-3 flex-wrap pt-6 pb-1">
+    <NuxtLink to="/" class="self-start flex items-center gap-3 transition-opacity hover:opacity-80">
       <img
         src="https://static.ietf.org/logos/ietf-square-inverted.svg"
         alt="IETF"
@@ -48,7 +48,7 @@
   </div>
 
   <!-- Step 1: Choose a room -->
-  <div v-if="step === 1" class="w-full max-w-[960px]">
+  <div v-if="step === 1" class="w-full max-w-[1100px]">
     <div class="text-center mb-6">
       <h1 class="text-[26px] font-extrabold text-text tracking-tight">Choose a room</h1>
       <p class="text-sm text-text-dim mt-1.5">
@@ -99,7 +99,7 @@
   </div>
 
   <!-- Step 2: Pick a time -->
-  <div v-else-if="step === 2" class="w-full max-w-[960px]">
+  <div v-else-if="step === 2" class="w-full max-w-[1100px]">
     <button
       class="inline-flex items-center gap-1.5 text-[13px] font-semibold text-text-dim hover:text-text mb-4 transition-colors"
       @click="step = 1">

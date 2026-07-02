@@ -183,19 +183,32 @@
   <!-- Footer -->
   <footer class="self-stretch -mx-6 -mb-20 mt-16 bg-sidebar-bg border-t border-border">
     <div
-      class="max-w-[1100px] mx-auto px-6 py-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
+      class="max-w-[1100px] mx-auto px-6 py-6 flex flex-col sm:grid sm:grid-cols-3 items-center gap-4">
+      <div class="flex items-center gap-3 sm:justify-self-start">
+        <a
+          href="mailto:support@ietf.org"
+          class="text-xs text-text-dim hover:text-text transition-colors">
+          Support
+        </a>
+        <span class="w-px h-3.5 bg-border-strong"></span>
         <a
           href="https://status.ietf.org"
           target="_blank"
           rel="noopener"
           class="text-xs text-text-dim hover:text-text transition-colors">
-          System Status
+          System status
         </a>
         <span class="w-px h-3.5 bg-border-strong"></span>
-        <span class="text-xs text-text-faint">{{ appVersion }}</span>
+        <a
+          href="https://github.com/ietf-tools/sidemeetings/issues"
+          target="_blank"
+          rel="noopener"
+          class="text-xs text-text-dim hover:text-text transition-colors">
+          Report a bug
+        </a>
       </div>
-      <div class="flex items-center gap-3">
+      <span class="text-xs text-text-faint sm:justify-self-center">Version {{ appVersion }}</span>
+      <div class="flex items-center gap-3 sm:justify-self-end">
         <a
           href="https://www.ietf.org"
           target="_blank"
