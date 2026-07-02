@@ -25,7 +25,7 @@
     </div>
   </header>
 
-  <div class="w-full max-w-[1100px]">
+  <div class="w-full max-w-[1100px] flex-1">
     <div v-if="loading" class="py-20 text-center text-text-dim">Loading…</div>
     <div v-else-if="!meeting" class="py-20 text-center text-text-dim">
       No active meeting at the moment. Please check back later.
@@ -181,17 +181,21 @@
   </div>
 
   <!-- Footer -->
-  <footer class="w-full -mx-6 -mb-20 mt-16 bg-sidebar-bg border-t border-border">
+  <footer class="self-stretch -mx-6 -mb-20 mt-16 bg-sidebar-bg border-t border-border">
     <div
       class="max-w-[1100px] mx-auto px-6 py-6 flex flex-col-reverse sm:flex-row items-center justify-between gap-4">
-      <a
-        href="https://status.ietf.org"
-        target="_blank"
-        rel="noopener"
-        class="text-xs text-text-dim hover:text-text transition-colors">
-        System Status
-      </a>
-      <div class="flex items-center gap-5">
+      <div class="flex items-center gap-3">
+        <a
+          href="https://status.ietf.org"
+          target="_blank"
+          rel="noopener"
+          class="text-xs text-text-dim hover:text-text transition-colors">
+          System Status
+        </a>
+        <span class="w-px h-3.5 bg-border-strong"></span>
+        <span class="text-xs text-text-faint">{{ appVersion }}</span>
+      </div>
+      <div class="flex items-center gap-3">
         <a
           href="https://www.ietf.org"
           target="_blank"
@@ -199,6 +203,7 @@
           class="text-xs text-text-dim hover:text-text transition-colors">
           IETF
         </a>
+        <span class="w-px h-3.5 bg-border-strong"></span>
         <a
           href="https://datatracker.ietf.org"
           target="_blank"
@@ -206,6 +211,7 @@
           class="text-xs text-text-dim hover:text-text transition-colors">
           Datatracker
         </a>
+        <span class="w-px h-3.5 bg-border-strong"></span>
         <a
           href="https://www.rfc-editor.org"
           target="_blank"
@@ -310,6 +316,7 @@ definePageMeta({ layout: 'request' })
 
 const { formatDateRange, minutesToTime } = useTemporal()
 const config = useRuntimeConfig()
+const appVersion = config.public.appVersion
 
 // Public iCalendar subscription feed for the active meeting, e.g.
 // https://host/calendar/126.ics (served by the backend at its root).

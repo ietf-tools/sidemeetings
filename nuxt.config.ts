@@ -1,3 +1,10 @@
+import { readFileSync } from 'node:fs'
+
+// App version baked in at build time from package.json (the CI/build step bumps
+// it before the docker image is built). Falls back to 0.0.0 in dev.
+const appVersion =
+  JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')).version || '0.0.0'
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-06-28',
   srcDir: 'frontend/',
@@ -7,7 +14,8 @@ export default defineNuxtConfig({
     public: {
       // Same-origin default for the integrated build (Fastify serves this SPA).
       // Dev overrides it via .env to point at the standalone backend on :4000.
-      apiUrl: process.env.NUXT_PUBLIC_API_URL ?? '/api'
+      apiUrl: process.env.NUXT_PUBLIC_API_URL ?? '/api',
+      appVersion
     }
   },
   app: {
