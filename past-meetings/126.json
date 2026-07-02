@@ -1,0 +1,532 @@
+{
+  "meeting": {
+    "meetingNumber": "126",
+    "meetingLocation": "Vienna, Austria",
+    "startDate": "2026-07-20",
+    "endDate": "2026-07-24",
+    "timezone": "Europe/Vienna",
+    "canRequestStartDateTime": "2026-06-26T21:00:00Z"
+  },
+  "rooms": [
+    {
+      "id": 4594115,
+      "title": "Grand Klimt Hall 3",
+      "description": "Side Meeting Room\n\nSeats 40, U-shape",
+      "slug": "grand-klimt-hall-3"
+    },
+    {
+      "id": 4576659,
+      "title": "Park Suite 4",
+      "description": "Side Meeting Room\n\nSeats 18, conference style",
+      "slug": "park-suite-4"
+    }
+  ],
+  "bookings": [
+    {
+      "id": 21758539,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Coherent Pluggable CCAMP meeting",
+      "description": "To continue the weekly meetings on coherent pluggables' modeling and gap analysis",
+      "start": "2026-07-20T07:00:00.000Z",
+      "end": "2026-07-20T08:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Reza",
+      "organizerEmail": "reza.rokui@gmail.com",
+      "areas": [
+        "RTG"
+      ]
+    },
+    {
+      "id": 21731826,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Proposal for Confidential Computing Research Group",
+      "description": "Recent research on confidential computing has led to high-severity vulnerabilities like Intra-handshake.fail [0] (CVE-2026-33697 [1]) of CVSS 7.5, which indicates that further research is required on this topic before forming a WG. We will discuss potential topics of research and scope for the proposed RG.\n\n\n[0] https://github.com/CCC-Attestation/formal-spec-KBS\n[1] https://www.cve.org/CVERecord?id=CVE-2026-33697",
+      "start": "2026-07-20T09:00:00.000Z",
+      "end": "2026-07-20T10:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Muhammad Usama Sardar",
+      "organizerEmail": "muhammad_usama.sardar@tu-dresden.de",
+      "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 21778198,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "AI Agent Authorization use cases and gap analysis",
+      "description": "From an industrial perspective, discuss the existing actual use cases of authorization, and identify the actual authorization gaps. Feel free to contact me to share the topics.",
+      "start": "2026-07-20T12:45:00.000Z",
+      "end": "2026-07-20T13:45:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Meiling Chen",
+      "organizerEmail": "chenmeiling@chinamobile.com",
+      "areas": []
+    },
+    {
+      "id": 21728238,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Deep space QUIC simulations and profile",
+      "description": "Presentation of QUIC simulations in deep space scenarios and discussions about draft-tiptop-quic-profile",
+      "start": "2026-07-20T13:00:00.000Z",
+      "end": "2026-07-20T15:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Marc Blanchet",
+      "organizerEmail": "marc.blanchet@viagenie.ca",
+      "areas": [
+        "INT",
+        "WIT"
+      ]
+    },
+    {
+      "id": 21730409,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Email Verification Protocol ",
+      "description": "The protocol enables web applications to verify that a user  controls an email address without sending a verification email.  It uses a three-party model in which the browser intermediates between the RP and the issuer, hiding the RP's identity from the issuer and supporting private, per-RP email addresses to prevent cross-site correlation.\n\nhttps://datatracker.ietf.org/doc/draft-hardt-email-verification/",
+      "start": "2026-07-20T14:00:00.000Z",
+      "end": "2026-07-20T15:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Dick Hardt",
+      "organizerEmail": "dick.hardt@gmail.com",
+      "areas": []
+    },
+    {
+      "id": 21931572,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Remote Attestation Challenges for AI Agents",
+      "description": "Agentic AI is rapidly evolving from prompt-based assistants into autonomous systems that plan, call tools, execute tasks locally or remotely through inter-agent collaboration and interact with real-time environments while reducing direct human control over internal decision-making logic. Facing new and complex large-scale security and privacy vulnerabilities, Remote Attestation is one major technology that could be used to provide cryptographic proof of trustworthiness of an execution environment.\n \nRemote Attestation (RA) for AI Agents is needed to prove what code+data+policy the agent is running, not just the hardware. This side meeting aims at analyzing the major RA’s challenges for AI Agents, identify the existing solutions provided by IETF and the gaps to cover the attestation and verification needs of an AI agent. We will try to answer to important fundamental questions:\nWhat to attest?\nHow to attest?\nWhen to attest? ﻿\nCo-Organizer: Houda Laboid, Houda Laboid@Huawei.com",
+      "start": "2026-07-20T16:00:00.000Z",
+      "end": "2026-07-20T17:00:00.000Z",
+      "location": "https://armltd.zoom.us/j/91968915252?pwd=lpzYEkZua0Ekt3V0hphb7eKVFqYzA4.1",
+      "organizerName": "YOGESH DESHPANDE",
+      "organizerEmail": "yogesh.deshpande@arm.com",
+      "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 21741523,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Proactive Analytics and Intelligence for Network Protection",
+      "description": "Trends in data analytics and computational intelligence that may impact network cybersecurity. Novel approaches to network-driven data analytics system architectures that can improve cybersecurity solutions in enterprises and other organizations. Mechanism to communicate intent among AI-based systems across independent systems. Approaches to integrate computational intelligence into network architectures at multiple layers. Approaches to report and measure the degree of accuracy in the proactive adjustment of the security posture of the network. Techniques and approaches for collecting network data while ensuring user-privacy is protected (i.e. no PII leakage). Network Behavioral Analytics, and Non-Person Entity (NPE) Discrimination (AI vs Human) Analytics.",
+      "start": "2026-07-20T16:00:00.000Z",
+      "end": "2026-07-20T18:00:00.000Z",
+      "location": "https://us02web.zoom.us/j/89076254510?pwd=NW5MRzFaaGRnUlJnQW5SRGkyQVdhdz09",
+      "organizerName": "Thomas Hardjono",
+      "organizerEmail": "hardjono@mit.edu",
+      "areas": []
+    },
+    {
+      "id": 21731208,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "AI Network Multicast",
+      "description": "This side meeting builds on previous discussions and will dive deeper into AI-specific multicast use cases and requirements, including MoE token dispatch and model replication, while conducting preliminary technical analyses of potential solutions such as BIER enhancements and new protocol designs, with emphasis on reliability, scalability, and quantitative performance evaluation to guide future standardization.",
+      "start": "2026-07-21T07:15:00.000Z",
+      "end": "2026-07-21T08:45:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Yisong Liu",
+      "organizerEmail": "liuyisong_ietf@163.com",
+      "areas": [
+        "RTG",
+        "OPS"
+      ]
+    },
+    {
+      "id": 21733600,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "HP-WAN",
+      "description": "IETF 126: High-performance WAN will focus on the HP-WAN Updates, HPC/AI service intent, Rate-based SRv6, Scale-across and following up the discussions upon IETF125 Hackathon.\nThe primary agenda is shown as below.\n1,Note well, welcome statements, introduction and agenda bash\n2, Scale-across Architecture and solutions\n3,HP-WAN Documents Updates (State-Of-The-Art and Framework)\n4,HP-WAN/HPC/AI Service Intent/Job Scheduler Model\n5,Rate-based SRv6 congestion control\n6,Open Issues Discussion\n\nhttps://github.com/xiongquan1230/IETF126-Sidemeeting-HP-WAN/tree/main",
+      "start": "2026-07-21T07:30:00.000Z",
+      "end": "2026-07-21T09:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Quan Xiong",
+      "organizerEmail": "xiong.quan@zte.com.cn",
+      "areas": [
+        "RTG",
+        "WIT"
+      ]
+    },
+    {
+      "id": 21729627,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Satellite Routing for LEO Satellite Constellation",
+      "description": "This side meeting will focus on satellite routing when Low Earth Orbit (LEO) satellite constellation is used for Internet access. \nChina Satellite Network Group will be invited to share their perspective and experience at this side meeting. \nIIRC this is the first time for an LEO satellite constellation operator to join the IETF activities, and expect to have more satellite network operators come to IETF.",
+      "start": "2026-07-21T09:00:00.000Z",
+      "end": "2026-07-21T10:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Xiao Min",
+      "organizerEmail": "xiao.min2@zte.com.cn",
+      "areas": [
+        "RTG"
+      ]
+    },
+    {
+      "id": 21732128,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Agentic AI Research Group",
+      "description": "Agentic AI is moving fast, but without thorough security considerations. We would like to discuss different topics to scope the proposal of a research group on agentic AI-related topics. \n\nParticipants are encouraged to share their thoughts as short presentations.",
+      "start": "2026-07-21T13:00:00.000Z",
+      "end": "2026-07-21T14:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Muhammad Usama Sardar",
+      "organizerEmail": "muhammad_usama.sardar@tu-dresden.de",
+      "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 21728307,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "MOLE/PACT",
+      "description": "Discussion of Moderation of unLinkable Endorsements (MoLE) architecture and protocols.\n\nWebsite operators have to deal with a lot of abuse and they often feel like their servers are suffering. The current methods they have available all have significant downsides: CAPTCHAs, fingerprinting, asking people for ID.\n\nModeration of unLinkable Endorsements (MoLE) seeks to address this concern. It builds on learnings from Privacy Pass, but it uses a novel architecture that seeks to provide both stronger privacy guarantees and more flexible capabilities for servers. The discussion on this list will be limited to the architecture, protocols, and integration of necessary cryptographic primitives. https://github.com/Moderation-of-unLinkable-Endorsements contains some of the work that people are starting to work on.\n\nmole@ietf.org",
+      "start": "2026-07-21T13:00:00.000Z",
+      "end": "2026-07-21T15:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "David Schinazi",
+      "organizerEmail": "dschinazi.ietf@gmail.com",
+      "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 21734980,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": " Intelligent Network Architecture and Technologies",
+      "description": "This side meeting explores emerging scenarios and technologies for distributed inference networks. We will discuss key technical gaps and potential standardization opportunities, with a focus on the evolving role of underlying networks—particularly edge gateways—in enabling inference acceleration, semantic routing, and adaptive resource orchestration. The session aims to foster cross-domain discussions and welcomes contributions from both networking and AI.",
+      "start": "2026-07-21T15:00:00.000Z",
+      "end": "2026-07-21T16:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "YUE Shengnan",
+      "organizerEmail": "yueshengnan@chinamobile.com",
+      "areas": [
+        "RTG",
+        "WIT"
+      ]
+    },
+    {
+      "id": 21737003,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "More QUIC, how?",
+      "description": "How can we get more QUIC deployed?",
+      "start": "2026-07-21T16:00:00.000Z",
+      "end": "2026-07-21T18:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Lars Eggert",
+      "organizerEmail": "lars@eggert.org",
+      "areas": []
+    },
+    {
+      "id": 21787862,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Interface to In-Network Computing Functions (I2ICF)",
+      "description": "The Interface to In-Network Computing Functions (I2ICF) group aims to define interfaces and protocols for provisioning In-Network Computing Functions (ICFs) like Application Functions (AFs) and Computing Functions (CFs) for the requested services in the aforementioned use cases. Agentic AI can be used for accommodate the intelligent services among AI agents.\n\nIn-Network Computing (INC) or Computing in the Network (COIN) is a promising technology to help solve these problems. It could help reduce the data volume and improve the Quality of Service (QoS) by offloading some AFs or CFs into In-Network Computing Functions (ICFs) such as Programmable Network Devices (PNDs).\n\nAlso, Intent-Based Networking (IBN) can compose user services autonomously and construct a combination of ICFs into a target network for service provisioning and QoS assurance.\n\nAdditional Resources: - I2ICF Mailing List: https://mailarchive.ietf.org/arch/browse/i2icf/\n\nI2ICF Mailing List Subscription: https://mailman3.ie",
+      "start": "2026-07-21T16:30:00.000Z",
+      "end": "2026-07-21T18:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Jaehoon Paul Jeong",
+      "organizerEmail": "jaehoon.paul@gmail.com",
+      "areas": [
+        "OPS"
+      ]
+    },
+    {
+      "id": 21738719,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Observability, Intervention and Control of Network Management Agent",
+      "description": "As non-deterministic, AI-native autonomous agents are increasingly integrated into network management, traditional static AI guardrails are proving insufficient to address real-time execution anomalies or unexpected behaviors. This side meeting aims to discuss the ICON (Observability, Intervention, and Control for Network Management Agent) initiative, gathering interested participants to seek community feedback on use cases, functional requirements, and potential solutions that enable continuous monitoring, human oversight, and intervention mechanisms when network management agents misbehave.\nProponent：Qin Wu(bill.wu@huawei.com); Qiufang Ma (maqiufang1@huawei.com)",
+      "start": "2026-07-22T06:00:00.000Z",
+      "end": "2026-07-22T07:30:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Qiufang Ma",
+      "organizerEmail": "maqiufang1@huawei.com",
+      "areas": [
+        "OPS"
+      ]
+    },
+    {
+      "id": 21731459,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "New Challenges and Directions for Internet Routing in the AI Era",
+      "description": "This side meeting aims to explore emerging challenges and future directions for Internet routing in the AI era. As AI-driven applications increasingly reshape network traffic patterns, operational requirements, and infrastructure design, the routing community faces new opportunities and challenges in areas including routing architecture evolution, traffic engineering, security, network observability, automation, and intelligent operations.\n\nThe meeting will provide a forum for researchers, operators, and industry practitioners to exchange perspectives on how routing technologies, architectures, and operational practices should evolve to address the networking demands of the AI era. Topics will include AI-driven BGP engineering, secure and resilient routing operations, network management, telemetry, observability, and AIOps-enabled network operations.\n\nFurther information, including the agenda and presentation materials, is available at:\nhttps://github.com/IDRNG/126meeting",
+      "start": "2026-07-22T07:30:00.000Z",
+      "end": "2026-07-22T09:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "QI LI",
+      "organizerEmail": "qli01@tsinghua.edu.cn",
+      "areas": [
+        "RTG",
+        "SEC"
+      ]
+    },
+    {
+      "id": 21787822,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "IPv6 Wireless Access in Satellite Networks (IPWASN)",
+      "description": "The IPv6 Wireless Access in Satellite Networks (IPWASN) discussion aims to identify problem statements, use cases, and requirements for supporting IPv6-based wireless access in Non-Terrestrial Networks (NTNs), especially satellite networks. IPWASN considers LEO satellites, Inter-Satellite Links (ISLs), HAPS-assisted relay paths, frequent handovers, variable link quality, QoS support, and intermittent connectivity.\n\nThis meeting will discuss how existing IPv6, mobility management, QoS, MPLS, SR-MPLS, and SRv6 mechanisms can be applied to multi-hop data forwarding, HAPS-assisted path selection, traffic engineering, and service continuity in dynamic satellite network environments. Since this work is still in an early research stage, the discussion will focus on collecting feedback on the problem scope, use cases, and initial requirements.\n\nAdditional Resource: IPWASN Internet-Draft\nhttps://datatracker.ietf.org/doc/draft-lee-6man-ipv6-satellite-networks/",
+      "start": "2026-07-22T07:45:00.000Z",
+      "end": "2026-07-22T08:45:00.000Z",
+      "location": "https://skku-edu.zoom.us/j/83209601889?pwd=RS1CEnqintD81VzCV3Zas14NXaiAq2.1",
+      "organizerName": "Jaehoon Paul Jeong",
+      "organizerEmail": "jaehoon.paul@gmail.com",
+      "areas": [
+        "OPS"
+      ]
+    },
+    {
+      "id": 21733406,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Building AI Agent task based on the QoS guaranteed multi-agent collabration",
+      "description": "The primary focus of this side meeting is to discuss, in scenarios involving multi-agent collaboration, how to create service-guaranteed tasks or task chains for users based on their intents and the network's available services and policies. This aims to achieve more efficient utilization of both network and computing resources.\nOrganizer：Chuanyang.Miao (miao.chuanyang@zte.com.cn)/ Xiaoqiu.Zhang(zhangxiaoqiu@chinamobile.com)/Ran.Pang(pangran@chinaunicom.cn)",
+      "start": "2026-07-22T09:00:00.000Z",
+      "end": "2026-07-22T10:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "chuanyang miao",
+      "organizerEmail": "miao.chuanyang@zte.com.cn",
+      "areas": []
+    },
+    {
+      "id": 21738775,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "AI Consumable YANG Data Model",
+      "description": "As LLMs and autonomous agents are increasingly integrated into network management, little work has yet explored how this shift impacts existing YANG data models and whether there are critical gaps that remain unsolved. This side meeting aims to facilitate discussion on the implications of LLMs and agents on YANG data modeling, and how YANG can be better consumed. Some potential gaps and possible ways forward will be explored in this direction.\nProponent：Kent Watsen <kent+ietf@watsen.net>; Qiufang Ma <maqiufang1@huawei.com>",
+      "start": "2026-07-22T12:45:00.000Z",
+      "end": "2026-07-22T13:45:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Qiufang Ma",
+      "organizerEmail": "maqiufang1@huawei.com",
+      "areas": [
+        "OPS"
+      ]
+    },
+    {
+      "id": 21835325,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Open Fibre Data Standard (OFDS)",
+      "description": "OFDS is a community-driven solution for mapping the Internet's fiber networks. It provides a common language for describing fiber optic networks, and  enables the visualization (ex maps), exchange, and analysis of fiber optic network data for researchers, network operators, governments and more. This side meeting is to explain OFDS, describe its uses so far, and to gauge interest within the IETF/IRTF community for doing more with OFDS. More info at: https://ofds.info/en/",
+      "start": "2026-07-22T12:45:00.000Z",
+      "end": "2026-07-22T13:45:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Dan York",
+      "organizerEmail": "york@isoc.org",
+      "areas": [
+        "ART"
+      ]
+    },
+    {
+      "id": 21736612,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "MTA Hooks: An HTTP-Based Mail Processing Protocol ",
+      "description": "Email filtering services (spam, virus, policy, compliance) sit between Mail Transfer Agents (MTAs) and the rest of the mail pipeline. The dominant integration mechanism today is the Milter protocol, which has no formal specification, no IETF standing, no outbound-delivery hooks, and behaviourally divergent implementations across the MTAs that support it. The result is that the integration point on which a large fraction of internet mail filtering depends is unspecified, is hard to implement outside C, and is effectively controlled by the de facto reference implementations.\n\nThe MTA Hooks Working Group aims to standardise a modern, open replacement: an HTTP-based protocol by which an MTA delegates per-stage processing decisions to one or more external scanners, using request/response semantics, capability negotiation, and JSON or CBOR serialisation.\n\nhttps://datatracker.ietf.org/doc/draft-degennaro-mta-hooks/",
+      "start": "2026-07-22T14:00:00.000Z",
+      "end": "2026-07-22T15:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Mauro De Gennaro",
+      "organizerEmail": "mauro@stalw.art",
+      "areas": [
+        "ART"
+      ]
+    },
+    {
+      "id": 21728059,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Practical Cyber Security ",
+      "description": "Cyber attacks are increasing in frequency, sophistication and impact, posing significant threat to the security of networks, the privacy of data and the availability of services. These attacks target all systems, from critical infrastructure to enterprise networks to individuals. The changes in attacker tradecraft means that a collaborative approach is required. \n\nIn this side meeting we will discuss the current active malicious threats the cyber security community is combatting,  increase understanding of how to defend against them, and explore the challenges and changes that attendees are seeing. All with a view to how IETF can help.",
+      "start": "2026-07-22T14:00:00.000Z",
+      "end": "2026-07-22T15:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Michael P",
+      "organizerEmail": "michael.p1@ncsc.gov.uk",
+      "areas": [
+        "OPS",
+        "SEC"
+      ]
+    },
+    {
+      "id": 21812169,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Usable E2E Authentication with OIDC for Email and Messaging",
+      "description": "The OpenID Connect Key Binding draft enables OpenID Providers to issue cryptographically key-bound ID Tokens, allowing authenticated identities to be bound to client-controlled public keys.\n\nThis side meeting explores how these tokens could be used as a generic trust layer for end-to-end identity verification, with two primary use cases:\n\nTrust establishment for OpenPGP keys in secure email\nEnd-to-end identity verification for Matrix\n\nWe invite discussion on architecture, trust models, interoperability, and deployment, and welcome participants from the OAuth, OpenID Connect, Email, OpenPGP, MLS, and Matrix communities.",
+      "start": "2026-07-23T06:00:00.000Z",
+      "end": "2026-07-23T07:00:00.000Z",
+      "location": "https://zoom.us/99711777049?pwd=Hga3hPVYvKi3Zi3Z5KPHVamjzyP1d7tgz.1",
+      "organizerName": "Jonas Primbs",
+      "organizerEmail": "jonas.primbs@syss.de",
+      "areas": [
+        "SEC",
+        "ART"
+      ]
+    },
+    {
+      "id": 21821861,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "IoA@enterprise Meeting",
+      "description": "Internet of Agents for Enterprises (IoA@Enterprise), target notes/agenda: https://notes.ietf.org/notes-ietf-126-public-side-meeting-ioa@enterprise",
+      "start": "2026-07-23T06:00:00.000Z",
+      "end": "2026-07-23T07:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Toerless Eckert",
+      "organizerEmail": "tte@cs.fau.de",
+      "areas": [
+        "OPS"
+      ]
+    },
+    {
+      "id": 21727979,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "PQ DNSSEC Research",
+      "description": "Updates on post-quantum DNSSEC research",
+      "start": "2026-07-23T07:30:00.000Z",
+      "end": "2026-07-23T09:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Peter Thomassen",
+      "organizerEmail": "peter@desec.io",
+      "areas": []
+    },
+    {
+      "id": 21760919,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Extensible Messaging and Presence Protocol (XMPP) 2.0",
+      "description": "XMPP is an IETF standard for federated, interoperable instant messaging still under active development. Extensions and new features are currently developed by the XMPP Standards Foundation however in the the 15+ years since the RFC was last updated the way a client connects to an XMPP server has changed dramatically.\n\nThis meeting will provide updates on the current state of XMPP, its users and ours (The XSF’s) thought process on bringing XMPP back to the IETF and update the RFC.",
+      "start": "2026-07-23T13:00:00.000Z",
+      "end": "2026-07-23T14:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Daniel Gultsch",
+      "organizerEmail": "daniel@gultsch.de",
+      "areas": []
+    },
+    {
+      "id": 21727903,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Post-Quantum Cryptography: Government–Industry Dialogue",
+      "description": "The transition to Post-Quantum Cryptography (PQC) presents significant technical, operational, and strategic challenges. This side meeting will bring together government and industry stakeholders to discuss PQC migration timelines, priorities, technical solutions, deployment experiences, standards maturity, security considerations, risks, and costs.\n\nSeveral government organizations will present their recent work on PQC timelines and technical recommendations, providing a basis for an open dialogue with industry on challenges, lessons learned, and opportunities for collaboration during the transition to PQC.",
+      "start": "2026-07-23T13:00:00.000Z",
+      "end": "2026-07-23T14:30:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "John Preuß Mattsson",
+      "organizerEmail": "john.mattsson@ericsson.com",
+      "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 21782431,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Agent Operations (AgentOps)",
+      "description": "This side meeting focuses on the standardization and operational best practices for AI agent operations (AgentOps), targeting the emerging challenges of deploying, managing, and maintaining intelligent agents .",
+      "start": "2026-07-23T14:15:00.000Z",
+      "end": "2026-07-23T15:45:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "QIONG SUN",
+      "organizerEmail": "sunqiong@chinatelecom.cn",
+      "areas": [
+        "OPS"
+      ]
+    },
+    {
+      "id": 21730581,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "AAuth",
+      "description": "Agentic software has changed the requirements of client software identity and authorization. AAuth is being deployed where OAuth has not had the right primitives for agents to do consequential work.",
+      "start": "2026-07-23T15:00:00.000Z",
+      "end": "2026-07-23T17:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Dick Hardt",
+      "organizerEmail": "dick.hardt@gmail.com",
+      "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 21763345,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Scalable Zero-Touch Routing with KIRA",
+      "description": "KIRA is a routing protocol that provides zero-touch IPv6 connectivity for control planes. Simulations show that it works well not only for fixed networks, but also for wireless networks, including MANETs and Satellite networks (moreover, there is also running code). Once standardized it would provide a huge benefit for network operators for controlling and managing their network infrastructure. This side meeting provides an overview of KIRA and is intended to raise interest in the community toward a standardization effort in the IETF.\nAgenda:\n * Introduction to KIRA ~20min\n * Q&A 15min\n * Discussion on next steps for standardization within the IETF 15min\n\nAdditional Resources: Information about KIRA https://s.kit.edu/KIRA",
+      "start": "2026-07-23T17:00:00.000Z",
+      "end": "2026-07-23T18:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Roland Bless",
+      "organizerEmail": "roland.bless@kit.edu",
+      "areas": [
+        "RTG",
+        "OPS"
+      ]
+    },
+    {
+      "id": 21841865,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "AIOPS - Scope and Charter Discussion",
+      "description": "AIOPS - Scope and Charter Discussion",
+      "start": "2026-07-24T06:00:00.000Z",
+      "end": "2026-07-24T08:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Mahesh Jethanandani",
+      "organizerEmail": "mjethanandani@gmail.com",
+      "areas": [
+        "OPS"
+      ]
+    },
+    {
+      "id": 21734811,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "IDN - Inference Distribution Network",
+      "description": "This side meeting explores new scenarios and technologies for Inference Distribution Networks (IDN), including deploying OpenClaw on edge gateways for smart home IoT control, and using distributed hierarchical inference to ensure data security and privacy in industries such as healthcare and finance. We will also discuss semantic routing and distributed inference acceleration techniques. The goal is to identify gaps for future IETF standardization and foster cross-disciplinary collaboration between networking and AI communities.",
+      "start": "2026-07-24T07:00:00.000Z",
+      "end": "2026-07-24T08:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "SONG Jian",
+      "organizerEmail": "songjianyjy@chinamobile.com",
+      "areas": [
+        "RTG",
+        "WIT",
+        "ART"
+      ]
+    },
+    {
+      "id": 21928614,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Zero Trust Control and Policy Protocol",
+      "description": "Discuss the potential standards opportunities that related to the dynamic control policies between the PEP and PDP under zero trust architecture etc.",
+      "start": "2026-07-24T09:00:00.000Z",
+      "end": "2026-07-24T10:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Aijun Wang",
+      "organizerEmail": "wangaijun@tsinghua.org.cn",
+      "areas": [
+        "SEC"
+      ]
+    }
+  ]
+}
