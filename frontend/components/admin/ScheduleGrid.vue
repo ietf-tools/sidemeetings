@@ -15,7 +15,7 @@
       </div>
 
       <!-- Time rows -->
-      <div class="relative">
+      <div ref="bodyRef" class="relative">
         <div
           v-for="(slot, si) in timeSlots"
           :key="slot.value"
@@ -75,7 +75,7 @@ const { getMeetingDays, minutesToTime } = useTemporal()
 
 const SLOT_HEIGHT = 24 // content px per 30-min slot
 const ROW_BORDER = 1 // 1px bottom border rendered between rows
-const ROW_HEIGHT = SLOT_HEIGHT + ROW_BORDER // actual vertical pitch per 30-min row
+const ROW_HEIGHT = SLOT_HEIGHT + ROW_BORDER // nominal pitch, used only as a pre-measure fallback
 const START_HOUR = 7
 const END_HOUR = 23
 
@@ -140,15 +140,60 @@ function isClosed(day: { date: string; offset: number }, slot: { value: number }
   return !periods.some((p) => slot.value >= p.s && slot.value < p.e)
 }
 
+// Measured top (px, relative to the rows container) of each 30-min row. A 1px
+// row border rounds to a fractional device pixel, so the true pitch isn't a
+// clean 24 or 25 — extrapolating a constant drifts as you go down. Instead we
+// read the actual row positions from the DOM and interpolate against them.
+const bodyRef = ref<HTMLElement | null>(null)
+const rowTops = ref<number[]>([])
+
+function measureRows() {
+  const el = bodyRef.value
+  if (!el) return
+  const rows = Array.from(el.children).filter((c) =>
+    c.classList.contains('grid')
+  ) as HTMLElement[]
+  rowTops.value = rows.map((r) => r.offsetTop)
+}
+
+// Convert a minute-of-day into a pixel offset by interpolating between measured
+// row tops (extrapolating past the last row with the average pitch).
+function pxForMinute(min: number) {
+  const tops = rowTops.value
+  const slotF = (min - START_HOUR * 60) / 30
+  if (tops.length < 2) return slotF * ROW_HEIGHT
+  const last = tops.length - 1
+  const pitch = ((tops[last] as number) - (tops[0] as number)) / last
+  // Measured top for a (possibly out-of-range) slot index, extrapolating with
+  // the average pitch beyond either end.
+  const at = (i: number) => {
+    if (i < 0) return (tops[0] as number) + i * pitch
+    if (i > last) return (tops[last] as number) + (i - last) * pitch
+    return tops[i] as number
+  }
+  const idx = Math.floor(slotF)
+  const frac = slotF - idx
+  return at(idx) + frac * (at(idx + 1) - at(idx))
+}
+
+onMounted(() => {
+  nextTick(measureRows)
+  if (typeof window !== 'undefined') window.addEventListener('resize', measureRows)
+})
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') window.removeEventListener('resize', measureRows)
+})
+// Re-measure when the grid shape changes (day count / time slots).
+watch([() => days.value.length, () => timeSlots.value.length], () => nextTick(measureRows))
+
 function bookingStyle(booking: any) {
   const dayIndex = days.value.findIndex((d) => d.date === booking._date)
   if (dayIndex === -1) return 'display: none;'
 
-  const startOffset = booking._startMin - START_HOUR * 60
-  // Position/size against the real row pitch (content + border) so blocks don't
-  // drift upward relative to the time labels as you go down the grid.
-  const topPx = (startOffset / 30) * ROW_HEIGHT
-  const heightPx = (booking.duration / 30) * ROW_HEIGHT
+  // Interpolate against measured row positions so blocks stay aligned with the
+  // time labels regardless of sub-pixel border rounding.
+  const topPx = pxForMinute(booking._startMin)
+  const heightPx = pxForMinute(booking._startMin + booking.duration) - topPx
   const colWidth = `calc((100% - 3.5rem) / ${days.value.length})`
   const leftOffset = `calc(3.5rem + ${dayIndex} * ${colWidth} + 1px)`
   const bg = booking.state === 'confirmed' ? '#166534' : '#78350f'
