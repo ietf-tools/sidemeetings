@@ -7,7 +7,7 @@
     <div v-if="loading" class="py-16 text-center text-text-dim">Loading…</div>
     <div v-else>
       <!-- Room cards -->
-      <div v-if="rooms.length" class="flex flex-wrap gap-3.5 mb-5">
+      <div class="flex flex-wrap gap-3.5 mb-5">
         <div
           v-for="room in rooms"
           :key="room.id"
@@ -57,7 +57,7 @@
               </span>
             </div>
           </div>
-          <div class="flex gap-2 mt-3">
+          <div class="flex gap-2 mt-3 justify-end">
             <button
               class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-border-strong bg-surface text-text text-[12.5px] font-semibold transition-colors hover:border-text-faint"
               @click.stop="openEditRoom(room)">
@@ -71,32 +71,30 @@
             </button>
           </div>
         </div>
-      </div>
 
-      <!-- Empty state -->
-      <div v-if="!rooms.length" class="card py-16 text-center">
-        <div class="text-[15px] font-semibold text-text-dim">No rooms yet</div>
-        <div class="text-[13px] text-text-faint mt-1">
-          Add a room to start scheduling side meetings.
-        </div>
+        <!-- Ghost "Add a room" card (shown until there are at least 2 rooms) -->
+        <button
+          v-if="rooms.length < 2"
+          class="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border-strong bg-transparent text-text-dim flex-1 min-w-[248px] max-w-[50%] min-h-[200px] transition-colors hover:border-accent hover:text-accent"
+          @click="openAddRoom">
+          <Plus class="w-6 h-6" />
+          <span class="text-[13px] font-semibold">Add a room</span>
+        </button>
       </div>
 
       <!-- Schedule grid -->
-      <div v-else-if="selectedRoom" class="card overflow-hidden">
-        <div class="px-[18px] py-4 border-b border-border flex items-start justify-between gap-3">
+      <div v-if="selectedRoom" class="card overflow-hidden">
+        <div class="px-[18px] py-4 border-b border-border flex items-stretch justify-between gap-3">
           <div class="max-w-[540px]">
             <div class="text-[15px] font-bold text-text">
               {{ selectedRoom.name }} · week schedule
-            </div>
-            <div v-if="selectedRoom.description" class="text-xs text-text-dim mt-1">
-              {{ selectedRoom.description }}
             </div>
             <div class="text-[11.5px] text-text-faint mt-1">
               Click a booked slot to open the request
             </div>
           </div>
-          <div
-            class="flex items-center gap-3.5 text-[11.5px] text-text-dim flex-wrap flex-shrink-0">
+          <div class="flex flex-col items-end justify-between flex-shrink-0">
+            <div class="flex items-center gap-3.5 text-[11.5px] text-text-dim flex-wrap justify-end">
             <span class="flex items-center gap-1.5"
               ><span
                 class="w-2.5 h-2.5 rounded-sm inline-block"
@@ -120,6 +118,10 @@
                 class="w-2.5 h-2.5 rounded-sm inline-block cell-closed border border-border-strong"></span>
               Closed</span
             >
+            </div>
+            <div class="text-[11.5px] text-text-faint">
+              All times in {{ meetingStore.viewingMeeting?.timezone }}
+            </div>
           </div>
         </div>
         <AdminScheduleGrid
@@ -133,22 +135,24 @@
     <!-- Add/Edit Room Modal -->
     <AdminModal v-model="roomModalOpen" :title="editingRoom ? 'Edit room' : 'Add room'" size="lg">
       <div class="space-y-4 px-6 py-4">
-        <div>
-          <label class="form-label">Room name *</label>
-          <input
-            v-model="roomForm.name"
-            type="text"
-            class="form-input"
-            placeholder="e.g. Albéniz" />
-        </div>
-        <div>
-          <label class="form-label">Capacity *</label>
-          <input
-            v-model.number="roomForm.capacity"
-            type="number"
-            class="form-input"
-            min="1"
-            placeholder="e.g. 30" />
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-2">
+            <label class="form-label">Room name *</label>
+            <input
+              v-model="roomForm.name"
+              type="text"
+              class="form-input"
+              placeholder="e.g. Albéniz" />
+          </div>
+          <div>
+            <label class="form-label">Capacity *</label>
+            <input
+              v-model.number="roomForm.capacity"
+              type="number"
+              class="form-input"
+              min="1"
+              placeholder="e.g. 30" />
+          </div>
         </div>
         <div>
           <label class="form-label">Description *</label>
@@ -491,9 +495,12 @@ async function loadRooms() {
   loading.value = true
   try {
     rooms.value = await useApiFetch(`/meetings/${meetingStore.viewingMeeting.id}/rooms`)
-    if (!selectedRoom.value && rooms.value.length) {
-      selectedRoom.value = rooms.value[0]
-    }
+    // Keep the current room selected if it's still in the list (re-pointing to the
+    // fresh object); otherwise fall back to the first room. This also auto-selects
+    // the first room when switching meetings, where the old selection no longer applies.
+    const current = selectedRoom.value
+    selectedRoom.value =
+      (current && rooms.value.find((r) => r.id === current.id)) || rooms.value[0] || null
   } catch {
     toast.show('Failed to load rooms', 'bad')
   } finally {

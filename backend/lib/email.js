@@ -139,7 +139,12 @@ function fmtTime(instant, timezone) {
 }
 
 // Returns [label, value] rows describing the booking, shared by every template.
-function detailRows(ctx, { includePeople = false } = {}) {
+// videoMode controls the video-link row:
+//   'off'       — omit it (default)
+//   'effective' — show the real link (booking's custom, else the room default)
+//   'requested' — show the custom link if provided, else the text "Use room default"
+//                 so approvers can see whether a custom link was supplied
+function detailRows(ctx, { includePeople = false, videoMode = 'off' } = {}) {
   const { booking, room, meeting, organizer } = ctx
   const start = new Date(booking.startsAt)
   const end = new Date(start.getTime() + booking.duration * 60_000)
@@ -166,14 +171,30 @@ function detailRows(ctx, { includePeople = false } = {}) {
     }
   }
 
-  if (booking.videoLinkUrl) rows.push([room.videoLinkName || 'Video link', booking.videoLinkUrl])
+  // Video link row (see videoMode above). Not shown on every notice.
+  const videoLabel = room.videoLinkName || 'Video link'
+  if (videoMode === 'effective') {
+    const videoUrl = booking.videoLinkUrl || room.videoLinkUrl
+    if (videoUrl) rows.push([videoLabel, videoUrl])
+  } else if (videoMode === 'requested') {
+    rows.push([videoLabel, booking.videoLinkUrl || 'Use room default'])
+  }
   if (booking.description) rows.push(['Description', booking.description])
 
   return rows
 }
 
-function layout({ heading, intro, ctx, includePeople = false, buttonUrl, buttonLabel, footer }) {
-  const rowsHtml = detailRows(ctx, { includePeople })
+function layout({
+  heading,
+  intro,
+  ctx,
+  includePeople = false,
+  videoMode = 'off',
+  buttonUrl,
+  buttonLabel,
+  footer
+}) {
+  const rowsHtml = detailRows(ctx, { includePeople, videoMode })
     .map(
       ([k, v]) =>
         `<tr>
@@ -213,9 +234,17 @@ function layout({ heading, intro, ctx, includePeople = false, buttonUrl, buttonL
 </html>`
 }
 
-function plainText({ heading, introText, ctx, includePeople = false, buttonUrl, footerText }) {
+function plainText({
+  heading,
+  introText,
+  ctx,
+  includePeople = false,
+  videoMode = 'off',
+  buttonUrl,
+  footerText
+}) {
   const lines = [heading, '', introText, '']
-  for (const [k, v] of detailRows(ctx, { includePeople })) lines.push(`${k}: ${v}`)
+  for (const [k, v] of detailRows(ctx, { includePeople, videoMode })) lines.push(`${k}: ${v}`)
   if (buttonUrl) lines.push('', buttonUrl)
   if (footerText) lines.push('', footerText)
   return lines.join('\n')
@@ -257,10 +286,12 @@ function buildIcs(ctx) {
   const end = new Date(start.getTime() + booking.duration * 60_000)
   const location = [room.name, meeting.venue, meeting.city].filter(Boolean).join(', ')
 
+  // Effective link: the booking's custom link, or the room's current default.
+  const videoUrl = booking.videoLinkUrl || room.videoLinkUrl
+
   const descParts = []
   if (booking.description) descParts.push(booking.description)
-  if (booking.videoLinkUrl)
-    descParts.push(`${room.videoLinkName || 'Video'}: ${booking.videoLinkUrl}`)
+  if (videoUrl) descParts.push(`${room.videoLinkName || 'Video'}: ${videoUrl}`)
 
   const lines = [
     'BEGIN:VCALENDAR',
@@ -276,7 +307,7 @@ function buildIcs(ctx) {
     `SUMMARY:${icsEscape(booking.title)}`,
     ...(descParts.length ? [`DESCRIPTION:${icsEscape(descParts.join('\n'))}`] : []),
     ...(location ? [`LOCATION:${icsEscape(location)}`] : []),
-    ...(booking.videoLinkUrl ? [`URL:${icsEscape(booking.videoLinkUrl)}`] : []),
+    ...(videoUrl ? [`URL:${icsEscape(videoUrl)}`] : []),
     'STATUS:CONFIRMED',
     'END:VEVENT',
     'END:VCALENDAR'
@@ -351,10 +382,18 @@ export async function sendApproverNotification(ctx, logger = console) {
         intro: introHtml,
         ctx,
         includePeople: true,
+        videoMode: 'requested',
         buttonUrl: url,
         buttonLabel: 'Review this request'
       }),
-      text: plainText({ heading, introText, ctx, includePeople: true, buttonUrl: url }),
+      text: plainText({
+        heading,
+        introText,
+        ctx,
+        includePeople: true,
+        videoMode: 'requested',
+        buttonUrl: url
+      }),
       enabled: emailEnabled
     },
     logger
@@ -383,8 +422,8 @@ export async function sendBookingApproved(ctx, logger = console) {
       replyTo,
       to: recipients,
       subject: `Side meeting approved: ${ctx.booking.title}`,
-      html: layout({ heading, intro: introHtml, ctx, footer: SUPPORT_FOOTER_HTML }),
-      text: plainText({ heading, introText, ctx, footerText: SUPPORT_FOOTER_TEXT }),
+      html: layout({ heading, intro: introHtml, ctx, videoMode: 'effective', footer: SUPPORT_FOOTER_HTML }),
+      text: plainText({ heading, introText, ctx, videoMode: 'effective', footerText: SUPPORT_FOOTER_TEXT }),
       attachments: [
         {
           filename: 'side-meeting.ics',

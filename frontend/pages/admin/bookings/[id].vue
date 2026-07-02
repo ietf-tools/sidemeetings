@@ -47,12 +47,20 @@
 
         <div class="grid grid-cols-2 gap-3.5">
           <div>
-            <label class="form-label">Main organizer</label>
-            <input v-model="form.organizerName" type="text" class="form-input" placeholder="Full name" />
+            <label class="form-label">Main organizer name</label>
+            <input
+              v-model="form.organizerName"
+              type="text"
+              class="form-input"
+              placeholder="Full name" />
           </div>
           <div>
-            <label class="form-label">Organizer email</label>
-            <input v-model="form.organizerEmail" type="email" class="form-input font-mono" placeholder="name@example.org" />
+            <label class="form-label">Main organizer email</label>
+            <input
+              v-model="form.organizerEmail"
+              type="email"
+              class="form-input font-mono"
+              placeholder="name@example.org" />
           </div>
         </div>
 
@@ -66,7 +74,9 @@
               class="flex items-center gap-2.5 rounded-lg bg-s2 border border-border pl-3.5 pr-2 py-2">
               <div class="flex-1 min-w-0">
                 <div class="text-[13px] font-semibold text-text truncate">{{ co.name }}</div>
-                <div v-if="co.email" class="text-xs text-text-dim font-mono truncate">{{ co.email }}</div>
+                <div v-if="co.email" class="text-xs text-text-dim font-mono truncate">
+                  {{ co.email }}
+                </div>
               </div>
               <button
                 type="button"
@@ -78,8 +88,18 @@
             </div>
           </div>
           <div class="flex gap-2">
-            <input v-model="newCoName" type="text" class="form-input" placeholder="Name" @keydown.enter.prevent="addCoOrg" />
-            <input v-model="newCoEmail" type="email" class="form-input font-mono" placeholder="Email" @keydown.enter.prevent="addCoOrg" />
+            <input
+              v-model="newCoName"
+              type="text"
+              class="form-input"
+              placeholder="Name"
+              @keydown.enter.prevent="addCoOrg" />
+            <input
+              v-model="newCoEmail"
+              type="email"
+              class="form-input font-mono"
+              placeholder="Email"
+              @keydown.enter.prevent="addCoOrg" />
             <button type="button" class="btn-secondary flex-shrink-0" @click="addCoOrg">Add</button>
           </div>
         </div>
@@ -93,7 +113,11 @@
             <div
               class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 transition-colors border"
               :class="form.isIrtf ? 'bg-accent border-accent' : 'bg-surface border-border-strong'">
-              <Check v-if="form.isIrtf" class="w-3 h-3" :stroke-width="3" style="color: var(--accent-text)" />
+              <Check
+                v-if="form.isIrtf"
+                class="w-3 h-3"
+                :stroke-width="3"
+                style="color: var(--accent-text)" />
             </div>
             <div>
               <div class="text-[13.5px] font-semibold text-text">This is an IRTF meeting</div>
@@ -139,26 +163,36 @@
               Start time <span class="text-text-faint font-normal">· 15-min steps</span>
             </label>
             <select v-model="form.startMinutes" class="form-input">
-              <option v-for="slot in timeSlots" :key="slot.value" :value="slot.value">{{ slot.label }}</option>
+              <option v-for="slot in timeSlots" :key="slot.value" :value="slot.value">
+                {{ slot.label }}
+              </option>
             </select>
           </div>
         </div>
 
         <!-- Meeting link -->
         <div>
-          <label class="form-label">Meeting link</label>
+          <label class="form-label">Video tool link</label>
           <div class="flex gap-2 mb-2">
             <button
               type="button"
               class="text-[13px] font-semibold px-3 py-2 rounded-lg border transition-colors"
-              :class="!form.customVideo ? 'bg-accent text-accent-text border-accent' : 'bg-surface text-text-dim border-border-strong hover:text-text'"
-              @click="form.customVideo = false; form.videoLinkUrl = ''">
+              :class="
+                !form.customVideo
+                  ? 'bg-accent text-accent-text border-accent'
+                  : 'bg-surface text-text-dim border-border-strong hover:text-text'
+              "
+              @click="selectDefaultVideo">
               Webex (default)
             </button>
             <button
               type="button"
               class="text-[13px] font-semibold px-3 py-2 rounded-lg border transition-colors"
-              :class="form.customVideo ? 'bg-accent text-accent-text border-accent' : 'bg-surface text-text-dim border-border-strong hover:text-text'"
+              :class="
+                form.customVideo
+                  ? 'bg-accent text-accent-text border-accent'
+                  : 'bg-surface text-text-dim border-border-strong hover:text-text'
+              "
               @click="form.customVideo = true">
               Custom link
             </button>
@@ -175,7 +209,9 @@
           <button class="btn-primary" :disabled="saving" @click="save">
             {{ saving ? 'Saving…' : 'Save changes' }}
           </button>
-          <button class="btn-secondary text-text-dim" :disabled="saving" @click="resetForm">Reset</button>
+          <button class="btn-secondary text-text-dim" :disabled="saving" @click="resetForm">
+            Reset
+          </button>
         </div>
       </div>
 
@@ -186,13 +222,19 @@
           <h3 class="text-sm font-bold text-text mb-3.5">Summary</h3>
           <div class="flex flex-col gap-3.5">
             <div>
-              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">Organizer</p>
-              <div class="text-[13.5px] font-semibold text-text mt-0.5">{{ booking.organizerName }}</div>
+              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">
+                Organizer
+              </p>
+              <div class="text-[13.5px] font-semibold text-text mt-0.5">
+                {{ booking.organizerName }}
+              </div>
               <div class="text-xs text-text-dim font-mono">{{ booking.organizerEmail }}</div>
             </div>
 
             <div v-if="booking.coOrganizers?.length">
-              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">Co-organizers</p>
+              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">
+                Co-organizers
+              </p>
               <div v-for="co in booking.coOrganizers" :key="co.email" class="mt-1">
                 <div class="text-[13.5px] font-semibold text-text">{{ co.name }}</div>
                 <div v-if="co.email" class="text-xs text-text-dim font-mono">{{ co.email }}</div>
@@ -213,55 +255,85 @@
 
             <div>
               <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">Room</p>
-              <div class="text-[13.5px] font-semibold text-text mt-0.5">{{ booking.roomName }}</div>
-            </div>
-
-            <div>
-              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">When</p>
-              <div class="text-[13.5px] font-semibold text-text mt-0.5">
-                {{ bookingDayLabel }} · {{ minutesToTime(bookingStartMinutes) }}–{{ minutesToTime(bookingStartMinutes + booking.duration) }}
+              <div class="flex items-center gap-2 mt-0.5">
+                <span
+                  class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                  :style="{ background: bookingRoomColor }"></span>
+                <span class="text-[13.5px] font-semibold text-text">{{ booking.roomName }}</span>
               </div>
             </div>
 
             <div>
-              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">Link</p>
+              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">When</p>
+              <div class="text-[13.5px] font-semibold text-text mt-0.5">{{ bookingDayLabel }}</div>
+              <div class="text-[15px] font-bold text-text">
+                {{ minutesToTime(bookingStartMinutes) }}–{{
+                  minutesToTime(bookingStartMinutes + booking.duration)
+                }}
+              </div>
+              <div class="text-xs text-text-dim font-mono">{{ bookingTimezone }}</div>
+            </div>
+
+            <div>
+              <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">
+                Video Tool Link
+              </p>
               <a
-                v-if="booking.videoLinkUrl"
-                :href="booking.videoLinkUrl"
+                v-if="effectiveVideoUrl"
+                :href="effectiveVideoUrl"
                 target="_blank"
                 class="text-[12.5px] text-accent font-mono break-all block mt-0.5 hover:underline">
-                {{ booking.videoLinkUrl }}
+                {{ effectiveVideoUrl }}
               </a>
-              <div v-else class="text-[12.5px] text-text-dim font-mono mt-0.5">IETF Webex (provided)</div>
+              <div v-else class="text-[12.5px] text-text-dim font-mono mt-0.5">
+                IETF Webex (provided)
+              </div>
+              <div
+                v-if="!booking.videoLinkUrl && effectiveVideoUrl"
+                class="text-[11px] text-text-faint mt-0.5">
+                Room default
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Decision -->
         <div class="card p-5">
-          <h3 class="text-sm font-bold text-text mb-1.5">Decision</h3>
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <h3 class="text-sm font-bold text-text">Decision</h3>
+            <AdminStatusBadge :state="booking.state" />
+          </div>
           <p class="text-[12.5px] text-text-dim mb-3.5">
-            Approving reserves the room and time slot. The organizer is notified by email.
+            The organizer (and co-organizers if any) will be notified by email on approval. Only the
+            main organizer will be notified on rejection. No email is sent for other actions.
           </p>
           <div class="flex flex-col gap-2.5">
-            <button
-              class="flex items-center justify-center gap-2 p-3 rounded-[10px] bg-ok text-[#022c1c] text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-              :disabled="booking.state === 'confirmed'"
-              @click="confirm">
-              <Check class="w-4 h-4" :stroke-width="2.6" /> Approve request
-            </button>
             <div class="flex gap-2.5">
               <button
-                class="flex-1 p-[11px] rounded-[10px] border border-border-strong bg-surface text-bad text-[13px] font-semibold transition-colors hover:border-bad disabled:opacity-40 disabled:cursor-not-allowed"
-                :disabled="booking.state === 'rejected'"
-                @click="reject">
-                Reject
+                class="flex-1 inline-flex items-center justify-center gap-2 p-3 rounded-[10px] bg-ok text-[#022c1c] text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+                :disabled="booking.state === 'confirmed'"
+                @click="confirm">
+                <Check class="w-4 h-4" :stroke-width="2.6" /> Approve request
               </button>
               <button
-                class="flex-1 p-[11px] rounded-[10px] border border-border-strong bg-surface text-text-dim text-[13px] font-semibold transition-colors hover:text-text disabled:opacity-40 disabled:cursor-not-allowed"
+                class="flex-1 inline-flex items-center justify-center gap-2 p-[11px] rounded-[10px] border border-border-strong bg-surface text-bad text-[13px] font-semibold transition-colors hover:border-bad disabled:opacity-40 disabled:cursor-not-allowed"
+                :disabled="booking.state === 'rejected'"
+                @click="reject">
+                <X class="w-4 h-4" :stroke-width="2.6" /> Reject request
+              </button>
+            </div>
+            <div class="flex gap-2.5">
+              <button
+                class="flex-1 inline-flex items-center justify-center gap-2 p-[11px] rounded-[10px] border border-border-strong bg-surface text-warn text-[13px] font-semibold transition-colors hover:border-warn disabled:opacity-40 disabled:cursor-not-allowed"
+                :disabled="booking.state === 'pending'"
+                @click="setPending">
+                <Clock class="w-4 h-4" /> Set to pending
+              </button>
+              <button
+                class="flex-1 inline-flex items-center justify-center gap-2 p-[11px] rounded-[10px] border border-border-strong bg-surface text-text-dim text-[13px] font-semibold transition-colors hover:text-text disabled:opacity-40 disabled:cursor-not-allowed"
                 :disabled="booking.state === 'cancelled'"
                 @click="cancel">
-                Cancel booking
+                <Trash2 class="w-4 h-4" /> Cancel booking
               </button>
             </div>
           </div>
@@ -272,7 +344,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, X, Check } from 'lucide-vue-next'
+import { ChevronLeft, X, Check, Trash2, Clock } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 
@@ -316,7 +388,7 @@ const form = reactive({
   duration: 60,
   startMinutes: 480,
   customVideo: false,
-  videoLinkUrl: '',
+  videoLinkUrl: ''
 })
 
 const bookingStartMinutes = computed(() => {
@@ -325,7 +397,9 @@ const bookingStartMinutes = computed(() => {
   try {
     const zdt = Temporal.Instant.from(booking.value.startsAt).toZonedDateTimeISO(tz)
     return zdt.hour * 60 + zdt.minute
-  } catch { return 0 }
+  } catch {
+    return 0
+  }
 })
 
 const bookingDayLabel = computed(() => {
@@ -333,9 +407,33 @@ const bookingDayLabel = computed(() => {
   const tz = meetingStore.viewingMeeting?.timezone || 'UTC'
   try {
     const zdt = Temporal.Instant.from(booking.value.startsAt).toZonedDateTimeISO(tz)
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
     return `${days[zdt.dayOfWeek - 1]} ${zdt.day}`
-  } catch { return '' }
+  } catch {
+    return ''
+  }
+})
+
+const bookingTimezone = computed(() => meetingStore.viewingMeeting?.timezone || 'UTC')
+
+// The link actually in effect: the booking's custom link, or the room's current
+// default when the booking uses "Default" (null stored value).
+const effectiveVideoUrl = computed(
+  () => booking.value?.videoLinkUrl || booking.value?.roomVideoLinkUrl || ''
+)
+
+const ROOM_COLORS: Record<string, string> = {
+  sky: '#38bdf8',
+  yellow: '#fbbf24',
+  purple: '#a78bfa',
+  emerald: '#34d399',
+  indigo: '#818cf8'
+}
+
+// Color dot for the booking's room, matched from the loaded room list.
+const bookingRoomColor = computed(() => {
+  const room = rooms.value.find((r) => r.id === booking.value?.roomId)
+  return (room?.color && ROOM_COLORS[room.color]) || '#2dd4bf'
 })
 
 const meetingDays = computed(() => {
@@ -363,6 +461,12 @@ function removeCoOrg(i: number) {
   form.coOrganizers.splice(i, 1)
 }
 
+// Switch back to the room's default video link (clears any custom URL).
+function selectDefaultVideo() {
+  form.customVideo = false
+  form.videoLinkUrl = ''
+}
+
 // Populate the editable form from a booking record (used on load and on reset).
 function applyForm(b: any) {
   const tz = meetingStore.viewingMeeting?.timezone || 'UTC'
@@ -372,7 +476,9 @@ function applyForm(b: any) {
     const zdt = Temporal.Instant.from(b.startsAt).toZonedDateTimeISO(tz)
     bookingDate = zdt.toPlainDate().toString()
     startMinutes = zdt.hour * 60 + zdt.minute
-  } catch { /* keep defaults */ }
+  } catch {
+    /* keep defaults */
+  }
 
   Object.assign(form, {
     title: b.title,
@@ -387,7 +493,7 @@ function applyForm(b: any) {
     duration: b.duration,
     startMinutes,
     customVideo: !!b.videoLinkUrl,
-    videoLinkUrl: b.videoLinkUrl || '',
+    videoLinkUrl: b.videoLinkUrl || ''
   })
   nextTick(autoGrowDesc)
 }
@@ -408,7 +514,7 @@ async function loadBooking() {
       useApiFetch<any>(`/bookings/${route.params.id}`),
       meetingStore.viewingMeeting
         ? useApiFetch<any[]>(`/meetings/${meetingStore.viewingMeeting.id}/rooms`)
-        : Promise.resolve([]),
+        : Promise.resolve([])
     ])
     booking.value = b
     rooms.value = roomList
@@ -430,9 +536,14 @@ async function save() {
     let startsAt: string | undefined
     try {
       const date = Temporal.PlainDate.from(form.date)
-      const dt = date.toPlainDateTime({ hour: Math.floor(form.startMinutes / 60), minute: form.startMinutes % 60 })
+      const dt = date.toPlainDateTime({
+        hour: Math.floor(form.startMinutes / 60),
+        minute: form.startMinutes % 60
+      })
       startsAt = dt.toZonedDateTime(tz).toInstant().toString()
-    } catch { /* leave startsAt undefined if conversion fails */ }
+    } catch {
+      /* leave startsAt undefined if conversion fails */
+    }
 
     await useApiFetch(`/bookings/${route.params.id}`, {
       method: 'PUT',
@@ -447,13 +558,13 @@ async function save() {
         roomId: form.roomId,
         duration: form.duration,
         startsAt,
-        videoLinkUrl: form.customVideo ? form.videoLinkUrl : null,
-      },
+        videoLinkUrl: form.customVideo ? form.videoLinkUrl : null
+      }
     })
     toast.show('Changes saved', 'ok')
     await loadBooking()
-  } catch {
-    toast.show('Failed to save changes', 'bad')
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Failed to save changes', 'bad')
   } finally {
     saving.value = false
   }
@@ -476,6 +587,16 @@ async function reject() {
     await loadBooking()
   } catch {
     toast.show('Failed to reject', 'bad')
+  }
+}
+
+async function setPending() {
+  try {
+    await useApiFetch(`/bookings/${route.params.id}`, { method: 'PUT', body: { state: 'pending' } })
+    toast.show('Booking set to pending', 'warn')
+    await loadBooking()
+  } catch {
+    toast.show('Failed to update status', 'bad')
   }
 }
 

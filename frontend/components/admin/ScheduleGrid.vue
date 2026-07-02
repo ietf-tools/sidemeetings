@@ -9,8 +9,8 @@
           :key="day.date"
           class="text-center py-2.5 border-l border-border"
         >
-          <div class="text-xs font-semibold text-text-dim uppercase tracking-wider">{{ day.label.split(' ')[0] }}</div>
-          <div class="font-mono text-xs text-text mt-0.5">{{ day.label.split(' ')[1] }}</div>
+          <div class="text-[15px] font-bold text-text">{{ day.weekday }}</div>
+          <div class="text-[11px] text-text-dim">{{ day.dateLabel }}</div>
         </div>
       </div>
 
@@ -77,9 +77,21 @@ const SLOT_HEIGHT = 24 // px per 30-min slot
 const START_HOUR = 7
 const END_HOUR = 23
 
+const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
 const days = computed(() => {
   if (!props.meeting) return []
-  return getMeetingDays(props.meeting)
+  // Enrich each day with the full weekday name and long date label to match the
+  // public homepage schedule styling.
+  return getMeetingDays(props.meeting).map((day) => {
+    const pd = Temporal.PlainDate.from(day.date)
+    return {
+      ...day,
+      weekday: WEEKDAYS[pd.dayOfWeek - 1],
+      dateLabel: `${MONTHS[pd.month - 1]} ${pd.day}, ${pd.year}`,
+    }
+  })
 })
 
 const gridStyle = computed(() => {

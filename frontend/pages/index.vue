@@ -157,7 +157,7 @@
           <span class="text-xs text-text-dim">
             Subscribe to keep this schedule in sync as meetings are added or updated:
           </span>
-          <a :href="webcalUrl" class="btn-primary">
+          <a :href="webcalUrl" class="btn" style="background: #38bdf8; color: #052338">
             <CalendarPlus class="w-4 h-4" /> Subscribe to calendar
           </a>
         </div>
@@ -302,8 +302,14 @@
     </div>
 
     <template #footer>
-      <div class="flex flex-col sm:flex-row justify-end gap-2 px-6 py-4 border-t border-border">
-        <button class="btn-secondary justify-center" @click="addToCalendar(active)">
+      <div class="flex flex-col sm:flex-row justify-center gap-2 px-6 py-4 border-t border-border">
+        <button class="btn-secondary justify-center" @click="modalOpen = false">
+          <X class="w-4 h-4" /> Close
+        </button>
+        <button
+          class="btn justify-center"
+          style="background: #38bdf8; color: #052338"
+          @click="addToCalendar(active)">
           <CalendarPlus class="w-4 h-4" /> Add to calendar
         </button>
         <a
@@ -323,7 +329,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Video, CalendarPlus, ChevronDown } from 'lucide-vue-next'
+import { Plus, Video, CalendarPlus, ChevronDown, X } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'request' })
 

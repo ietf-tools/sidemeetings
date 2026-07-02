@@ -227,8 +227,9 @@ export default async function publicRoutes(fastify) {
           startsAt: bookings.startsAt,
           duration: bookings.duration,
           endsAt: bookings.endsAt,
-          videoLinkUrl: bookings.videoLinkUrl,
-          videoLinkName: bookings.videoLinkName,
+          // Fall back to the room's current video link when the booking has none ("Default").
+          videoLinkUrl: sql`COALESCE(${bookings.videoLinkUrl}, ${rooms.videoLinkUrl})`,
+          videoLinkName: sql`COALESCE(${bookings.videoLinkName}, ${rooms.videoLinkName})`,
           createdAt: bookings.createdAt,
           updatedAt: bookings.updatedAt
         })
@@ -268,8 +269,9 @@ export default async function publicRoutes(fastify) {
           startsAt: bookings.startsAt,
           duration: bookings.duration,
           endsAt: bookings.endsAt,
-          videoLinkUrl: bookings.videoLinkUrl,
-          videoLinkName: bookings.videoLinkName,
+          // Fall back to the room's current video link when the booking has none ("Default").
+          videoLinkUrl: sql`COALESCE(${bookings.videoLinkUrl}, ${rooms.videoLinkUrl})`,
+          videoLinkName: sql`COALESCE(${bookings.videoLinkName}, ${rooms.videoLinkName})`,
           createdAt: bookings.createdAt,
           updatedAt: bookings.updatedAt
         })

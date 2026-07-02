@@ -31,6 +31,7 @@ async function loadBookingContext(id) {
       organizerEmail: users.email,
       roomName: rooms.name,
       roomVideoLinkName: rooms.videoLinkName,
+      roomVideoLinkUrl: rooms.videoLinkUrl,
       meetingNum: meetings.num,
       meetingCity: meetings.city,
       meetingCountry: meetings.country,
@@ -60,7 +61,11 @@ async function loadBookingContext(id) {
       videoLinkUrl: row.videoLinkUrl
     },
     organizer: { name: row.organizerName, email: row.organizerEmail },
-    room: { name: row.roomName, videoLinkName: row.roomVideoLinkName },
+    room: {
+      name: row.roomName,
+      videoLinkName: row.roomVideoLinkName,
+      videoLinkUrl: row.roomVideoLinkUrl
+    },
     meeting: {
       num: row.meetingNum,
       city: row.meetingCity,
@@ -276,10 +281,11 @@ export default async function bookingsRoutes(fastify) {
           coOrganizers: coOrganizers ?? [],
           startsAt: new Date(startsAt),
           duration,
-          // Fall back to the room's configured video tool link when the organizer
-          // leaves the custom link empty ("Default" option).
-          videoLinkUrl: videoLinkUrl || room.videoLinkUrl || null,
-          videoLinkName: videoLinkName || room.videoLinkName || null
+          // Store only an explicit custom link. When left empty ("Default"),
+          // leave it null so the room's *current* link is used at read time —
+          // that way changing a room's default updates these bookings too.
+          videoLinkUrl: videoLinkUrl || null,
+          videoLinkName: videoLinkName || null
         })
         .returning()
 
@@ -302,6 +308,229 @@ export default async function bookingsRoutes(fastify) {
         .catch((err) => request.log.error({ err }, 'submission notifications failed'))
 
       return reply.code(201).send(booking)
+    }
+  )
+
+  // ── POST /api/meetings/:meetingId/bookings/manual ─────────────────────────
+  // Admin-created booking. The organizer is set by name/email (created as a user
+  // if they don't exist yet), and the booking lands in the 'confirmed' state.
+  fastify.post(
+    '/meetings/:meetingId/bookings/manual',
+    {
+      preHandler: fastify.authenticateAdmin
+    },
+    async (request, reply) => {
+      const { meetingId } = request.params
+      const adminUserId = request.session.userId
+
+      const {
+        roomId,
+        startsAt,
+        duration,
+        title,
+        description,
+        isIrtf,
+        areas,
+        coOrganizers,
+        organizerName,
+        organizerEmail,
+        videoLinkUrl,
+        videoLinkName,
+        notify
+      } = request.body
+
+      if (!roomId || !startsAt || !duration || !title) {
+        return reply.badRequest('Missing required fields: roomId, startsAt, duration, title')
+      }
+      const email = String(organizerEmail || '').trim().toLowerCase()
+      const name = String(organizerName || '').trim()
+      if (!email) return reply.badRequest('organizerEmail is required')
+      if (!name) return reply.badRequest('organizerName is required')
+
+      const [meeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId)).limit(1)
+      if (!meeting) {
+        return reply.notFound('Meeting not found')
+      }
+
+      const [room] = await db
+        .select()
+        .from(rooms)
+        .where(and(eq(rooms.id, roomId), eq(rooms.meetingId, meetingId)))
+        .limit(1)
+      if (!room) {
+        return reply.notFound('Room not found in this meeting')
+      }
+
+      const conflict = await hasConflict(roomId, startsAt, duration, meeting.buffer)
+      if (conflict) {
+        return reply.conflict('The requested time slot conflicts with an existing booking')
+      }
+
+      // Resolve the organizer by email, creating the user if they don't exist.
+      let [organizer] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1)
+      if (!organizer) {
+        ;[organizer] = await db.insert(users).values({ name, email }).returning({ id: users.id })
+      }
+
+      const [booking] = await db
+        .insert(bookings)
+        .values({
+          meetingId,
+          roomId,
+          organizerId: organizer.id,
+          title,
+          description: description ?? null,
+          state: 'confirmed',
+          isIrtf: isIrtf ?? false,
+          areas: isIrtf ? [] : Array.isArray(areas) ? areas : [],
+          coOrganizers: Array.isArray(coOrganizers) ? coOrganizers : [],
+          startsAt: new Date(startsAt),
+          duration,
+          videoLinkUrl: videoLinkUrl || null,
+          videoLinkName: videoLinkName || null
+        })
+        .returning()
+
+      await db.insert(activityLog).values({
+        userId: adminUserId,
+        bookingId: booking.id,
+        action: 'confirmed',
+        meta: { title: booking.title, manual: true }
+      })
+
+      // Optionally notify the organizer + co-organizers (approved, with .ics).
+      // Off unless the admin explicitly opts in. Fire-and-forget.
+      if (notify) {
+        loadBookingContext(booking.id)
+          .then((ctx) => {
+            if (ctx) sendBookingApproved(ctx, request.log)
+          })
+          .catch((err) => request.log.error({ err }, 'manual booking notification failed'))
+      }
+
+      return reply.code(201).send(booking)
+    }
+  )
+
+  // ── POST /api/meetings/:meetingId/bookings/import ─────────────────────────
+  // Bulk-import bookings from a legacy JSON export into the given meeting.
+  // Admin only. Rooms are matched by name; organizers are created as needed.
+  // All imported bookings land in the 'confirmed' (approved) state.
+  //
+  // Skips:  entries titled "UNAVAILABLE", and entries whose room name doesn't
+  //         match a room in this meeting.
+  // Fails:  entries with invalid dates / missing organizer email, or that error
+  //         on insert.
+  fastify.post(
+    '/meetings/:meetingId/bookings/import',
+    {
+      preHandler: fastify.authenticateAdmin
+    },
+    async (request, reply) => {
+      const { meetingId } = request.params
+
+      // Accept either a raw array or an object with a `bookings` array.
+      const items = Array.isArray(request.body)
+        ? request.body
+        : Array.isArray(request.body?.bookings)
+          ? request.body.bookings
+          : null
+
+      if (!items) {
+        return reply.badRequest('Expected a JSON array of bookings (or an object with a "bookings" array)')
+      }
+
+      const [meeting] = await db.select().from(meetings).where(eq(meetings.id, meetingId)).limit(1)
+      if (!meeting) {
+        return reply.notFound('Meeting not found')
+      }
+
+      // Rooms in this meeting, keyed by normalized name for matching.
+      const roomRows = await db.select().from(rooms).where(eq(rooms.meetingId, meetingId))
+      const roomByName = new Map(roomRows.map((r) => [r.name.trim().toLowerCase(), r]))
+
+      // Resolve organizers by email, creating users on first sight. Cached so a
+      // repeated organizer in the payload only hits the DB once.
+      const userCache = new Map()
+      async function resolveOrganizer(name, email) {
+        const key = String(email).trim().toLowerCase()
+        if (userCache.has(key)) return userCache.get(key)
+        let [user] = await db.select({ id: users.id }).from(users).where(eq(users.email, key)).limit(1)
+        if (!user) {
+          ;[user] = await db
+            .insert(users)
+            .values({ name: String(name || '').trim() || key, email: key })
+            .returning({ id: users.id })
+        }
+        userCache.set(key, user.id)
+        return user.id
+      }
+
+      let imported = 0
+      let skipped = 0
+      let failed = 0
+
+      for (const b of items) {
+        try {
+          if (!b || typeof b !== 'object') {
+            failed++
+            continue
+          }
+          if (b.title === 'UNAVAILABLE') {
+            skipped++
+            continue
+          }
+          const room = roomByName.get(String(b.roomName || '').trim().toLowerCase())
+          if (!room) {
+            skipped++
+            continue
+          }
+
+          const start = new Date(b.start)
+          const end = new Date(b.end)
+          const duration = Math.round((end.getTime() - start.getTime()) / 60_000)
+          if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || duration <= 0) {
+            failed++
+            continue
+          }
+          if (!b.organizerEmail) {
+            failed++
+            continue
+          }
+
+          const organizerId = await resolveOrganizer(b.organizerName, b.organizerEmail)
+
+          await db.insert(bookings).values({
+            meetingId,
+            roomId: room.id,
+            organizerId,
+            title: String(b.title || 'Untitled').slice(0, 255),
+            description: b.description ?? null,
+            state: 'confirmed',
+            isIrtf: false,
+            areas: Array.isArray(b.areas) ? b.areas : [],
+            coOrganizers: [],
+            startsAt: start,
+            duration,
+            videoLinkUrl: b.location || room.videoLinkUrl || null,
+            videoLinkName: room.videoLinkName || null
+          })
+          imported++
+        } catch (err) {
+          request.log.error({ err }, 'booking import: failed to insert an entry')
+          failed++
+        }
+      }
+
+      // One summary entry in the activity log for the import.
+      await db.insert(activityLog).values({
+        userId: request.session.userId,
+        bookingId: null,
+        action: 'updated',
+        meta: { import: true, meetingId, imported, skipped, failed }
+      })
+
+      return { imported, skipped, failed }
     }
   )
 
@@ -335,8 +564,11 @@ export default async function bookingsRoutes(fastify) {
           startsAt: bookings.startsAt,
           duration: bookings.duration,
           endsAt: bookings.endsAt,
+          // Raw stored value (null = "use room default") so the edit form can
+          // tell Default from Custom; roomVideoLinkUrl is the fallback for display.
           videoLinkUrl: bookings.videoLinkUrl,
           videoLinkName: bookings.videoLinkName,
+          roomVideoLinkUrl: rooms.videoLinkUrl,
           createdAt: bookings.createdAt,
           updatedAt: bookings.updatedAt
         })

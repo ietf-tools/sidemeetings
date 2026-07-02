@@ -186,10 +186,17 @@
       </div>
       <div>
         <div class="text-[15px] font-bold text-text">
-          {{ selectedDay?.label }} · {{ minutesToTime(selectedStartsAt) }}–{{ minutesToTime(selectedStartsAt + duration) }}
-          <span class="font-medium text-text-dim">({{ activeMeeting?.timezone }})</span>
+          {{ selectedDay?.fullLabel }} · {{ minutesToTime(selectedStartsAt) }}–{{ minutesToTime(selectedStartsAt + duration) }}
+          <span
+            class="font-medium"
+            style="color: color-mix(in srgb, var(--accent) 70%, var(--text-dim))"
+            >({{ activeMeeting?.timezone }})</span>
         </div>
-        <div class="text-[12.5px] text-text-dim">{{ selectedRoom?.name }}</div>
+        <div
+          class="text-[12.5px]"
+          style="color: color-mix(in srgb, var(--accent) 70%, var(--text-dim))">
+          {{ selectedRoom?.name }}
+        </div>
       </div>
     </div>
 
@@ -215,7 +222,15 @@
       </div>
       <div>
         <label class="form-label">Description <span class="text-bad">*</span></label>
-        <textarea v-model="details.description" rows="3" class="form-input resize-y leading-relaxed" placeholder="What is this side meeting about?" required></textarea>
+        <textarea
+          ref="descRef"
+          v-model="details.description"
+          rows="3"
+          class="form-input resize-none leading-relaxed overflow-y-auto"
+          style="max-height: 250px; min-height: 76px"
+          placeholder="What is this side meeting about?"
+          required
+          @input="autoGrowDesc"></textarea>
       </div>
 
       <!-- Meeting type -->
@@ -410,6 +425,19 @@ function roomColorHex(name?: string) {
 
 const step = ref(1)
 const stepIndex = computed(() => step.value - 1)
+
+// Auto-grow the description textarea with its content, up to a max height.
+const descRef = ref<HTMLTextAreaElement | null>(null)
+function autoGrowDesc() {
+  const el = descRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = `${Math.min(el.scrollHeight, 250)}px`
+}
+// Re-size when the details step (3) mounts, so returning to it fits existing text.
+watch(step, (s) => {
+  if (s === 3) nextTick(autoGrowDesc)
+})
 const loadingMeeting = ref(true)
 const loadingSlots = ref(false)
 const submitting = ref(false)
@@ -456,6 +484,7 @@ const meetingDays = computed(() => {
     return {
       ...day,
       weekday: WEEKDAYS[pd.dayOfWeek - 1],
+      fullLabel: `${WEEKDAYS[pd.dayOfWeek - 1]} ${pd.day}`,
       dateLabel: `${MONTHS[pd.month - 1]} ${pd.day}, ${pd.year}`,
     }
   })
