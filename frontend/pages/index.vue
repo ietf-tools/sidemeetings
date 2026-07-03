@@ -146,7 +146,8 @@
           :bookings="visibleBookings"
           :timezone="activeTz"
           :room-color-map="roomColorMap"
-          @booking-click="openBooking" />
+          @booking-click="openBooking"
+          @calendar-click="addToCalendar" />
       </div>
 
       <!-- Subscribe to calendar -->
