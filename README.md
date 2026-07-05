@@ -1,6 +1,14 @@
-# Side Meetings
+<div align="center">
+  
+<img src="https://raw.githubusercontent.com/ietf-tools/common/main/assets/logos/sidemeetings.svg" alt="IETF Side Meetings" height="125" />
 
-This is a fully featured side meetings management app for the IETF secretariat.
+[![Release](https://img.shields.io/github/release/ietf-tools/sidemeetings.svg?style=flat&maxAge=300)](https://github.com/ietf-tools/sidemeetings/releases)
+[![License](https://img.shields.io/github/license/ietf-tools/sidemeetings)](https://github.com/ietf-tools/sidemeetings/blob/main/LICENSE)
+[![Node Version](https://img.shields.io/badge/node.js-26.x-green?logo=node.js&logoColor=white)](#prerequisites)
+
+##### A fully featured side meetings management app for the IETF secretariat.
+
+</div>
 
 ## Setup
 
