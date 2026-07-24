@@ -44,79 +44,106 @@ export default async function calendarRoutes(fastify) {
   // Public iCalendar subscription feed for a meeting, addressed by meeting
   // number, e.g. /calendar/126.ics. Recomputed on every request so subscribers
   // always see the latest confirmed bookings.
-  fastify.get('/:file', async (request, reply) => {
-    const { file } = request.params
-    const match = /^(.+)\.ics$/i.exec(file || '')
-    if (!match) {
-      return reply.notFound('Calendar not found')
-    }
-    const num = match[1]
+  fastify.get(
+    '/:file',
+    {
+      schema: {
+        tags: ['Public'],
+        summary: 'iCalendar feed for a meeting',
+        description:
+          'Returns an RFC 5545 iCalendar (.ics) feed of all confirmed side-meeting ' +
+          'bookings for a meeting, suitable for calendar subscriptions. Addressed by ' +
+          'meeting number, e.g. `/calendar/126.ics`.',
+        params: {
+          type: 'object',
+          required: ['file'],
+          properties: {
+            file: {
+              type: 'string',
+              description: 'Meeting number followed by ".ics", e.g. "126.ics"'
+            }
+          }
+        },
+        response: {
+          200: {
+            description: 'iCalendar feed',
+            content: {
+              'text/calendar': { schema: { type: 'string' } }
+            }
+          }
+        }
+      }
+    },
+    async (request, reply) => {
+      const { file } = request.params
+      const match = /^(.+)\.ics$/i.exec(file || '')
+      if (!match) {
+        return reply.notFound('Calendar not found')
+      }
+      const num = match[1]
 
-    const result = await cached(`calendar:${num}`, async () => {
-      const [meeting] = await db
-        .select()
-        .from(meetings)
-        .where(eq(meetings.num, num))
-        .limit(1)
+      const result = await cached(`calendar:${num}`, async () => {
+        const [meeting] = await db.select().from(meetings).where(eq(meetings.num, num)).limit(1)
 
-      if (!meeting) return null
+        if (!meeting) return null
 
-      const rows = await db
-        .select({
-          id: bookings.id,
-          title: bookings.title,
-          description: bookings.description,
-          roomName: rooms.name,
-          startsAt: bookings.startsAt,
-          duration: bookings.duration,
-          updatedAt: bookings.updatedAt,
-          videoLinkUrl: sql`COALESCE(${bookings.videoLinkUrl}, ${rooms.videoLinkUrl})`,
-        })
-        .from(bookings)
-        .innerJoin(rooms, eq(bookings.roomId, rooms.id))
-        .where(and(eq(bookings.meetingId, meeting.id), eq(bookings.state, 'confirmed')))
-        .orderBy(bookings.startsAt)
+        const rows = await db
+          .select({
+            id: bookings.id,
+            title: bookings.title,
+            description: bookings.description,
+            roomName: rooms.name,
+            startsAt: bookings.startsAt,
+            duration: bookings.duration,
+            updatedAt: bookings.updatedAt,
+            videoLinkUrl: sql`COALESCE(${bookings.videoLinkUrl}, ${rooms.videoLinkUrl})`
+          })
+          .from(bookings)
+          .innerJoin(rooms, eq(bookings.roomId, rooms.id))
+          .where(and(eq(bookings.meetingId, meeting.id), eq(bookings.state, 'confirmed')))
+          .orderBy(bookings.startsAt)
 
-      const calName = `IETF ${meeting.num} Side Meetings`
-      const lines = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//IETF Side Meetings//EN',
-        'CALSCALE:GREGORIAN',
-        'METHOD:PUBLISH',
-        fold(`X-WR-CALNAME:${escapeIcs(calName)}`),
-        'X-PUBLISHED-TTL:PT1H',
-        'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
-      ]
+        const calName = `IETF ${meeting.num} Side Meetings`
+        const lines = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//IETF Side Meetings//EN',
+          'CALSCALE:GREGORIAN',
+          'METHOD:PUBLISH',
+          fold(`X-WR-CALNAME:${escapeIcs(calName)}`),
+          'X-PUBLISHED-TTL:PT1H',
+          'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
+        ]
 
-      for (const b of rows) {
-        const start = new Date(b.startsAt)
-        const end = new Date(start.getTime() + b.duration * 60 * 1000)
-        const desc = (b.description || '') + (b.videoLinkUrl ? `\n\nJoin: ${b.videoLinkUrl}` : '')
-        lines.push('BEGIN:VEVENT')
-        lines.push(`UID:${b.id}@sidemeetings.ietf.org`)
-        lines.push(`DTSTAMP:${icsStamp(b.updatedAt || start)}`)
-        lines.push(`DTSTART:${icsStamp(start)}`)
-        lines.push(`DTEND:${icsStamp(end)}`)
-        lines.push(fold(`SUMMARY:${escapeIcs(b.title)}`))
-        lines.push(fold(`LOCATION:${escapeIcs(b.roomName)}`))
-        if (desc.trim()) lines.push(fold(`DESCRIPTION:${escapeIcs(desc)}`))
-        if (b.videoLinkUrl) lines.push(fold(`URL:${escapeIcs(b.videoLinkUrl)}`))
-        lines.push('END:VEVENT')
+        for (const b of rows) {
+          const start = new Date(b.startsAt)
+          const end = new Date(start.getTime() + b.duration * 60 * 1000)
+          const desc = (b.description || '') + (b.videoLinkUrl ? `\n\nJoin: ${b.videoLinkUrl}` : '')
+          lines.push('BEGIN:VEVENT')
+          lines.push(`UID:${b.id}@sidemeetings.ietf.org`)
+          lines.push(`DTSTAMP:${icsStamp(b.updatedAt || start)}`)
+          lines.push(`DTSTART:${icsStamp(start)}`)
+          lines.push(`DTEND:${icsStamp(end)}`)
+          lines.push(fold(`SUMMARY:${escapeIcs(b.title)}`))
+          lines.push(fold(`LOCATION:${escapeIcs(b.roomName)}`))
+          if (desc.trim()) lines.push(fold(`DESCRIPTION:${escapeIcs(desc)}`))
+          if (b.videoLinkUrl) lines.push(fold(`URL:${escapeIcs(b.videoLinkUrl)}`))
+          lines.push('END:VEVENT')
+        }
+
+        lines.push('END:VCALENDAR')
+        return { num: meeting.num, body: lines.join('\r\n') }
+      })
+
+      if (!result) {
+        return reply.notFound('Meeting not found')
       }
 
-      lines.push('END:VCALENDAR')
-      return { num: meeting.num, body: lines.join('\r\n') }
-    })
-
-    if (!result) {
-      return reply.notFound('Meeting not found')
+      reply
+        .header('Content-Type', 'text/calendar; charset=utf-8')
+        .header('Content-Disposition', `inline; filename="ietf-${result.num}.ics"`)
+        .header('Cache-Control', 'public, max-age=300')
+        .send(result.body)
     }
-
-    reply
-      .header('Content-Type', 'text/calendar; charset=utf-8')
-      .header('Content-Disposition', `inline; filename="ietf-${result.num}.ics"`)
-      .header('Cache-Control', 'public, max-age=300')
-      .send(result.body)
-  })
+  )
 }

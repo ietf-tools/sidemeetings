@@ -1,13 +1,15 @@
 import 'dotenv/config'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import Fastify from 'fastify'
 import fastifyCookie from '@fastify/cookie'
 import fastifySession from '@fastify/session'
 import fastifyCors from '@fastify/cors'
 import fastifySensible from '@fastify/sensible'
 import fastifyStatic from '@fastify/static'
+import fastifySwagger from '@fastify/swagger'
+import fastifySwaggerUi from '@fastify/swagger-ui'
 
 import { db, runMigrations } from './db/index.js'
 import { users } from './db/schema.js'
@@ -67,6 +69,59 @@ await fastify.register(fastifySession, {
 })
 
 await fastify.register(fastifySensible)
+
+// ─── API documentation (OpenAPI / Swagger) ─────────────────────────────────────
+// Public, self-serve documentation for the unauthenticated read endpoints so
+// third-party apps, AI agents, etc. can consume the side-meetings data. Only
+// routes explicitly tagged 'Public' are exposed here — everything else (session
+// authed admin/user routes) is hidden via the transform below, so this never
+// leaks the internal API surface. UI is served at /api/docs, raw spec at
+// /api/docs/json.
+const publicApiUrl = process.env.PUBLIC_API_URL || process.env.FRONTEND_URL || ''
+
+await fastify.register(fastifySwagger, {
+  openapi: {
+    openapi: '3.1.0',
+    info: {
+      title: 'IETF Side Meetings — Public API',
+      description:
+        'Read-only, unauthenticated access to IETF side-meetings data: meetings, ' +
+        'rooms and confirmed bookings. Intended for third-party apps and integrations.',
+      version: '1.0.0'
+    },
+    servers: publicApiUrl ? [{ url: publicApiUrl }] : [],
+    tags: [{ name: 'Public', description: 'Unauthenticated public data' }]
+  },
+  // Only surface routes explicitly opted in with the 'Public' tag; hide the rest.
+  transform: ({ schema, url }) => {
+    if (!schema?.tags?.includes('Public')) {
+      return { schema: { ...schema, hide: true }, url }
+    }
+    return { schema, url }
+  }
+})
+
+// Top-bar logo for the docs: the inverted (dark-background) IETF mark, vendored
+// in public/. The swagger-ui plugin embeds the image bytes as a data URI, so we
+// read the file once at startup rather than referencing a URL.
+const logoSvg = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../public/ietf-inverted.svg')
+)
+
+await fastify.register(fastifySwaggerUi, {
+  routePrefix: '/api/docs',
+  uiConfig: {
+    docExpansion: 'list',
+    deepLinking: true
+  },
+  // Replace the default Fastify logo in the top bar with the IETF mark.
+  logo: {
+    type: 'image/svg+xml',
+    content: logoSvg,
+    href: '/',
+    target: '_self'
+  }
+})
 
 // ─── Auth decorators ──────────────────────────────────────────────────────────
 
