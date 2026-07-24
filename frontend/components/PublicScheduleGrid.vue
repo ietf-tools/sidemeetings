@@ -14,11 +14,14 @@
         v-if="day.items.length"
         class="flex flex-col gap-2 flex-1 min-h-0 overflow-y-auto pr-1 -mr-1">
 
-        <div
-          v-for="b in day.items"
-          :key="b.id"
-          class="group relative"
-          :style="{ color: b.timeColor }">
+        <template v-for="(b, i) in day.items" :key="b.id">
+          <div
+            v-if="b.section !== day.items[i - 1]?.section"
+            class="text-center text-[10px] font-bold uppercase tracking-wider text-text-faint pt-1 first:pt-0">
+            {{ b.section }}
+          </div>
+
+          <div class="group relative" :style="{ color: b.timeColor }">
           <button
             class="w-full text-left rounded-lg px-2.5 py-2 transition-opacity hover:opacity-90"
             :style="b.style"
@@ -57,7 +60,8 @@
               <Video class="w-4 h-4" />
             </a>
           </div>
-        </div>
+          </div>
+        </template>
       </div>
       <div v-else class="text-center text-[11px] text-text-faint py-4">
         No side meetings have<br />been booked yet.
@@ -149,10 +153,12 @@ const columns = computed(() => {
           : Array.isArray(it.booking.areas)
             ? it.booking.areas
             : []
+        const section = it.startMin < 12 * 60 ? 'Morning' : it.startMin < 18 * 60 ? 'Afternoon' : 'Evening'
         return {
           id: it.booking.id,
           booking: it.booking,
           badges,
+          section,
           timeLabel: `${minutesToTime(it.startMin)}–${minutesToTime(it.startMin + it.booking.duration)}`,
           timeColor: `color-mix(in srgb, ${hex} 45%, white)`,
           style:
