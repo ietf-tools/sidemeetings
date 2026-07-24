@@ -82,57 +82,76 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
-          <tr
-            v-for="b in filteredBookings"
-            :key="b.id"
-            class="group cursor-pointer hover:bg-s2 transition-colors"
-            @click="navigateTo('/admin/bookings/' + b.id)">
-            <td class="px-5 py-3.5">
-              <div
-                class="text-sm font-semibold text-text"
-                :class="{
-                  'line-through text-text-faint': b.state === 'rejected' || b.state === 'cancelled'
-                }">
-                {{ b.title }}
-              </div>
-              <div class="text-xs text-text-dim mt-0.5">{{ b.organizerName }}</div>
-            </td>
-            <td class="px-4 py-3.5">
-              <span class="text-[13px] text-text">{{ b.roomName }}</span>
-            </td>
-            <td class="px-4 py-3.5 whitespace-nowrap">
-              <template v-if="b.startsAt">
-                <div class="text-[12.5px] font-semibold text-text">
-                  {{ bookingTimeLabel(b.startsAt, b.duration).day }}
+          <template v-for="group in groupedBookings" :key="group.key">
+            <tr class="bg-s2">
+              <td
+                colspan="5"
+                class="px-5 py-2 border-t border-border text-[11.5px] font-bold uppercase tracking-wide text-text-dim">
+                {{ group.label }}
+                <span class="mx-1.5 text-text-faint">·</span>
+                <span
+                  class="inline-flex items-center justify-center min-w-[20px] px-1.5 py-0.5 rounded-full bg-surface font-mono text-[11px] text-text-dim normal-case">
+                  {{ group.bookings.length }}
+                </span>
+              </td>
+            </tr>
+            <tr
+              v-for="b in group.bookings"
+              :key="b.id"
+              class="group cursor-pointer hover:bg-s2 transition-colors"
+              @click="navigateTo('/admin/bookings/' + b.id)">
+              <td class="px-5 py-3.5">
+                <div
+                  class="text-sm font-semibold text-text"
+                  :class="{
+                    'line-through text-text-faint':
+                      b.state === 'rejected' || b.state === 'cancelled'
+                  }">
+                  {{ b.title }}
                 </div>
-                <div class="text-[11.5px] text-text-dim font-mono">
-                  {{ bookingTimeLabel(b.startsAt, b.duration).start }}–{{
-                    bookingTimeLabel(b.startsAt, b.duration).end
-                  }}
-                </div>
-              </template>
-            </td>
-            <td class="px-4 py-3.5">
-              <AdminStatusBadge :state="b.state" />
-            </td>
-            <td class="px-5 py-3.5">
-              <div class="flex items-center gap-2 justify-end">
-                <template v-if="b.state === 'pending'">
-                  <button class="icon-btn text-bad" title="Reject" @click.stop="reject(b.id)">
-                    <X class="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    class="w-[30px] h-[30px] rounded-lg bg-ok text-white flex items-center justify-center transition-opacity hover:opacity-90"
-                    title="Approve"
-                    @click.stop="approve(b.id)">
-                    <Check class="w-3.5 h-3.5" :stroke-width="2.6" />
-                  </button>
+                <div class="text-xs text-text-dim mt-0.5">{{ b.organizerName }}</div>
+              </td>
+              <td class="px-4 py-3.5">
+                <span class="inline-flex items-center gap-2 text-[13px] text-text">
+                  <span
+                    class="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    :style="{ background: roomColor(b.roomId) }"></span>
+                  {{ b.roomName }}
+                </span>
+              </td>
+              <td class="px-4 py-3.5 whitespace-nowrap">
+                <template v-if="b.startsAt">
+                  <div class="text-[12.5px] font-semibold text-text font-mono">
+                    {{ bookingTimeLabel(b.startsAt, b.duration).start }}–{{
+                      bookingTimeLabel(b.startsAt, b.duration).end
+                    }}
+                  </div>
                 </template>
-                <ChevronRight
-                  class="w-4 h-4 text-text-faint transition-all group-hover:text-text group-hover:translate-x-0.5" />
-              </div>
-            </td>
-          </tr>
+              </td>
+              <td class="px-4 py-3.5 align-middle">
+                <div class="flex items-center">
+                  <AdminStatusBadge :state="b.state" />
+                </div>
+              </td>
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-2 justify-end">
+                  <template v-if="b.state === 'pending'">
+                    <button class="icon-btn text-bad" title="Reject" @click.stop="reject(b.id)">
+                      <X class="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      class="w-[30px] h-[30px] rounded-lg bg-ok text-white flex items-center justify-center transition-opacity hover:opacity-90"
+                      title="Approve"
+                      @click.stop="approve(b.id)">
+                      <Check class="w-3.5 h-3.5" :stroke-width="2.6" />
+                    </button>
+                  </template>
+                  <ChevronRight
+                    class="w-4 h-4 text-text-faint transition-all group-hover:text-text group-hover:translate-x-0.5" />
+                </div>
+              </td>
+            </tr>
+          </template>
         </tbody>
       </table>
     </div>
@@ -676,6 +695,56 @@ const filteredBookings = computed(() => {
   }
   return list
 })
+
+const groupedBookings = computed(() => {
+  const tz = meetingStore.viewingMeeting?.timezone || 'UTC'
+  const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+  const groups = new Map<string, { key: string; label: string; bookings: any[] }>()
+  const unscheduled: any[] = []
+
+  for (const b of filteredBookings.value) {
+    if (!b.startsAt) {
+      unscheduled.push(b)
+      continue
+    }
+    try {
+      const zdt = Temporal.Instant.from(b.startsAt).toZonedDateTimeISO(tz)
+      const key = `${zdt.year}-${String(zdt.month).padStart(2, '0')}-${String(zdt.day).padStart(2, '0')}`
+      if (!groups.has(key)) {
+        const label = `${dayNames[zdt.dayOfWeek - 1]}, ${monthNames[zdt.month - 1]} ${zdt.day}`
+        groups.set(key, { key, label, bookings: [] })
+      }
+      groups.get(key)!.bookings.push(b)
+    } catch {
+      unscheduled.push(b)
+    }
+  }
+
+  const result = [...groups.values()].sort((a, b) => (a.key < b.key ? -1 : 1))
+  for (const g of result) g.bookings.sort((a, b) => (a.startsAt < b.startsAt ? -1 : 1))
+  if (unscheduled.length) {
+    result.push({ key: 'unscheduled', label: 'Unscheduled', bookings: unscheduled })
+  }
+  return result
+})
+
+const ROOM_COLORS: Record<string, string> = {
+  sky: '#38bdf8',
+  yellow: '#fbbf24',
+  purple: '#a78bfa',
+  emerald: '#34d399',
+  indigo: '#818cf8'
+}
+
+// Color dot for a booking's room, matched from the loaded room list.
+function roomColor(roomId: string) {
+  const room = rooms.value.find((r) => r.id === roomId)
+  return (room?.color && ROOM_COLORS[room.color]) || '#2dd4bf'
+}
 
 function bookingTimeLabel(
   startsAt: string,
