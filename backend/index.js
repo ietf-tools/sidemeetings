@@ -102,10 +102,11 @@ await fastify.register(fastifySwagger, {
 })
 
 // Top-bar logo for the docs: the inverted (dark-background) IETF mark, vendored
-// in public/. The swagger-ui plugin embeds the image bytes as a data URI, so we
-// read the file once at startup rather than referencing a URL.
+// in backend/assets/ so it ships with the backend in the container image. The
+// swagger-ui plugin embeds the image bytes as a data URI, so we read the file
+// once at startup rather than referencing a URL.
 const logoSvg = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), '../public/ietf-inverted.svg')
+  join(dirname(fileURLToPath(import.meta.url)), 'assets/ietf-inverted.svg')
 )
 
 await fastify.register(fastifySwaggerUi, {
