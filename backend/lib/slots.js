@@ -56,6 +56,8 @@ export function getMeetingDays(meeting) {
  * @param {object[]} existingBookings - Bookings for this room (include .startsAt, .duration, .state)
  * @param {number}  duration      - Desired booking duration in minutes
  * @param {number}  [buffer]      - Buffer between bookings in minutes (falls back to meeting.buffer)
+ * @param {Temporal.ZonedDateTime} [now] - Current time (defaults to now in the meeting timezone).
+ *                                         Slots before now + meeting.minNotice are never offered.
  *
  * @returns {{ [dayOffset: number]: number[] }}
  *   Keys 0–4 (Mon–Fri), values are arrays of available start times in minutes since midnight.
@@ -64,10 +66,18 @@ export function getMeetingDays(meeting) {
 // a buffer can never hold another meeting, so we don't want to create one.
 const MIN_DURATION = 60
 
-export function calculateAvailableSlots(room, meeting, existingBookings, duration, buffer) {
+export function calculateAvailableSlots(room, meeting, existingBookings, duration, buffer, now) {
   const effectiveBuffer = buffer ?? meeting.buffer ?? 15
   const meetingDays = getMeetingDays(meeting)
   const timezone = meeting.timezone
+
+  // Earliest a new booking may start: now + the meeting's minimum notice. Slots
+  // on days already in the past, or earlier than this cutoff on the current day,
+  // are never offered.
+  const nowZdt = now ?? Temporal.Now.zonedDateTimeISO(timezone)
+  const cutoffZdt = nowZdt.add({ minutes: meeting.minNotice ?? 0 })
+  const cutoffDate = cutoffZdt.toPlainDate()
+  const cutoffMin = cutoffZdt.hour * 60 + cutoffZdt.minute
 
   // Normalise availability – fall back to 5 empty arrays if missing/malformed.
   const availability =
@@ -84,6 +94,15 @@ export function calculateAvailableSlots(room, meeting, existingBookings, duratio
   for (let dayOffset = 0; dayOffset < 5; dayOffset++) {
     const plainDate = meetingDays[dayOffset]
     const windows = Array.isArray(availability[dayOffset]) ? availability[dayOffset] : []
+
+    // Skip days entirely before the notice cutoff; on the cutoff day, only offer
+    // start times at or after the cutoff minute.
+    const dayVsCutoff = Temporal.PlainDate.compare(plainDate, cutoffDate)
+    if (dayVsCutoff < 0) {
+      result[dayOffset] = []
+      continue
+    }
+    const earliestMin = dayVsCutoff === 0 ? cutoffMin : 0
 
     // Collect existing bookings that fall on this calendar day (in the meeting timezone).
     const dayBookings = activeBookings
@@ -115,6 +134,9 @@ export function calculateAvailableSlots(room, meeting, existingBookings, duratio
       // Candidate start times: every 15 minutes within the window.
       for (let startMin = windowStart; startMin + duration <= windowEnd; startMin += 15) {
         const endMin = startMin + duration
+
+        // Skip start times that fall before the minimum-notice cutoff.
+        if (startMin < earliestMin) continue
 
         // Check conflicts: a conflict exists when the candidate slot overlaps any existing
         // booking when a buffer is applied around each existing booking.

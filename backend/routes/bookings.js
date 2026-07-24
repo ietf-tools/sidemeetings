@@ -145,6 +145,25 @@ function withinSubmissionWindow(meeting) {
   }
 }
 
+/**
+ * Whether a requested start time is at or after the meeting's minimum-notice
+ * cutoff (now + meeting.minNotice). Rejects slots in the past or too soon.
+ * @param {object} meeting
+ * @param {string|Date} startsAt
+ * @returns {boolean}
+ */
+function meetsMinNotice(meeting, startsAt) {
+  try {
+    const cutoff = Temporal.Now.instant().add({ minutes: meeting.minNotice ?? 0 })
+    const startInstant = Temporal.Instant.from(
+      startsAt instanceof Date ? startsAt.toISOString() : startsAt
+    )
+    return Temporal.Instant.compare(startInstant, cutoff) >= 0
+  } catch {
+    return false
+  }
+}
+
 export default async function bookingsRoutes(fastify) {
   // ── GET /api/meetings/:meetingId/bookings ─────────────────────────────────
   // All bookings for a meeting with organiser info and room name. Admin only.
@@ -259,6 +278,12 @@ export default async function bookingsRoutes(fastify) {
 
       if (!room) {
         return reply.notFound('Room not found in this meeting')
+      }
+
+      // Reject slots in the past or inside the minimum-notice window. Admins may
+      // still book at any time.
+      if (!request.session.isAdmin && !meetsMinNotice(meeting, startsAt)) {
+        return reply.badRequest('The requested time slot is in the past or too soon to book')
       }
 
       // Check for scheduling conflicts.
