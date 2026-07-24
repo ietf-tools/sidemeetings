@@ -300,12 +300,15 @@
         <!-- Decision -->
         <div class="card p-5">
           <div class="flex items-center justify-between gap-3 mb-3">
-            <h3 class="text-sm font-bold text-text">Decision</h3>
+            <div class="flex items-center gap-2">
+              <Megaphone class="w-3.5 h-3.5 text-text-dim" />
+              <h3 class="text-sm font-bold text-text">Decision</h3>
+            </div>
             <AdminStatusBadge :state="booking.state" />
           </div>
           <p class="text-[12.5px] text-text-dim mb-3.5">
             The organizer (and co-organizers if any) will be notified by email on approval. Only the
-            main organizer will be notified on rejection. No email is sent for other actions.
+            main organizer will be notified on rejection.
           </p>
           <div class="flex flex-col gap-2.5">
             <div class="flex gap-2.5">
@@ -322,29 +325,73 @@
                 <X class="w-4 h-4" :stroke-width="2.6" /> Reject request
               </button>
             </div>
+          </div>
+
+          <!-- Silent status change (no email sent) -->
+          <div class="mt-6 pt-6 border-t border-border-strong">
+            <div class="flex items-center gap-2 mb-2">
+              <BellOff class="w-3.5 h-3.5 text-text-dim" />
+              <h4 class="text-[13px] font-bold text-text">Silent status change</h4>
+            </div>
+            <p class="text-[12.5px] text-text-dim mb-3">
+              Change the status without sending any confirmation or rejection email to the organizers.
+            </p>
             <div class="flex gap-2.5">
+              <select v-model="silentState" class="form-input flex-1">
+                <option value="pending">Pending</option>
+                <option value="confirmed">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
               <button
-                class="flex-1 inline-flex items-center justify-center gap-2 p-[11px] rounded-[10px] border border-border-strong bg-surface text-warn text-[13px] font-semibold transition-colors hover:border-warn disabled:opacity-40 disabled:cursor-not-allowed"
-                :disabled="booking.state === 'pending'"
-                @click="setPending">
-                <Clock class="w-4 h-4" /> Set to pending
+                class="inline-flex items-center justify-center gap-2 px-4 rounded-[10px] border border-border-strong bg-surface text-text text-[13px] font-semibold transition-colors hover:border-text-dim disabled:opacity-40 disabled:cursor-not-allowed"
+                :disabled="silentSaving || silentState === booking.state"
+                @click="changeStatusSilently">
+                Apply
               </button>
+            </div>
+          </div>
+
+          <!-- Delete booking permanently -->
+          <div class="mt-6 pt-6 border-t border-border-strong">
+            <div class="flex items-center gap-2 mb-2">
+              <Trash2 class="w-3.5 h-3.5 text-text-dim" />
+              <h4 class="text-[13px] font-bold text-text">Delete booking</h4>
+            </div>
+            <p class="text-[12.5px] text-text-dim mb-3">
+              Permanently remove this booking and its history. This cannot be undone and no email is
+              sent.
+            </p>
+            <div class="flex justify-end">
               <button
-                class="flex-1 inline-flex items-center justify-center gap-2 p-[11px] rounded-[10px] border border-border-strong bg-surface text-text-dim text-[13px] font-semibold transition-colors hover:text-text disabled:opacity-40 disabled:cursor-not-allowed"
-                :disabled="booking.state === 'cancelled'"
-                @click="cancel">
-                <Trash2 class="w-4 h-4" /> Cancel booking
+                class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-strong bg-surface text-text-dim text-[12px] font-semibold transition-colors hover:border-bad hover:text-bad disabled:opacity-40 disabled:cursor-not-allowed"
+                :disabled="deleting"
+                @click="deleteConfirmOpen = true">
+                <Trash2 class="w-3.5 h-3.5" /> Delete booking
               </button>
             </div>
           </div>
         </div>
       </div>
     </div>
+
+    <AdminDeleteConfirm
+      v-model="deleteConfirmOpen"
+      title="Delete booking"
+      message="Permanently delete this booking and its history? This cannot be undone and no email is sent to the organizers."
+      confirm-text="Delete booking"
+      @confirm="deleteBooking">
+      <p class="text-sm text-text-dim">
+        Consider setting the status to <span class="font-semibold text-text">Cancelled</span> instead
+        to keep a trace of the side meeting request. Deleting a booking should only be done as a last
+        resort.
+      </p>
+    </AdminDeleteConfirm>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, X, Check, Trash2, Clock } from 'lucide-vue-next'
+import { ChevronLeft, X, Check, Megaphone, BellOff, Trash2 } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 
@@ -360,6 +407,10 @@ const { minutesToTime, getMeetingDays, formatSubmittedAt } = useTemporal()
 
 const loading = ref(true)
 const saving = ref(false)
+const silentSaving = ref(false)
+const silentState = ref('pending')
+const deleting = ref(false)
+const deleteConfirmOpen = ref(false)
 const booking = ref<any>(null)
 const rooms = ref<any[]>([])
 
@@ -518,6 +569,7 @@ async function loadBooking() {
     ])
     booking.value = b
     rooms.value = roomList
+    silentState.value = b.state
     applyForm(b)
   } catch {
     toast.show('Failed to load booking', 'bad')
@@ -590,23 +642,33 @@ async function reject() {
   }
 }
 
-async function setPending() {
+// Change the state via PUT /bookings/:id, which never sends organizer emails.
+async function changeStatusSilently() {
+  silentSaving.value = true
   try {
-    await useApiFetch(`/bookings/${route.params.id}`, { method: 'PUT', body: { state: 'pending' } })
-    toast.show('Booking set to pending', 'warn')
+    await useApiFetch(`/bookings/${route.params.id}`, {
+      method: 'PUT',
+      body: { state: silentState.value }
+    })
+    toast.show('Status changed silently (no email sent)', 'ok')
     await loadBooking()
-  } catch {
-    toast.show('Failed to update status', 'bad')
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Failed to change status', 'bad')
+  } finally {
+    silentSaving.value = false
   }
 }
 
-async function cancel() {
+// Permanently delete the booking, then return to the list.
+async function deleteBooking() {
+  deleting.value = true
   try {
-    await useApiFetch(`/bookings/${route.params.id}/cancel`, { method: 'PATCH' })
-    toast.show('Booking cancelled', 'warn')
-    await loadBooking()
-  } catch {
-    toast.show('Failed to cancel', 'bad')
+    await useApiFetch(`/bookings/${route.params.id}`, { method: 'DELETE' })
+    toast.show('Booking deleted', 'ok')
+    await navigateTo('/admin/bookings')
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Failed to delete booking', 'bad')
+    deleting.value = false
   }
 }
 

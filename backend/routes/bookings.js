@@ -856,4 +856,31 @@ export default async function bookingsRoutes(fastify) {
       return updated
     }
   )
+
+  // ── DELETE /api/bookings/:id ──────────────────────────────────────────────
+  // Permanently delete a booking. Admin only. No email is sent. Associated
+  // activity log entries are removed via the ON DELETE CASCADE foreign key.
+  fastify.delete(
+    '/bookings/:id',
+    {
+      preHandler: fastify.authenticateAdmin
+    },
+    async (request, reply) => {
+      const { id } = request.params
+
+      const [existing] = await db
+        .select({ id: bookings.id })
+        .from(bookings)
+        .where(eq(bookings.id, id))
+        .limit(1)
+
+      if (!existing) {
+        return reply.notFound('Booking not found')
+      }
+
+      await db.delete(bookings).where(eq(bookings.id, id))
+
+      return { deleted: true }
+    }
+  )
 }

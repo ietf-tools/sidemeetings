@@ -8,6 +8,7 @@
           <p class="text-sm text-text-dim">{{ message }}</p>
         </div>
       </div>
+      <slot />
     </div>
     <template #footer>
       <div class="flex justify-end gap-2 px-6 py-4 border-t border-border">
