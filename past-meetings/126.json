@@ -17,24 +17,24 @@
     {
       "id": 4576659,
       "title": "Park Suite 4",
-      "description": "Side Meeting Room\n\nSeats 18, conference style",
+      "description": "Side Meeting Room\n\nSeats 16, conference style",
       "slug": "park-suite-4"
     }
   ],
   "bookings": [
     {
-      "id": 21758539,
-      "roomId": 4576659,
-      "roomName": "Park Suite 4",
-      "title": "Coherent Pluggable CCAMP meeting",
-      "description": "To continue the weekly meetings on coherent pluggables' modeling and gap analysis",
-      "start": "2026-07-20T07:00:00.000Z",
-      "end": "2026-07-20T08:00:00.000Z",
-      "location": "https://ietf.webex.com/meet/sidemeetings1",
-      "organizerName": "Reza",
-      "organizerEmail": "reza.rokui@gmail.com",
+      "id": 22158625,
+      "roomId": 4594115,
+      "roomName": "Grand Klimt Hall 3",
+      "title": "Agent Use of Delegation and Interaction Traceability (AUDIT) charter discussion",
+      "description": "This session is to discuss the draft charter of a new proposed group on Agent Use of Delegation and Interaction Traceability (AUDIT). See here: https://github.com/mirjak/audit-bof-preparation/blob/main/audit-charter.md",
+      "start": "2026-07-20T07:30:00.000Z",
+      "end": "2026-07-20T09:30:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings2",
+      "organizerName": "Mirja Kuehlewind",
+      "organizerEmail": "mirja.kuehlewind@ericsson.com",
       "areas": [
-        "RTG"
+        "SEC"
       ]
     },
     {
@@ -49,6 +49,23 @@
       "organizerName": "Muhammad Usama Sardar",
       "organizerEmail": "muhammad_usama.sardar@tu-dresden.de",
       "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 22313512,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Taxonomy to Organize Agentic AI Use Cases",
+      "description": "1. Motivation:  Why agentic AI use cases matter now? Goals of the Agentic AI Taxonomy\n2. Taxonomy Overview: Presentation of a proposed taxonomy; Key dimensions and design choices \n3. Applying the Taxonomy: Worked example illustrating how to use the taxonomy in practice\n4. Several presenters will introduce their agentic AI use cases\n5. This is a truly a collaborative effort: how we will collaborate (github repo, etc.)\n6. Open Discussion: General discussion and feedback",
+      "start": "2026-07-20T10:30:00.000Z",
+      "end": "2026-07-20T12:30:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Jordi Ros Giralt",
+      "organizerEmail": "jros@qti.qualcomm.com",
+      "areas": [
+        "ART",
+        "OPS",
         "SEC"
       ]
     },
@@ -139,18 +156,17 @@
       ]
     },
     {
-      "id": 21733600,
+      "id": 22677082,
       "roomId": 4576659,
       "roomName": "Park Suite 4",
-      "title": "HP-WAN",
-      "description": "IETF 126: High-performance WAN will focus on the HP-WAN Updates, HPC/AI service intent, Rate-based SRv6, Scale-across and following up the discussions upon IETF125 Hackathon.\nThe primary agenda is shown as below.\n1,Note well, welcome statements, introduction and agenda bash\n2, Scale-across Architecture and solutions\n3,HP-WAN Documents Updates (State-Of-The-Art and Framework)\n4,HP-WAN/HPC/AI Service Intent/Job Scheduler Model\n5,Rate-based SRv6 congestion control\n6,Open Issues Discussion\n\nhttps://github.com/xiongquan1230/IETF126-Sidemeeting-HP-WAN/tree/main",
+      "title": "Machine Readability in Preferences",
+      "description": "Discussion of draft-vaughan-machine-readability",
       "start": "2026-07-21T07:30:00.000Z",
       "end": "2026-07-21T09:00:00.000Z",
       "location": "https://ietf.webex.com/meet/sidemeetings1",
-      "organizerName": "Quan Xiong",
-      "organizerEmail": "xiong.quan@zte.com.cn",
+      "organizerName": "Thom Vaughan",
+      "organizerEmail": "thom@commoncrawl.org",
       "areas": [
-        "RTG",
         "WIT"
       ]
     },
@@ -170,21 +186,6 @@
       ]
     },
     {
-      "id": 21732128,
-      "roomId": 4576659,
-      "roomName": "Park Suite 4",
-      "title": "Agentic AI Research Group",
-      "description": "Agentic AI is moving fast, but without thorough security considerations. We would like to discuss different topics to scope the proposal of a research group on agentic AI-related topics. \n\nParticipants are encouraged to share their thoughts as short presentations.",
-      "start": "2026-07-21T13:00:00.000Z",
-      "end": "2026-07-21T14:00:00.000Z",
-      "location": "https://ietf.webex.com/meet/sidemeetings1",
-      "organizerName": "Muhammad Usama Sardar",
-      "organizerEmail": "muhammad_usama.sardar@tu-dresden.de",
-      "areas": [
-        "SEC"
-      ]
-    },
-    {
       "id": 21728307,
       "roomId": 4594115,
       "roomName": "Grand Klimt Hall 3",
@@ -200,11 +201,26 @@
       ]
     },
     {
-      "id": 21734980,
+      "id": 22732008,
       "roomId": 4576659,
       "roomName": "Park Suite 4",
-      "title": " Intelligent Network Architecture and Technologies",
-      "description": "This side meeting explores emerging scenarios and technologies for distributed inference networks. We will discuss key technical gaps and potential standardization opportunities, with a focus on the evolving role of underlying networks—particularly edge gateways—in enabling inference acceleration, semantic routing, and adaptive resource orchestration. The session aims to foster cross-domain discussions and welcomes contributions from both networking and AI.",
+      "title": "Agentic AI Research Group",
+      "description": "Agentic AI is moving fast, but without thorough security considerations. We would like to discuss different topics to scope the proposal of a research group on agentic AI-related topics. \n\nParticipants are encouraged to share their thoughts as short presentations.",
+      "start": "2026-07-21T14:00:00.000Z",
+      "end": "2026-07-21T15:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Muhammad Usama Sardar",
+      "organizerEmail": "muhammad_usama.sardar@tu-dresden.de",
+      "areas": [
+        "SEC"
+      ]
+    },
+    {
+      "id": 22676466,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "IDN - Inference Distribution Network Architecture and Technologies",
+      "description": "This side meeting explores new scenarios and technologies opportunities for Inference Distribution Networks (IDN). Topics include deploying OpenClaw on edge gateways for smart home IoT control, distributed hierarchical inference for data privacy in healthcare or finance, as well as semantic routing, inference acceleration, and adaptive resource orchestration. The session aims to identify technical gaps for future IETF work and foster cross‑disciplinary collaboration between networking and AI communities.\nThe agenda and shared materials will be available at https://github.com/jack-songjian-ietf/ietf-DIN-sidemeeting/tree/main/ietf126-sidemeeting-IDN.",
       "start": "2026-07-21T15:00:00.000Z",
       "end": "2026-07-21T16:00:00.000Z",
       "location": "https://ietf.webex.com/meet/sidemeetings1",
@@ -236,7 +252,7 @@
       "description": "The Interface to In-Network Computing Functions (I2ICF) group aims to define interfaces and protocols for provisioning In-Network Computing Functions (ICFs) like Application Functions (AFs) and Computing Functions (CFs) for the requested services in the aforementioned use cases. Agentic AI can be used for accommodate the intelligent services among AI agents.\n\nIn-Network Computing (INC) or Computing in the Network (COIN) is a promising technology to help solve these problems. It could help reduce the data volume and improve the Quality of Service (QoS) by offloading some AFs or CFs into In-Network Computing Functions (ICFs) such as Programmable Network Devices (PNDs).\n\nAlso, Intent-Based Networking (IBN) can compose user services autonomously and construct a combination of ICFs into a target network for service provisioning and QoS assurance.\n\nAdditional Resources: - I2ICF Mailing List: https://mailarchive.ietf.org/arch/browse/i2icf/\n\nI2ICF Mailing List Subscription: https://mailman3.ie",
       "start": "2026-07-21T16:30:00.000Z",
       "end": "2026-07-21T18:00:00.000Z",
-      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "location": "https://skku-edu.zoom.us/j/87452524411?pwd=e0x8MB80acbVnPXvbG2MJ6IBmZZmHf.1",
       "organizerName": "Jaehoon Paul Jeong",
       "organizerEmail": "jaehoon.paul@gmail.com",
       "areas": [
@@ -275,14 +291,14 @@
       ]
     },
     {
-      "id": 21787822,
+      "id": 22546523,
       "roomId": 4576659,
       "roomName": "Park Suite 4",
-      "title": "IPv6 Wireless Access in Satellite Networks (IPWASN)",
+      "title": " IPv6 Wireless Access in Satellite Networks (IPWASN)",
       "description": "The IPv6 Wireless Access in Satellite Networks (IPWASN) discussion aims to identify problem statements, use cases, and requirements for supporting IPv6-based wireless access in Non-Terrestrial Networks (NTNs), especially satellite networks. IPWASN considers LEO satellites, Inter-Satellite Links (ISLs), HAPS-assisted relay paths, frequent handovers, variable link quality, QoS support, and intermittent connectivity.\n\nThis meeting will discuss how existing IPv6, mobility management, QoS, MPLS, SR-MPLS, and SRv6 mechanisms can be applied to multi-hop data forwarding, HAPS-assisted path selection, traffic engineering, and service continuity in dynamic satellite network environments. Since this work is still in an early research stage, the discussion will focus on collecting feedback on the problem scope, use cases, and initial requirements.\n\nAdditional Resource: IPWASN Internet-Draft\nhttps://datatracker.ietf.org/doc/draft-lee-6man-ipv6-satellite-networks/",
       "start": "2026-07-22T07:45:00.000Z",
       "end": "2026-07-22T08:45:00.000Z",
-      "location": "https://skku-edu.zoom.us/j/83209601889?pwd=RS1CEnqintD81VzCV3Zas14NXaiAq2.1",
+      "location": "https://skku-edu.zoom.us/j/87145638020?pwd=btDwMmiI6xkntNkIBpYMtDa3taW3o6.1",
       "organizerName": "Jaehoon Paul Jeong",
       "organizerEmail": "jaehoon.paul@gmail.com",
       "areas": [
@@ -301,6 +317,22 @@
       "organizerName": "chuanyang miao",
       "organizerEmail": "miao.chuanyang@zte.com.cn",
       "areas": []
+    },
+    {
+      "id": 22283663,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "HP-WAN",
+      "description": "IETF 126: High-performance WAN will focus on the HP-WAN Updates, HPC/AI service intent, Rate-based SRv6, Scale-across and following up the discussions upon IETF125 Hackathon.\nThe primary agenda is shown as below.\n1,Note well, welcome statements, introduction and agenda bash\n2, Scale-across Architecture and solutions\n3,HP-WAN Documents Updates (State-Of-The-Art and Framework)\n4,HP-WAN/HPC/AI Service Intent/Job Scheduler Model\n5,Rate-based SRv6 congestion control\n6,Open Issues Discussion\n\nhttps://github.com/xiongquan1230/IETF126-Sidemeeting-HP-WAN/tree/main",
+      "start": "2026-07-22T10:30:00.000Z",
+      "end": "2026-07-22T12:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Quan Xiong",
+      "organizerEmail": "xiong.quan@zte.com.cn",
+      "areas": [
+        "RTG",
+        "WIT"
+      ]
     },
     {
       "id": 21738775,
@@ -333,21 +365,6 @@
       ]
     },
     {
-      "id": 21736612,
-      "roomId": 4576659,
-      "roomName": "Park Suite 4",
-      "title": "MTA Hooks: An HTTP-Based Mail Processing Protocol ",
-      "description": "Email filtering services (spam, virus, policy, compliance) sit between Mail Transfer Agents (MTAs) and the rest of the mail pipeline. The dominant integration mechanism today is the Milter protocol, which has no formal specification, no IETF standing, no outbound-delivery hooks, and behaviourally divergent implementations across the MTAs that support it. The result is that the integration point on which a large fraction of internet mail filtering depends is unspecified, is hard to implement outside C, and is effectively controlled by the de facto reference implementations.\n\nThe MTA Hooks Working Group aims to standardise a modern, open replacement: an HTTP-based protocol by which an MTA delegates per-stage processing decisions to one or more external scanners, using request/response semantics, capability negotiation, and JSON or CBOR serialisation.\n\nhttps://datatracker.ietf.org/doc/draft-degennaro-mta-hooks/",
-      "start": "2026-07-22T14:00:00.000Z",
-      "end": "2026-07-22T15:00:00.000Z",
-      "location": "https://ietf.webex.com/meet/sidemeetings1",
-      "organizerName": "Mauro De Gennaro",
-      "organizerEmail": "mauro@stalw.art",
-      "areas": [
-        "ART"
-      ]
-    },
-    {
       "id": 21728059,
       "roomId": 4594115,
       "roomName": "Grand Klimt Hall 3",
@@ -361,6 +378,21 @@
       "areas": [
         "OPS",
         "SEC"
+      ]
+    },
+    {
+      "id": 21736612,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "MTA Hooks: An HTTP-Based Mail Processing Protocol ",
+      "description": "Email filtering services (spam, virus, policy, compliance) sit between Mail Transfer Agents (MTAs) and the rest of the mail pipeline. The dominant integration mechanism today is the Milter protocol, which has no formal specification, no IETF standing, no outbound-delivery hooks, and behaviourally divergent implementations across the MTAs that support it. The result is that the integration point on which a large fraction of internet mail filtering depends is unspecified, is hard to implement outside C, and is effectively controlled by the de facto reference implementations.\n\nThe MTA Hooks Working Group aims to standardise a modern, open replacement: an HTTP-based protocol by which an MTA delegates per-stage processing decisions to one or more external scanners, using request/response semantics, capability negotiation, and JSON or CBOR serialisation.\n\nhttps://datatracker.ietf.org/doc/draft-degennaro-mta-hooks/",
+      "start": "2026-07-22T14:00:00.000Z",
+      "end": "2026-07-22T15:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Mauro De Gennaro",
+      "organizerEmail": "mauro@stalw.art",
+      "areas": [
+        "ART"
       ]
     },
     {
@@ -380,19 +412,17 @@
       ]
     },
     {
-      "id": 21821861,
+      "id": 21840603,
       "roomId": 4576659,
       "roomName": "Park Suite 4",
-      "title": "IoA@enterprise Meeting",
-      "description": "Internet of Agents for Enterprises (IoA@Enterprise), target notes/agenda: https://notes.ietf.org/notes-ietf-126-public-side-meeting-ioa@enterprise",
-      "start": "2026-07-23T06:00:00.000Z",
-      "end": "2026-07-23T07:00:00.000Z",
+      "title": "SCHC Architecture",
+      "description": "This side meeting is a working meeting focused on the latest revision of draft-schc-architecture by the design team. It will allow for the last details of the revised SCHC Architecture to be discussed, clarified and adjusted before the SCHC WG meeting on Friday in which the version of draft-schc-architecture will be presented.",
+      "start": "2026-07-23T07:15:00.000Z",
+      "end": "2026-07-23T08:45:00.000Z",
       "location": "https://ietf.webex.com/meet/sidemeetings1",
-      "organizerName": "Toerless Eckert",
-      "organizerEmail": "tte@cs.fau.de",
-      "areas": [
-        "OPS"
-      ]
+      "organizerName": "Alexander Pelov",
+      "organizerEmail": "alexander.pelov@imt-atlantique.fr",
+      "areas": []
     },
     {
       "id": 21727979,
@@ -408,16 +438,16 @@
       "areas": []
     },
     {
-      "id": 21760919,
+      "id": 22756342,
       "roomId": 4576659,
       "roomName": "Park Suite 4",
-      "title": "Extensible Messaging and Presence Protocol (XMPP) 2.0",
-      "description": "XMPP is an IETF standard for federated, interoperable instant messaging still under active development. Extensions and new features are currently developed by the XMPP Standards Foundation however in the the 15+ years since the RFC was last updated the way a client connects to an XMPP server has changed dramatically.\n\nThis meeting will provide updates on the current state of XMPP, its users and ours (The XSF’s) thought process on bringing XMPP back to the IETF and update the RFC.",
-      "start": "2026-07-23T13:00:00.000Z",
-      "end": "2026-07-23T14:00:00.000Z",
+      "title": "Networking for AI",
+      "description": "Research Directions for Networking for AI",
+      "start": "2026-07-23T10:00:00.000Z",
+      "end": "2026-07-23T12:00:00.000Z",
       "location": "https://ietf.webex.com/meet/sidemeetings1",
-      "organizerName": "Daniel Gultsch",
-      "organizerEmail": "daniel@gultsch.de",
+      "organizerName": "Dirk Kutscher",
+      "organizerEmail": "ietf@dkutscher.net",
       "areas": []
     },
     {
@@ -434,6 +464,19 @@
       "areas": [
         "SEC"
       ]
+    },
+    {
+      "id": 21760919,
+      "roomId": 4576659,
+      "roomName": "Park Suite 4",
+      "title": "Extensible Messaging and Presence Protocol (XMPP) 2.0",
+      "description": "XMPP is an IETF standard for federated, interoperable instant messaging still under active development. Extensions and new features are currently developed by the XMPP Standards Foundation however in the the 15+ years since the RFC was last updated the way a client connects to an XMPP server has changed dramatically.\n\nThis meeting will provide updates on the current state of XMPP, its users and ours (The XSF’s) thought process on bringing XMPP back to the IETF and update the RFC.",
+      "start": "2026-07-23T13:00:00.000Z",
+      "end": "2026-07-23T14:00:00.000Z",
+      "location": "https://ietf.webex.com/meet/sidemeetings1",
+      "organizerName": "Daniel Gultsch",
+      "organizerEmail": "daniel@gultsch.de",
+      "areas": []
     },
     {
       "id": 21782431,
@@ -497,33 +540,16 @@
       ]
     },
     {
-      "id": 21734811,
+      "id": 21941695,
       "roomId": 4594115,
       "roomName": "Grand Klimt Hall 3",
-      "title": "IDN - Inference Distribution Network",
-      "description": "This side meeting explores new scenarios and technologies for Inference Distribution Networks (IDN), including deploying OpenClaw on edge gateways for smart home IoT control, and using distributed hierarchical inference to ensure data security and privacy in industries such as healthcare and finance. We will also discuss semantic routing and distributed inference acceleration techniques. The goal is to identify gaps for future IETF standardization and foster cross-disciplinary collaboration between networking and AI communities.",
-      "start": "2026-07-24T07:00:00.000Z",
-      "end": "2026-07-24T08:00:00.000Z",
+      "title": "Verifier Discovery and Trust Establishment",
+      "description": "In Remote Attestation Procedures, Verifiers are responsible for appraising Evidence. In real-world deployments there is rarely a single “authoritative” Verifier. Instead, a composite Attester often produces Evidence that is appraised by multiple Verifiers, some local and some remote, each covering only a subset of that Evidence appraisal.\nAdditionally, PII or other confidential information often cannot just be exposed to any Verifier. This side meeting, will use concrete application scenarios to open a discussion on two problems: 1.) how to discover Verifiers, and 2.) how to establish trust between Attesters and Verifiers as well as between Verifiers. We will consider Verifiers\noperating within a local trust domain, as well as Verifiers provided as an Attestation Verification service across separate trust domains. The main objective of this side meeting is to identify and scope new requirements for future work in the RATS WG that are aligned with the RATS Architecture.",
+      "start": "2026-07-24T08:30:00.000Z",
+      "end": "2026-07-24T09:30:00.000Z",
       "location": "https://ietf.webex.com/meet/sidemeetings2",
-      "organizerName": "SONG Jian",
-      "organizerEmail": "songjianyjy@chinamobile.com",
-      "areas": [
-        "RTG",
-        "WIT",
-        "ART"
-      ]
-    },
-    {
-      "id": 21928614,
-      "roomId": 4576659,
-      "roomName": "Park Suite 4",
-      "title": "Zero Trust Control and Policy Protocol",
-      "description": "Discuss the potential standards opportunities that related to the dynamic control policies between the PEP and PDP under zero trust architecture etc.",
-      "start": "2026-07-24T09:00:00.000Z",
-      "end": "2026-07-24T10:00:00.000Z",
-      "location": "https://ietf.webex.com/meet/sidemeetings1",
-      "organizerName": "Aijun Wang",
-      "organizerEmail": "wangaijun@tsinghua.org.cn",
+      "organizerName": "Houda Labiod",
+      "organizerEmail": "houda.labiod@huawei.com",
       "areas": [
         "SEC"
       ]
