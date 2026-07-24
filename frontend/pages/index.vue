@@ -201,6 +201,14 @@
         </a>
         <span class="w-px h-3.5 bg-border-strong"></span>
         <a
+          :href="apiDocsUrl"
+          target="_blank"
+          rel="noopener"
+          class="text-xs text-text-dim hover:text-text transition-colors">
+          API
+        </a>
+        <span class="w-px h-3.5 bg-border-strong"></span>
+        <a
           href="https://github.com/ietf-tools/sidemeetings/issues"
           target="_blank"
           rel="noopener"
@@ -351,6 +359,14 @@ const calendarUrl = computed(() => {
 })
 // webcal:// scheme prompts most calendar apps to subscribe (auto-refreshing).
 const webcalUrl = computed(() => calendarUrl.value.replace(/^https?:/, 'webcal:'))
+
+// Public API docs (Swagger UI), served by the backend at <apiUrl>/docs. apiUrl
+// always ends in /api, so this resolves to /api/docs in the integrated build and
+// the absolute backend URL in dev.
+const apiDocsUrl = computed(() => {
+  const base = (config.public.apiUrl as string) || '/api'
+  return `${base.replace(/\/$/, '')}/docs`
+})
 
 const copied = ref(false)
 async function copyCalendarUrl() {
