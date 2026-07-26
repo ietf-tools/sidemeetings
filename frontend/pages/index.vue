@@ -98,7 +98,7 @@
               :key="room.id"
               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors"
               :class="
-                !allSelected && selectedRoomIds.includes(room.id)
+                selectedRoomId === room.id
                   ? 'bg-accent-weak text-accent border-accent'
                   : 'bg-surface text-text-dim border-border-strong hover:text-text'
               "
@@ -439,7 +439,7 @@ async function loadSchedule(meetingId?: string) {
     meeting.value = data.meeting
     rooms.value = data.rooms
     bookings.value = data.bookings
-    selectedRoomIds.value = data.rooms.map((r) => r.id)
+    selectedRoomId.value = null
   } catch {
     // no meeting / failed to load
   } finally {
@@ -452,17 +452,18 @@ function selectMeeting(m: any) {
   if (m.id !== meeting.value?.id) loadSchedule(m.id)
 }
 
-const selectedRoomIds = ref<string[]>([])
-const allSelected = computed(
-  () => rooms.value.length > 0 && selectedRoomIds.value.length === rooms.value.length
-)
+// null = "All rooms"; otherwise a single focused room id.
+const selectedRoomId = ref<string | null>(null)
+const allSelected = computed(() => selectedRoomId.value === null)
 
 const roomColorMap = computed<Record<string, string>>(() =>
   Object.fromEntries(rooms.value.map((r) => [r.id, roomColorHex(r.color)]))
 )
 
 const visibleBookings = computed(() =>
-  bookings.value.filter((b) => selectedRoomIds.value.includes(b.roomId))
+  selectedRoomId.value === null
+    ? bookings.value
+    : bookings.value.filter((b) => b.roomId === selectedRoomId.value)
 )
 
 // ── Timezone selection ──────────────────────────────────────────────────────
@@ -524,20 +525,11 @@ const TIMEZONES = (() => {
 
 // ── Room filter ─────────────────────────────────────────────────────────────
 function selectAllRooms() {
-  selectedRoomIds.value = rooms.value.map((r) => r.id)
+  selectedRoomId.value = null
 }
 function toggleRoom(id: string) {
-  if (allSelected.value) {
-    // Coming from "all rooms": focus just this room.
-    selectedRoomIds.value = [id]
-    return
-  }
-  if (selectedRoomIds.value.includes(id)) {
-    const next = selectedRoomIds.value.filter((r) => r !== id)
-    selectedRoomIds.value = next.length ? next : rooms.value.map((r) => r.id)
-  } else {
-    selectedRoomIds.value = [...selectedRoomIds.value, id]
-  }
+  // Single-select: focus this room, or return to "All rooms" if it was already focused.
+  selectedRoomId.value = selectedRoomId.value === id ? null : id
 }
 
 // ── Booking modal ───────────────────────────────────────────────────────────
