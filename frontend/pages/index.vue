@@ -40,20 +40,25 @@
               <h1 class="text-[26px] font-extrabold text-text tracking-tight">
                 {{ meetingLabel(meeting.num) }} · {{ meeting.city }}, {{ meeting.country }}
               </h1>
-              <button
-                v-if="selectableMeetings.length > 1"
-                class="flex-shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-text-dim hover:text-text hover:bg-surface border border-transparent hover:border-border transition-colors"
-                title="View another meeting"
-                @click="pickerOpen = !pickerOpen">
-                <ChevronDown class="w-4 h-4" :class="pickerOpen ? 'rotate-180' : ''" />
-              </button>
+              <div v-if="selectableMeetings.length > 1" class="relative group flex-shrink-0">
+                <button
+                  class="w-7 h-7 rounded-lg flex items-center justify-center text-text-dim hover:text-text bg-surface hover:bg-s2 border border-border transition-colors"
+                  @click="pickerOpen = !pickerOpen">
+                  <ChevronDown class="w-4 h-4" :class="pickerOpen ? 'rotate-180' : ''" />
+                </button>
+                <span
+                  v-if="!pickerOpen"
+                  class="pointer-events-none absolute right-0 top-full mt-2 px-3 py-2 rounded-lg bg-s3 border border-border-strong text-text text-xs font-medium text-center max-w-[240px] w-max opacity-0 group-hover:opacity-100 transition-opacity shadow-card z-40">
+                  View another meeting
+                </span>
+              </div>
             </div>
 
             <!-- Meeting picker dropdown -->
             <template v-if="pickerOpen">
               <div class="fixed inset-0 z-30" @click="pickerOpen = false"></div>
               <div
-                class="absolute left-0 top-full mt-2 z-40 w-[320px] max-w-[88vw] bg-surface border border-border rounded-xl shadow-card p-1.5 max-h-[60vh] overflow-y-auto">
+                class="absolute right-0 top-full mt-1 z-40 w-[320px] max-w-[88vw] bg-surface border border-border rounded-xl shadow-card p-1.5 max-h-[60vh] overflow-y-auto">
                 <button
                   v-for="m in selectableMeetings"
                   :key="m.id"

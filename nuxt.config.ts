@@ -24,7 +24,7 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://static.ietf.org', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://static.ietf.org/fonts/inter/import.css' },
         { rel: 'stylesheet', href: 'https://static.ietf.org/fonts/ibm-plex-mono/import.css' },
-        // Favicons: IETF square logo on a white background (theme-independent).
+        // Favicons: IETF Side Meetings icon (theme-independent).
         { rel: 'icon', href: '/favicon.ico', sizes: '48x48' },
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32x32.png' },
