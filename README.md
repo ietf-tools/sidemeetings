@@ -1,6 +1,8 @@
 <div align="center">
   
-<img src="https://raw.githubusercontent.com/ietf-tools/common/main/assets/logos/sidemeetings.svg" alt="IETF Side Meetings" height="125" />
+<img src="https://static.ietf.org/logos/icon-sidemeetings.svg" alt="Side Meetings" height="125" />
+
+# Side Meetings Website
 
 [![Release](https://img.shields.io/github/release/ietf-tools/sidemeetings.svg?style=flat&maxAge=300)](https://github.com/ietf-tools/sidemeetings/releases)
 [![License](https://img.shields.io/github/license/ietf-tools/sidemeetings)](https://github.com/ietf-tools/sidemeetings/blob/main/LICENSE)
