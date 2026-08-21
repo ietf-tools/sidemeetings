@@ -1,6 +1,6 @@
 import { db } from '../db/index.js'
 import { meetings, rooms, bookings, users, activityLog } from '../db/schema.js'
-import { eq, and, count, sql, desc, or } from 'drizzle-orm'
+import { eq, and, count, sql, desc, or, isNotNull } from 'drizzle-orm'
 import { summarizeRoomUsage } from '../lib/slots.js'
 
 export default async function dashboardRoutes(fastify) {
@@ -30,7 +30,9 @@ export default async function dashboardRoutes(fastify) {
             pendingCount: 0,
             confirmedCount: 0,
             roomCount: 0,
+            pendingDescriptionCount: 0,
             recentPending: [],
+            pendingDescriptions: [],
             roomUtilization: [],
             recentActivity: []
           }
@@ -76,6 +78,31 @@ export default async function dashboardRoutes(fastify) {
         .innerJoin(rooms, eq(bookings.roomId, rooms.id))
         .where(and(eq(bookings.meetingId, meetingId), eq(bookings.state, 'pending')))
         .orderBy(desc(bookings.createdAt))
+        .limit(5)
+
+      // Description changes submitted by organizers of approved bookings, which
+      // stay unpublished until an admin decides on them.
+      const [pendingDescriptionRow] = await db
+        .select({ cnt: count() })
+        .from(bookings)
+        .where(and(eq(bookings.meetingId, meetingId), isNotNull(bookings.pendingDescription)))
+
+      const pendingDescriptions = await db
+        .select({
+          id: bookings.id,
+          title: bookings.title,
+          state: bookings.state,
+          description: bookings.description,
+          pendingDescription: bookings.pendingDescription,
+          pendingDescriptionAt: bookings.pendingDescriptionAt,
+          organizerName: users.name,
+          roomName: rooms.name
+        })
+        .from(bookings)
+        .innerJoin(users, eq(bookings.organizerId, users.id))
+        .innerJoin(rooms, eq(bookings.roomId, rooms.id))
+        .where(and(eq(bookings.meetingId, meetingId), isNotNull(bookings.pendingDescription)))
+        .orderBy(desc(bookings.pendingDescriptionAt))
         .limit(5)
 
       // Room utilisation (buffer- and minimum-length-aware).
@@ -150,7 +177,9 @@ export default async function dashboardRoutes(fastify) {
         pendingCount: Number(pendingRow.cnt),
         confirmedCount: Number(confirmedRow.cnt),
         roomCount: Number(roomRow.cnt),
+        pendingDescriptionCount: Number(pendingDescriptionRow.cnt),
         recentPending,
+        pendingDescriptions,
         roomUtilization,
         recentActivity
       }

@@ -101,13 +101,22 @@
               class="group cursor-pointer hover:bg-s2 transition-colors"
               @click="navigateTo('/admin/bookings/' + b.id)">
               <td class="px-5 py-3.5">
-                <div
-                  class="text-sm font-semibold text-text"
-                  :class="{
-                    'line-through text-text-faint':
-                      b.state === 'rejected' || b.state === 'cancelled'
-                  }">
-                  {{ b.title }}
+                <div class="flex items-center gap-2 flex-wrap">
+                  <div
+                    class="text-sm font-semibold text-text"
+                    :class="{
+                      'line-through text-text-faint':
+                        b.state === 'rejected' || b.state === 'cancelled'
+                    }">
+                    {{ b.title }}
+                  </div>
+                  <!-- The organizer proposed a new description that needs review. -->
+                  <span
+                    v-if="b.pendingDescription"
+                    class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-warn border border-warn/30 bg-warn/10 rounded-full px-2 py-px"
+                    title="A description change is awaiting review">
+                    <Hourglass class="w-2.5 h-2.5" /> Edit pending
+                  </span>
                 </div>
                 <div class="text-xs text-text-dim mt-0.5">{{ b.organizerName }}</div>
               </td>
@@ -434,7 +443,16 @@
 </template>
 
 <script setup lang="ts">
-import { Search, X, Check, Plus, ChevronRight, MoreHorizontal, FileUp } from 'lucide-vue-next'
+import {
+  Search,
+  X,
+  Check,
+  Plus,
+  ChevronRight,
+  MoreHorizontal,
+  FileUp,
+  Hourglass
+} from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 

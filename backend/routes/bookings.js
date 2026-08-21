@@ -5,7 +5,8 @@ import {
   sendBookingPending,
   sendApproverNotification,
   sendBookingApproved,
-  sendBookingRejected
+  sendBookingRejected,
+  sendDescriptionChangeNotification
 } from '../lib/email.js'
 
 /**
@@ -20,6 +21,7 @@ async function loadBookingContext(id) {
       id: bookings.id,
       title: bookings.title,
       description: bookings.description,
+      pendingDescription: bookings.pendingDescription,
       state: bookings.state,
       isIrtf: bookings.isIrtf,
       areas: bookings.areas,
@@ -52,6 +54,7 @@ async function loadBookingContext(id) {
       id: row.id,
       title: row.title,
       description: row.description,
+      pendingDescription: row.pendingDescription,
       state: row.state,
       isIrtf: row.isIrtf,
       areas: row.areas,
@@ -164,6 +167,24 @@ function meetsMinNotice(meeting, startsAt) {
   }
 }
 
+/**
+ * Whether a booking's start time has passed. Organizers may not cancel or amend
+ * a side meeting once it is under way; admins still can.
+ * @param {string|Date} startsAt
+ * @returns {boolean}
+ */
+function hasStarted(startsAt) {
+  try {
+    const startInstant = Temporal.Instant.from(
+      startsAt instanceof Date ? startsAt.toISOString() : startsAt
+    )
+    return Temporal.Instant.compare(Temporal.Now.instant(), startInstant) >= 0
+  } catch {
+    // An unreadable timestamp shouldn't lock the organizer out.
+    return false
+  }
+}
+
 export default async function bookingsRoutes(fastify) {
   // ── GET /api/meetings/:meetingId/bookings ─────────────────────────────────
   // All bookings for a meeting with organiser info and room name. Admin only.
@@ -207,6 +228,8 @@ export default async function bookingsRoutes(fastify) {
           organizerEmail: users.email,
           title: bookings.title,
           description: bookings.description,
+          pendingDescription: bookings.pendingDescription,
+          pendingDescriptionAt: bookings.pendingDescriptionAt,
           state: bookings.state,
           isIrtf: bookings.isIrtf,
           areas: bookings.areas,
@@ -559,6 +582,76 @@ export default async function bookingsRoutes(fastify) {
     }
   )
 
+  // ── GET /api/my/bookings ──────────────────────────────────────────────────
+  // The signed-in user's own bookings for one meeting (the active meeting by
+  // default), in every state. Powers the /manage view, so organizers can follow
+  // their own requests without needing admin rights.
+  fastify.get(
+    '/my/bookings',
+    {
+      preHandler: fastify.authenticate
+    },
+    async (request, reply) => {
+      const userId = request.session.userId
+      const { meetingId } = request.query
+
+      const meetingFields = {
+        id: meetings.id,
+        num: meetings.num,
+        city: meetings.city,
+        country: meetings.country,
+        venue: meetings.venue,
+        timezone: meetings.timezone,
+        startDate: meetings.startDate,
+        endDate: meetings.endDate,
+        isActive: meetings.isActive
+      }
+
+      const [meeting] = await db
+        .select(meetingFields)
+        .from(meetings)
+        .where(meetingId ? eq(meetings.id, meetingId) : eq(meetings.isActive, true))
+        .limit(1)
+
+      // No active meeting (or an unknown id) is a normal empty state here, not
+      // an error: the view simply has nothing to list.
+      if (!meeting) {
+        if (meetingId) return reply.notFound('Meeting not found')
+        return { meeting: null, bookings: [] }
+      }
+
+      const rows = await db
+        .select({
+          id: bookings.id,
+          roomId: bookings.roomId,
+          roomName: rooms.name,
+          roomColor: rooms.color,
+          title: bookings.title,
+          description: bookings.description,
+          pendingDescription: bookings.pendingDescription,
+          pendingDescriptionAt: bookings.pendingDescriptionAt,
+          state: bookings.state,
+          isIrtf: bookings.isIrtf,
+          areas: bookings.areas,
+          coOrganizers: bookings.coOrganizers,
+          startsAt: bookings.startsAt,
+          duration: bookings.duration,
+          endsAt: bookings.endsAt,
+          // Fall back to the room's shared link when the booking has none.
+          videoLinkUrl: sql`COALESCE(${bookings.videoLinkUrl}, ${rooms.videoLinkUrl})`,
+          videoLinkName: sql`COALESCE(${bookings.videoLinkName}, ${rooms.videoLinkName})`,
+          createdAt: bookings.createdAt,
+          updatedAt: bookings.updatedAt
+        })
+        .from(bookings)
+        .innerJoin(rooms, eq(bookings.roomId, rooms.id))
+        .where(and(eq(bookings.meetingId, meeting.id), eq(bookings.organizerId, userId)))
+        .orderBy(bookings.startsAt)
+
+      return { meeting, bookings: rows }
+    }
+  )
+
   // ── GET /api/bookings/:id ─────────────────────────────────────────────────
   // Get a booking. Admin sees all; user sees own only.
   fastify.get(
@@ -582,6 +675,8 @@ export default async function bookingsRoutes(fastify) {
           organizerEmail: users.email,
           title: bookings.title,
           description: bookings.description,
+          pendingDescription: bookings.pendingDescription,
+          pendingDescriptionAt: bookings.pendingDescriptionAt,
           state: bookings.state,
           isIrtf: bookings.isIrtf,
           areas: bookings.areas,
@@ -684,6 +779,10 @@ export default async function bookingsRoutes(fastify) {
       }
       if (description !== undefined) {
         updateData.description = description
+        // An admin writing the description directly supersedes any organizer
+        // change still waiting for review, so it isn't left dangling.
+        updateData.pendingDescription = null
+        updateData.pendingDescriptionAt = null
       }
       if (isIrtf !== undefined) {
         updateData.isIrtf = isIrtf
@@ -839,6 +938,222 @@ export default async function bookingsRoutes(fastify) {
     }
   )
 
+  // ── PATCH /api/bookings/:id/description ───────────────────────────────────
+  // Organizer-requested description change.
+  //
+  // While the booking is still `pending`, nothing has been reviewed yet, so the
+  // new text is written straight to `description` — the approver sees the latest
+  // version when they get to it. Once the booking is `confirmed`, the text is
+  // staged in `pendingDescription` and only becomes the live (publicly visible)
+  // description after an admin approves it; submitting the description that is
+  // already live withdraws such a staged change.
+  fastify.patch(
+    '/bookings/:id/description',
+    {
+      preHandler: fastify.authenticate
+    },
+    async (request, reply) => {
+      const { id } = request.params
+      const userId = request.session.userId
+      const isAdmin = request.session.isAdmin
+      const { description } = request.body ?? {}
+
+      if (typeof description !== 'string' || !description.trim()) {
+        return reply.badRequest('description is required')
+      }
+
+      const [existing] = await db
+        .select({
+          id: bookings.id,
+          state: bookings.state,
+          organizerId: bookings.organizerId,
+          description: bookings.description,
+          startsAt: bookings.startsAt
+        })
+        .from(bookings)
+        .where(eq(bookings.id, id))
+        .limit(1)
+
+      if (!existing) {
+        return reply.notFound('Booking not found')
+      }
+
+      if (!isAdmin && existing.organizerId !== userId) {
+        return reply.forbidden('You can only edit your own bookings')
+      }
+
+      // Only live requests can be amended; rejected/cancelled ones are closed.
+      if (existing.state !== 'pending' && existing.state !== 'confirmed') {
+        return reply.badRequest('Only pending or approved side meetings can be edited')
+      }
+
+      if (!isAdmin && hasStarted(existing.startsAt)) {
+        return reply.badRequest(
+          'This side meeting has already started and its description can no longer be changed'
+        )
+      }
+
+      const next = description.trim()
+
+      // Still awaiting the initial decision: apply the edit directly, no
+      // separate review step (and no extra approver email — the request is
+      // already in their queue).
+      if (existing.state === 'pending') {
+        const [updated] = await db
+          .update(bookings)
+          .set({
+            description: next,
+            pendingDescription: null,
+            pendingDescriptionAt: null,
+            updatedAt: new Date()
+          })
+          .where(eq(bookings.id, id))
+          .returning()
+
+        await db.insert(activityLog).values({
+          userId,
+          bookingId: id,
+          action: 'updated',
+          meta: {
+            field: 'description',
+            descriptionChange: 'applied',
+            previousDescription: existing.description
+          }
+        })
+
+        return updated
+      }
+
+      const withdrawn = next === (existing.description ?? '').trim()
+
+      const [updated] = await db
+        .update(bookings)
+        .set({
+          pendingDescription: withdrawn ? null : next,
+          pendingDescriptionAt: withdrawn ? null : new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(bookings.id, id))
+        .returning()
+
+      await db.insert(activityLog).values({
+        userId,
+        bookingId: id,
+        action: 'updated',
+        meta: withdrawn
+          ? { field: 'description', descriptionChange: 'withdrawn' }
+          : { field: 'description', descriptionChange: 'requested' }
+      })
+
+      // Let the approvers know there is something new to review.
+      if (!withdrawn) {
+        const ctx = await loadBookingContext(id)
+        if (ctx) {
+          sendDescriptionChangeNotification(ctx, fastify.log).catch(() => {})
+        }
+      }
+
+      return updated
+    }
+  )
+
+  // ── PATCH /api/bookings/:id/description/approve ───────────────────────────
+  // Admin accepts the organizer's proposed description: it replaces the live one.
+  fastify.patch(
+    '/bookings/:id/description/approve',
+    {
+      preHandler: fastify.authenticateAdmin
+    },
+    async (request, reply) => {
+      const { id } = request.params
+
+      const [existing] = await db
+        .select({
+          id: bookings.id,
+          description: bookings.description,
+          pendingDescription: bookings.pendingDescription
+        })
+        .from(bookings)
+        .where(eq(bookings.id, id))
+        .limit(1)
+
+      if (!existing) {
+        return reply.notFound('Booking not found')
+      }
+      if (existing.pendingDescription === null) {
+        return reply.badRequest('No description change is pending review')
+      }
+
+      const [updated] = await db
+        .update(bookings)
+        .set({
+          description: existing.pendingDescription,
+          pendingDescription: null,
+          pendingDescriptionAt: null,
+          updatedAt: new Date()
+        })
+        .where(eq(bookings.id, id))
+        .returning()
+
+      await db.insert(activityLog).values({
+        userId: request.session.userId,
+        bookingId: id,
+        action: 'updated',
+        meta: {
+          field: 'description',
+          descriptionChange: 'approved',
+          previousDescription: existing.description
+        }
+      })
+
+      return updated
+    }
+  )
+
+  // ── PATCH /api/bookings/:id/description/reject ────────────────────────────
+  // Admin discards the proposed description; the live one is untouched.
+  fastify.patch(
+    '/bookings/:id/description/reject',
+    {
+      preHandler: fastify.authenticateAdmin
+    },
+    async (request, reply) => {
+      const { id } = request.params
+
+      const [existing] = await db
+        .select({ id: bookings.id, pendingDescription: bookings.pendingDescription })
+        .from(bookings)
+        .where(eq(bookings.id, id))
+        .limit(1)
+
+      if (!existing) {
+        return reply.notFound('Booking not found')
+      }
+      if (existing.pendingDescription === null) {
+        return reply.badRequest('No description change is pending review')
+      }
+
+      const [updated] = await db
+        .update(bookings)
+        .set({ pendingDescription: null, pendingDescriptionAt: null, updatedAt: new Date() })
+        .where(eq(bookings.id, id))
+        .returning()
+
+      await db.insert(activityLog).values({
+        userId: request.session.userId,
+        bookingId: id,
+        action: 'updated',
+        meta: {
+          field: 'description',
+          descriptionChange: 'rejected',
+          rejectedDescription: existing.pendingDescription
+        }
+      })
+
+      return updated
+    }
+  )
+
   // ── PATCH /api/bookings/:id/cancel ────────────────────────────────────────
   // Cancel a booking. Admin can cancel any; user can cancel own only.
   fastify.patch(
@@ -852,7 +1167,12 @@ export default async function bookingsRoutes(fastify) {
       const isAdmin = request.session.isAdmin
 
       const [existing] = await db
-        .select({ id: bookings.id, state: bookings.state, organizerId: bookings.organizerId })
+        .select({
+          id: bookings.id,
+          state: bookings.state,
+          organizerId: bookings.organizerId,
+          startsAt: bookings.startsAt
+        })
         .from(bookings)
         .where(eq(bookings.id, id))
         .limit(1)
@@ -865,9 +1185,27 @@ export default async function bookingsRoutes(fastify) {
         return reply.forbidden('You can only cancel your own bookings')
       }
 
+      // Organizers can only withdraw a live request; admins may cancel from any
+      // state (e.g. to reverse a rejection).
+      if (!isAdmin && existing.state !== 'pending' && existing.state !== 'confirmed') {
+        return reply.badRequest('Only pending or approved side meetings can be cancelled')
+      }
+
+      if (!isAdmin && hasStarted(existing.startsAt)) {
+        return reply.badRequest(
+          'This side meeting has already started and can no longer be cancelled'
+        )
+      }
+
       const [updated] = await db
         .update(bookings)
-        .set({ state: 'cancelled', updatedAt: new Date() })
+        .set({
+          state: 'cancelled',
+          // A cancelled booking has nothing left to review.
+          pendingDescription: null,
+          pendingDescriptionAt: null,
+          updatedAt: new Date()
+        })
         .where(eq(bookings.id, id))
         .returning()
 

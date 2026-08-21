@@ -10,19 +10,29 @@
     <span class="flex-1">{{ label }}</span>
     <span
       v-if="badge"
-      class="text-[10px] px-1.5 py-0.5 rounded-full bg-warn/20 text-warn font-semibold min-w-[18px] text-center"
+      class="text-[10px] px-1.5 py-0.5 rounded-full font-semibold min-w-[18px] text-center"
+      :class="badgeClass"
     >{{ badge }}</span>
   </NuxtLink>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  to: string
-  icon: any
-  label: string
-  badge?: number
-  exact?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    to: string
+    icon: any
+    label: string
+    badge?: number
+    // 'warn' (default) for counts that need action, 'neutral' for plain totals.
+    badgeTone?: 'warn' | 'neutral'
+    exact?: boolean
+  }>(),
+  { badge: undefined, badgeTone: 'warn', exact: false }
+)
+
+const badgeClass = computed(() =>
+  props.badgeTone === 'neutral' ? 'bg-white/10 text-sidebar-text' : 'bg-warn/20 text-warn'
+)
 
 const route = useRoute()
 const isActive = computed(() => {

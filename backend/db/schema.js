@@ -103,6 +103,11 @@ export const bookings = pgTable(
       .references(() => users.id),
     title: varchar('title', { length: 255 }).notNull(),
     description: text('description'),
+    // Organizer-proposed replacement for `description`, awaiting admin review.
+    // `description` stays authoritative (and public) until the change is
+    // approved; null here means no change is pending.
+    pendingDescription: text('pending_description'),
+    pendingDescriptionAt: timestamp('pending_description_at'),
     state: bookingStateEnum('state').notNull().default('pending'),
     isIrtf: boolean('is_irtf').notNull().default(false),
     areas: varchar('areas', { length: 10 })

@@ -11,17 +11,22 @@
         <div class="text-[11px] text-text-faint font-medium">Schedule</div>
       </div>
     </NuxtLink>
-    <NuxtLink v-if="canRequest" to="/request" class="btn-primary"
-      ><Plus class="w-4 h-4" /> Request a side meeting</NuxtLink
-    >
-    <div v-else class="relative group cursor-not-allowed">
-      <button class="btn-primary opacity-50 pointer-events-none" disabled>
-        <Plus class="w-4 h-4" /> Request a side meeting
-      </button>
-      <span
-        class="pointer-events-none absolute right-0 top-full mt-2 px-3 py-2 rounded-lg bg-s3 border border-border-strong text-text text-xs font-medium text-center max-w-[240px] w-max opacity-0 group-hover:opacity-100 transition-opacity shadow-card z-40">
-        {{ requestDisabledReason }}
-      </span>
+    <div class="flex items-center gap-2 flex-wrap">
+      <NuxtLink to="/manage" class="btn-secondary text-text">
+        <ClipboardList class="w-4 h-4" /> Manage
+      </NuxtLink>
+      <NuxtLink v-if="canRequest" to="/request" class="btn-primary"
+        ><Plus class="w-4 h-4" /> Request a side meeting</NuxtLink
+      >
+      <div v-else class="relative group cursor-not-allowed">
+        <button class="btn-primary opacity-50 pointer-events-none" disabled>
+          <Plus class="w-4 h-4" /> Request a side meeting
+        </button>
+        <span
+          class="pointer-events-none absolute right-0 top-full mt-2 px-3 py-2 rounded-lg bg-s3 border border-border-strong text-text text-xs font-medium text-center max-w-[240px] w-max opacity-0 group-hover:opacity-100 transition-opacity shadow-card z-40">
+          {{ requestDisabledReason }}
+        </span>
+      </div>
     </div>
   </header>
 
@@ -343,7 +348,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Video, CalendarPlus, ChevronDown, X } from 'lucide-vue-next'
+import { Plus, ClipboardList, Video, CalendarPlus, ChevronDown, X } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'request' })
 

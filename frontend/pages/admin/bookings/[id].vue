@@ -23,6 +23,72 @@
       </div>
     </div>
 
+    <!-- Description change requested by the organizer -->
+    <div
+      v-if="booking.pendingDescription"
+      class="card p-[22px] mb-5 !border-warn"
+      style="background: color-mix(in srgb, var(--warn) 5%, var(--surface))">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="flex items-center gap-2">
+            <Hourglass class="w-4 h-4 text-warn" />
+            <h2 class="text-sm font-bold text-text">Description change to review</h2>
+          </div>
+          <p class="text-[12.5px] text-text-dim mt-1">
+            Requested by {{ booking.organizerName }}{{ pendingDescriptionWhen }}. The current
+            description stays published until you approve it.
+          </p>
+        </div>
+        <div class="flex gap-1.5">
+          <button
+            v-for="mode in DIFF_MODES"
+            :key="mode.key"
+            class="px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border transition-colors"
+            :class="
+              diffMode === mode.key
+                ? 'bg-accent text-accent-text border-accent'
+                : 'bg-surface text-text-dim border-border-strong hover:text-text'
+            "
+            @click="diffMode = mode.key">
+            {{ mode.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-3.5 rounded-xl border border-border bg-s2 p-3.5">
+        <AdminTextDiff
+          v-if="diffMode === 'diff'"
+          :old-text="booking.description || ''"
+          :new-text="booking.pendingDescription" />
+        <div
+          v-else-if="diffMode === 'current'"
+          class="text-[13px] text-text-dim leading-relaxed whitespace-pre-wrap">
+          {{ booking.description || '(no description)' }}
+        </div>
+        <div v-else class="text-[13px] text-text leading-relaxed whitespace-pre-wrap">
+          {{ booking.pendingDescription }}
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5 mt-4">
+        <button
+          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[10px] bg-ok text-[#022c1c] text-[13px] font-bold transition-opacity hover:opacity-90 disabled:opacity-40"
+          :disabled="descSaving"
+          @click="approveDescription">
+          <Check class="w-4 h-4" :stroke-width="2.6" /> Approve change
+        </button>
+        <button
+          class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-[10px] border border-border-strong bg-surface text-bad text-[13px] font-semibold transition-colors hover:border-bad disabled:opacity-40"
+          :disabled="descSaving"
+          @click="rejectDescription">
+          <X class="w-4 h-4" :stroke-width="2.6" /> Reject change
+        </button>
+        <span class="text-[11.5px] text-text-faint">
+          Rejecting keeps the published description and discards the proposal.
+        </span>
+      </div>
+    </div>
+
     <div class="grid grid-cols-[1.5fr_1fr] gap-5 items-start">
       <!-- Edit details -->
       <div class="card p-[22px] flex flex-col gap-4">
@@ -43,6 +109,10 @@
             style="max-height: 250px; min-height: 76px"
             placeholder="What will this meeting cover?"
             @input="autoGrowDesc"></textarea>
+          <p v-if="booking.pendingDescription" class="text-[11.5px] text-warn mt-1.5">
+            This is the published description. Saving it here discards the change the organizer
+            submitted for review.
+          </p>
         </div>
 
         <div class="grid grid-cols-2 gap-3.5">
@@ -391,7 +461,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, X, Check, Megaphone, BellOff, Trash2 } from 'lucide-vue-next'
+import { ChevronLeft, X, Check, Megaphone, BellOff, Trash2, Hourglass } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 
@@ -619,6 +689,47 @@ async function save() {
     toast.show(e?.data?.message || 'Failed to save changes', 'bad')
   } finally {
     saving.value = false
+  }
+}
+
+// ── Description change review ───────────────────────────────────────────────
+const DIFF_MODES = [
+  { key: 'diff' as const, label: 'Diff' },
+  { key: 'current' as const, label: 'Current' },
+  { key: 'proposed' as const, label: 'Proposed' }
+]
+const diffMode = ref<'diff' | 'current' | 'proposed'>('diff')
+const descSaving = ref(false)
+
+// " on Aug 21 at 09:14 UTC", or empty when the timestamp is missing.
+const pendingDescriptionWhen = computed(() => {
+  const at = booking.value?.pendingDescriptionAt
+  return at ? ` on ${formatSubmittedAt(at)}` : ''
+})
+
+async function approveDescription() {
+  descSaving.value = true
+  try {
+    await useApiFetch(`/bookings/${route.params.id}/description/approve`, { method: 'PATCH' })
+    toast.show('Description change approved', 'ok')
+    await loadBooking()
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Failed to approve the change', 'bad')
+  } finally {
+    descSaving.value = false
+  }
+}
+
+async function rejectDescription() {
+  descSaving.value = true
+  try {
+    await useApiFetch(`/bookings/${route.params.id}/description/reject`, { method: 'PATCH' })
+    toast.show('Description change rejected', 'bad')
+    await loadBooking()
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Failed to reject the change', 'bad')
+  } finally {
+    descSaving.value = false
   }
 }
 

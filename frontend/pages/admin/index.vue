@@ -36,48 +36,95 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-[1.5fr_1fr] gap-5">
-      <!-- Pending review -->
-      <div class="card overflow-hidden self-start">
-        <div class="px-[18px] py-4 border-b border-border flex items-center justify-between">
-          <h2 class="text-[15px] font-bold text-text">Pending review</h2>
-          <NuxtLink
-            to="/admin/bookings?filter=pending"
-            class="text-[12.5px] font-semibold text-accent hover:underline"
-            >View all →</NuxtLink
-          >
-        </div>
-        <div v-if="loading" class="px-5 py-10 text-center text-text-dim text-sm">Loading…</div>
-        <div v-else-if="!dashboard?.recentPending?.length" class="px-5 py-12 text-center">
-          <div class="text-sm font-semibold text-text-dim">All caught up</div>
-          <div class="text-[12.5px] text-text-faint mt-1">No requests awaiting review.</div>
-        </div>
-        <div v-else>
-          <div
-            v-for="b in dashboard.recentPending"
-            :key="b.id"
-            class="flex items-center gap-3.5 px-[18px] py-3.5 border-b border-border last:border-0">
+    <div class="grid grid-cols-[1.5fr_1fr] gap-5 items-start">
+      <!-- Left column -->
+      <div class="flex flex-col gap-5">
+        <!-- Pending review -->
+        <div class="card overflow-hidden">
+          <div class="px-[18px] py-4 border-b border-border flex items-center justify-between">
+            <h2 class="text-[15px] font-bold text-text">Pending review</h2>
+            <NuxtLink
+              to="/admin/bookings?filter=pending"
+              class="text-[12.5px] font-semibold text-accent hover:underline"
+              >View all →</NuxtLink
+            >
+          </div>
+          <div v-if="loading" class="px-5 py-10 text-center text-text-dim text-sm">Loading…</div>
+          <div v-else-if="!dashboard?.recentPending?.length" class="px-5 py-12 text-center">
+            <div class="text-sm font-semibold text-text-dim">All caught up</div>
+            <div class="text-[12.5px] text-text-faint mt-1">No requests awaiting review.</div>
+          </div>
+          <div v-else>
             <div
-              class="flex-1 min-w-0 cursor-pointer"
-              @click="navigateTo('/admin/bookings/' + b.id)">
-              <div class="text-sm font-semibold text-text truncate">{{ b.title }}</div>
-              <div class="text-xs text-text-dim mt-0.5">
-                {{ b.organizerName }} · {{ b.roomName }} ·
-                <span class="font-mono">{{ bookingTimeLabel(b) }}</span>
+              v-for="b in dashboard.recentPending"
+              :key="b.id"
+              class="flex items-center gap-3.5 px-[18px] py-3.5 border-b border-border last:border-0">
+              <div
+                class="flex-1 min-w-0 cursor-pointer"
+                @click="navigateTo('/admin/bookings/' + b.id)">
+                <div class="text-sm font-semibold text-text truncate">{{ b.title }}</div>
+                <div class="text-xs text-text-dim mt-0.5">
+                  {{ b.organizerName }} · {{ b.roomName }} ·
+                  <span class="font-mono">{{ bookingTimeLabel(b) }}</span>
+                </div>
               </div>
+              <NuxtLink
+                :to="'/admin/bookings/' + b.id"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-strong bg-surface text-text text-[12.5px] font-semibold transition-colors hover:text-accent hover:border-accent flex-shrink-0">
+                <Eye class="w-3.5 h-3.5" /> Review
+              </NuxtLink>
             </div>
-            <button
-              class="icon-btn !w-8 !h-8 text-bad flex-shrink-0"
-              title="Reject"
-              @click="reject(b.id)">
-              <X class="w-4 h-4" />
-            </button>
-            <button
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ok text-[#022c1c] text-[12.5px] font-semibold transition-opacity hover:opacity-90 flex-shrink-0"
-              title="Approve"
-              @click="approve(b.id)">
-              <Check class="w-3.5 h-3.5" :stroke-width="2.6" /> Approve
-            </button>
+          </div>
+        </div>
+
+        <!-- Description changes awaiting review -->
+        <div class="card overflow-hidden">
+          <div class="px-[18px] py-4 border-b border-border flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <h2 class="text-[15px] font-bold text-text">Description changes</h2>
+              <span
+                v-if="dashboard?.pendingDescriptionCount"
+                class="text-[10px] px-1.5 py-0.5 rounded-full bg-warn/20 text-warn font-semibold">
+                {{ dashboard.pendingDescriptionCount }}
+              </span>
+            </div>
+            <span class="text-[11.5px] text-text-faint">Current text stays published</span>
+          </div>
+          <div v-if="loading" class="px-5 py-10 text-center text-text-dim text-sm">Loading…</div>
+          <div v-else-if="!dashboard?.pendingDescriptions?.length" class="px-5 py-12 text-center">
+            <div class="text-sm font-semibold text-text-dim">Nothing to review</div>
+            <div class="text-[12.5px] text-text-faint mt-1">
+              Organizers of approved side meetings can propose a new description.
+            </div>
+          </div>
+          <div v-else>
+            <div
+              v-for="d in dashboard.pendingDescriptions"
+              :key="d.id"
+              class="flex items-center gap-3.5 px-[18px] py-3.5 border-b border-border last:border-0">
+              <div
+                class="flex-1 min-w-0 cursor-pointer"
+                @click="navigateTo('/admin/bookings/' + d.id)">
+                <div class="text-sm font-semibold text-text truncate">{{ d.title }}</div>
+                <div class="text-xs text-text-dim mt-0.5 truncate">
+                  {{ d.organizerName }} · {{ d.roomName }} ·
+                  <span class="text-text-faint">
+                    requested {{ formatSubmittedAt(d.pendingDescriptionAt) }}
+                  </span>
+                </div>
+              </div>
+              <NuxtLink
+                :to="'/admin/bookings/' + d.id"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-strong bg-surface text-text text-[12.5px] font-semibold transition-colors hover:text-accent hover:border-accent flex-shrink-0">
+                <GitCompareArrows class="w-3.5 h-3.5" /> Review diff
+              </NuxtLink>
+            </div>
+            <div
+              v-if="dashboard.pendingDescriptionCount > dashboard.pendingDescriptions.length"
+              class="px-[18px] py-2.5 border-t border-border text-[11.5px] text-text-faint">
+              +{{ dashboard.pendingDescriptionCount - dashboard.pendingDescriptions.length }} more
+              awaiting review
+            </div>
           </div>
         </div>
       </div>
@@ -157,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { X, Check } from 'lucide-vue-next'
+import { Eye, GitCompareArrows } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 
@@ -238,26 +285,6 @@ async function loadDashboard() {
     toast.show('Failed to load dashboard', 'bad')
   } finally {
     loading.value = false
-  }
-}
-
-async function approve(id: string) {
-  try {
-    await useApiFetch(`/bookings/${id}/confirm`, { method: 'PATCH' })
-    toast.show('Booking approved', 'ok')
-    await loadDashboard()
-  } catch {
-    toast.show('Failed to approve booking', 'bad')
-  }
-}
-
-async function reject(id: string) {
-  try {
-    await useApiFetch(`/bookings/${id}/reject`, { method: 'PATCH' })
-    toast.show('Booking rejected', 'bad')
-    await loadDashboard()
-  } catch {
-    toast.show('Failed to reject booking', 'bad')
   }
 }
 

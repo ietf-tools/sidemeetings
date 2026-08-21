@@ -190,11 +190,13 @@ function layout({
   ctx,
   includePeople = false,
   videoMode = 'off',
+  // Extra [label, value] rows appended after the standard booking details.
+  extraRows = [],
   buttonUrl,
   buttonLabel,
   footer
 }) {
-  const rowsHtml = detailRows(ctx, { includePeople, videoMode })
+  const rowsHtml = [...detailRows(ctx, { includePeople, videoMode }), ...extraRows]
     .map(
       ([k, v]) =>
         `<tr>
@@ -240,11 +242,14 @@ function plainText({
   ctx,
   includePeople = false,
   videoMode = 'off',
+  extraRows = [],
   buttonUrl,
   footerText
 }) {
   const lines = [heading, '', introText, '']
-  for (const [k, v] of detailRows(ctx, { includePeople, videoMode })) lines.push(`${k}: ${v}`)
+  for (const [k, v] of [...detailRows(ctx, { includePeople, videoMode }), ...extraRows]) {
+    lines.push(`${k}: ${v}`)
+  }
   if (buttonUrl) lines.push('', buttonUrl)
   if (footerText) lines.push('', footerText)
   return lines.join('\n')
@@ -315,10 +320,21 @@ function buildIcs(ctx) {
   return lines.map(icsFold).join('\r\n')
 }
 
-function adminBookingUrl(bookingId) {
-  const base = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '')
-  return `${base}/admin/bookings/${bookingId}`
+function frontendBase() {
+  return (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '')
 }
+
+function adminBookingUrl(bookingId) {
+  return `${frontendBase()}/admin/bookings/${bookingId}`
+}
+
+// The organizer's own list of side meetings, where they can edit a description
+// or cancel a request.
+function manageUrl() {
+  return `${frontendBase()}/manage`
+}
+
+const MANAGE_LABEL = 'Manage my side meetings'
 
 // ─── Public API ───────────────────────────────────────────────────────────────
 //
@@ -344,8 +360,21 @@ export async function sendBookingPending(ctx, logger = console) {
       replyTo,
       to: ctx.organizer.email,
       subject: `Side meeting request received: ${ctx.booking.title}`,
-      html: layout({ heading, intro: introHtml, ctx, footer: SUPPORT_FOOTER_HTML }),
-      text: plainText({ heading, introText, ctx, footerText: SUPPORT_FOOTER_TEXT }),
+      html: layout({
+        heading,
+        intro: introHtml,
+        ctx,
+        buttonUrl: manageUrl(),
+        buttonLabel: MANAGE_LABEL,
+        footer: SUPPORT_FOOTER_HTML
+      }),
+      text: plainText({
+        heading,
+        introText,
+        ctx,
+        buttonUrl: manageUrl(),
+        footerText: SUPPORT_FOOTER_TEXT
+      }),
       enabled: emailEnabled
     },
     logger
@@ -422,8 +451,23 @@ export async function sendBookingApproved(ctx, logger = console) {
       replyTo,
       to: recipients,
       subject: `Side meeting approved: ${ctx.booking.title}`,
-      html: layout({ heading, intro: introHtml, ctx, videoMode: 'effective', footer: SUPPORT_FOOTER_HTML }),
-      text: plainText({ heading, introText, ctx, videoMode: 'effective', footerText: SUPPORT_FOOTER_TEXT }),
+      html: layout({
+        heading,
+        intro: introHtml,
+        ctx,
+        videoMode: 'effective',
+        buttonUrl: manageUrl(),
+        buttonLabel: MANAGE_LABEL,
+        footer: SUPPORT_FOOTER_HTML
+      }),
+      text: plainText({
+        heading,
+        introText,
+        ctx,
+        videoMode: 'effective',
+        buttonUrl: manageUrl(),
+        footerText: SUPPORT_FOOTER_TEXT
+      }),
       attachments: [
         {
           filename: 'side-meeting.ics',
@@ -452,8 +496,60 @@ export async function sendBookingRejected(ctx, logger = console) {
       replyTo,
       to: ctx.organizer.email,
       subject: `Side meeting request declined: ${ctx.booking.title}`,
-      html: layout({ heading, intro: introHtml, ctx, footer }),
-      text: plainText({ heading, introText, ctx, footerText }),
+      html: layout({
+        heading,
+        intro: introHtml,
+        ctx,
+        buttonUrl: manageUrl(),
+        buttonLabel: MANAGE_LABEL,
+        footer
+      }),
+      text: plainText({ heading, introText, ctx, buttonUrl: manageUrl(), footerText }),
+      enabled: emailEnabled
+    },
+    logger
+  )
+}
+
+// 5) Approvers: the organizer proposed a new description for an existing
+// booking. The live description (shown in the details below) stays published
+// until an approver accepts the change.
+export async function sendDescriptionChangeNotification(ctx, logger = console) {
+  const { from, replyTo, approvers, emailEnabled } = await getMailSettings()
+  if (!emailEnabled) {
+    logger.info?.('[email] notifications disabled — skipping description change notification')
+    return false
+  }
+  if (!approvers.length) {
+    logger.warn?.('[email] no approvers configured — skipping description change notification')
+    return false
+  }
+
+  const url = adminBookingUrl(ctx.booking.id)
+  const heading = 'Description change to review'
+  const introHtml =
+    `<strong>${esc(ctx.organizer.name)}</strong> requested a new description for their side ` +
+    'meeting. The current description below stays published until you approve the change.'
+  const introText =
+    `${ctx.organizer.name} requested a new description for their side meeting. The current ` +
+    'description below stays published until you approve the change.'
+  const extraRows = [['Proposed description', ctx.booking.pendingDescription || '']]
+
+  return send(
+    {
+      from,
+      replyTo,
+      to: approvers,
+      subject: `Description change to review: ${ctx.booking.title}`,
+      html: layout({
+        heading,
+        intro: introHtml,
+        ctx,
+        extraRows,
+        buttonUrl: url,
+        buttonLabel: 'Review this change'
+      }),
+      text: plainText({ heading, introText, ctx, extraRows, buttonUrl: url }),
       enabled: emailEnabled
     },
     logger
