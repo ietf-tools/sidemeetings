@@ -2,9 +2,9 @@
   <div class="max-w-[900px] mx-auto">
     <!-- Nothing has loaded yet: the first fetch runs on mount, so anything
          before it completes is "loading", not "empty". -->
-    <div v-if="!loaded && !error" class="card py-16 text-center text-text-dim text-sm">Loading…</div>
+    <div v-if="!loaded && !error" class="card px-5 py-16 text-center text-text-dim text-sm sm:px-8">Loading…</div>
 
-    <div v-else-if="error && !loaded" class="card py-16 text-center">
+    <div v-else-if="error && !loaded" class="card px-5 py-16 text-center sm:px-8">
       <div class="text-[15px] font-semibold text-text-dim">Couldn't load your side meetings</div>
       <div class="text-[13px] text-text-faint mt-1">{{ error }}</div>
       <button class="btn-secondary mt-4" :disabled="loading" @click="load(true)">
@@ -12,12 +12,12 @@
       </button>
     </div>
 
-    <div v-else-if="!meeting" class="card py-16 text-center">
+    <div v-else-if="!meeting" class="card px-5 py-16 text-center sm:px-8">
       <div class="text-[15px] font-semibold text-text-dim">No active meeting</div>
       <div class="text-[13px] text-text-faint mt-1">Please check back later.</div>
     </div>
 
-    <div v-else-if="!items.length" class="card py-16 text-center">
+    <div v-else-if="!items.length" class="card px-5 py-16 text-center sm:px-8">
       <div class="text-[15px] font-semibold text-text-dim">{{ emptyTitle }}</div>
       <div class="text-[13px] text-text-faint mt-1">{{ emptyHint }}</div>
     </div>
