@@ -11,7 +11,8 @@
         <div class="text-[11px] text-text-faint font-medium">Schedule</div>
       </div>
     </NuxtLink>
-    <div class="flex items-center gap-2 flex-wrap">
+    <!-- Actions: inline from sm up, collapsed into the drawer below it -->
+    <div class="hidden sm:flex items-center gap-2 flex-wrap">
       <NuxtLink to="/manage" class="btn-secondary text-text">
         <ClipboardList class="w-4 h-4" /> Manage
       </NuxtLink>
@@ -28,7 +29,82 @@
         </span>
       </div>
     </div>
+    <button
+      class="sm:hidden w-10 h-10 -mr-1 rounded-lg flex items-center justify-center text-text-dim hover:text-text hover:bg-surface border border-border transition-colors flex-shrink-0"
+      aria-label="Open menu"
+      @click="navOpen = true">
+      <Menu class="w-5 h-5" />
+    </button>
   </header>
+
+  <!-- Mobile nav drawer -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="navOpen" class="fixed inset-0 z-50 sm:hidden">
+        <div class="absolute inset-0 bg-black/60" @click="navOpen = false"></div>
+        <aside
+          class="absolute inset-y-0 right-0 w-[290px] max-w-[86vw] bg-surface border-l border-border flex flex-col shadow-card">
+          <div class="flex items-center justify-between gap-2 px-4 py-3.5 border-b border-border">
+            <span class="text-[13px] font-bold text-text">Menu</span>
+            <button
+              class="w-9 h-9 -mr-1.5 rounded-lg flex items-center justify-center text-text-dim hover:text-text transition-colors"
+              aria-label="Close menu"
+              @click="navOpen = false">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+            <!-- Primary actions -->
+            <div class="flex flex-col gap-2">
+              <NuxtLink to="/manage" class="btn-secondary text-text justify-center">
+                <ClipboardList class="w-4 h-4" /> Manage
+              </NuxtLink>
+              <NuxtLink v-if="canRequest" to="/request" class="btn-primary justify-center">
+                <Plus class="w-4 h-4" /> Request a side meeting
+              </NuxtLink>
+              <template v-else>
+                <button class="btn-primary justify-center opacity-50 cursor-not-allowed" disabled>
+                  <Plus class="w-4 h-4" /> Request a side meeting
+                </button>
+                <!-- No hover on touch, so the reason is shown outright. -->
+                <p class="text-[11.5px] text-text-faint text-center">{{ requestDisabledReason }}</p>
+              </template>
+            </div>
+
+            <!-- Meeting selector -->
+            <div v-if="selectableMeetings.length > 1" class="border-t border-border pt-4">
+              <p class="text-[10px] font-bold text-text-faint uppercase tracking-[0.06em] mb-2">
+                View another meeting
+              </p>
+              <div class="flex flex-col gap-1">
+                <button
+                  v-for="m in selectableMeetings"
+                  :key="m.id"
+                  class="w-full text-left px-3 py-2.5 rounded-lg flex items-center justify-between gap-2.5 transition-colors"
+                  :class="m.id === meeting?.id ? 'bg-s2 border border-border' : 'hover:bg-s2'"
+                  @click="selectMeetingFromMenu(m)">
+                  <div class="min-w-0">
+                    <div class="text-[13px] font-semibold text-text truncate">
+                      {{ meetingLabel(m.num) }} · {{ m.city }}
+                    </div>
+                    <div class="text-[11px] text-text-dim">
+                      {{ formatDateRange(m.startDate, m.endDate) }}
+                    </div>
+                  </div>
+                  <span
+                    v-if="m.isActive"
+                    class="flex-shrink-0 text-[10px] font-bold text-accent bg-accent-weak px-1.5 py-0.5 rounded-full">
+                    Active
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </Transition>
+  </Teleport>
 
   <div class="w-full max-w-[1100px] flex-1">
     <div v-if="loading" class="py-20 text-center text-text-dim">Loading…</div>
@@ -45,7 +121,10 @@
               <h1 class="text-[26px] font-extrabold text-text tracking-tight">
                 {{ meetingLabel(meeting.num) }} · {{ meeting.city }}, {{ meeting.country }}
               </h1>
-              <div v-if="selectableMeetings.length > 1" class="relative group flex-shrink-0">
+              <!-- Below sm this selector lives in the hamburger drawer instead. -->
+              <div
+                v-if="selectableMeetings.length > 1"
+                class="relative group flex-shrink-0 hidden sm:block">
                 <button
                   class="w-7 h-7 rounded-lg flex items-center justify-center text-text-dim hover:text-text bg-surface hover:bg-s2 border border-border transition-colors"
                   @click="pickerOpen = !pickerOpen">
@@ -348,7 +427,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, ClipboardList, Video, CalendarPlus, ChevronDown, X } from 'lucide-vue-next'
+import { Plus, ClipboardList, Video, CalendarPlus, ChevronDown, X, Menu } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'request' })
 
@@ -410,30 +489,8 @@ const meetingList = ref<any[]>([])
 const pickerOpen = ref(false)
 
 // Whether side-meeting requests can be submitted right now, with a reason when
-// not: only for the active meeting, only between the submission open date and
-// the end of the meeting.
-const requestDisabledReason = computed(() => {
-  const m = meeting.value
-  if (!m) return 'No active meeting'
-  if (!m.isActive) return 'Requests are only open for the current meeting'
-  try {
-    const now = Temporal.Now.instant()
-    if (!m.allowRequestsFrom) return 'Side meeting requests are not open yet'
-    if (Temporal.Instant.compare(now, Temporal.Instant.from(m.allowRequestsFrom)) < 0) {
-      return "Side meeting requests haven't opened yet"
-    }
-    const endInstant = Temporal.PlainDate.from(m.endDate)
-      .toZonedDateTime({
-        timeZone: m.timezone || 'UTC',
-        plainTime: Temporal.PlainTime.from('23:59:59')
-      })
-      .toInstant()
-    if (Temporal.Instant.compare(now, endInstant) > 0) return 'This meeting has ended'
-  } catch {
-    return 'Side meeting requests are not open'
-  }
-  return ''
-})
+// not (see useRequestWindow, shared with the /manage header).
+const requestDisabledReason = computed(() => requestWindowReason(meeting.value))
 const canRequest = computed(() => !requestDisabledReason.value)
 
 // All meetings are offered in the picker (most recent first, as returned by the API).
@@ -460,6 +517,15 @@ async function loadSchedule(meetingId?: string) {
 function selectMeeting(m: any) {
   pickerOpen.value = false
   if (m.id !== meeting.value?.id) loadSchedule(m.id)
+}
+
+// ── Mobile nav drawer ───────────────────────────────────────────────────────
+// Below sm the header actions and the meeting selector live here instead.
+const navOpen = ref(false)
+
+function selectMeetingFromMenu(m: any) {
+  navOpen.value = false
+  selectMeeting(m)
 }
 
 // null = "All rooms"; otherwise a single focused room id.
@@ -647,3 +713,11 @@ onMounted(async () => {
   await loadSchedule()
 })
 </script>
+
+<style scoped>
+/* Backdrop + panel animation for the mobile nav drawer. */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active aside, .fade-leave-active aside { transition: transform 0.2s; }
+.fade-enter-from aside, .fade-leave-to aside { transform: translateX(100%); }
+</style>

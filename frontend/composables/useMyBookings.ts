@@ -30,6 +30,7 @@ interface MyMeeting {
   timezone: string
   startDate: string
   endDate: string
+  allowRequestsFrom: string | null
   isActive: boolean
 }
 
@@ -43,11 +44,15 @@ export function useMyBookings() {
   const meeting = useState<MyMeeting | null>('my-bookings-meeting', () => null)
   const loading = useState('my-bookings-loading', () => false)
   const loaded = useState('my-bookings-loaded', () => false)
+  // Set when the request failed, so the UI can say so instead of implying the
+  // meeting doesn't exist.
+  const error = useState<string | null>('my-bookings-error', () => null)
 
   async function load(force = false) {
     if (loading.value) return
     if (loaded.value && !force) return
     loading.value = true
+    error.value = null
     try {
       const data = await useApiFetch<{ meeting: MyMeeting | null; bookings: MyBooking[] }>(
         '/my/bookings'
@@ -55,9 +60,9 @@ export function useMyBookings() {
       meeting.value = data.meeting
       bookings.value = data.bookings ?? []
       loaded.value = true
-    } catch {
-      meeting.value = null
-      bookings.value = []
+    } catch (e: any) {
+      // Keep whatever was on screen; a failed refresh shouldn't blank the list.
+      error.value = e?.data?.message || e?.message || 'Request failed'
     } finally {
       loading.value = false
     }
@@ -76,7 +81,7 @@ export function useMyBookings() {
       .length
   }))
 
-  return { bookings, meeting, loading, loaded, load, byState, counts }
+  return { bookings, meeting, loading, loaded, error, load, byState, counts }
 }
 
 export type { MyBooking, MyMeeting }

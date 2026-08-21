@@ -1,20 +1,39 @@
 <template>
   <div class="flex min-h-screen bg-bg">
-    <!-- Sidebar -->
+    <!-- Backdrop behind the mobile drawer -->
+    <Transition name="fade">
+      <div
+        v-if="navOpen"
+        class="fixed inset-0 z-40 bg-black/60 lg:hidden"
+        @click="navOpen = false"></div>
+    </Transition>
+
+    <!-- Sidebar: a slide-over drawer below lg, static from lg up -->
     <aside
-      class="w-[252px] flex-shrink-0 flex flex-col"
+      class="fixed inset-y-0 left-0 z-50 w-[264px] max-w-[85vw] flex flex-col transition-transform duration-200 lg:static lg:z-auto lg:w-[252px] lg:flex-shrink-0 lg:translate-x-0"
+      :class="navOpen ? 'translate-x-0' : '-translate-x-full'"
       style="background: #0a0d12; border-right: 1px solid #1a2029;">
       <!-- Logo -->
-      <NuxtLink to="/" class="flex items-center gap-3 px-4 pt-5 pb-4 transition-opacity hover:opacity-80">
-        <img
-          src="https://static.ietf.org/logos/ietf-square-inverted.svg"
-          alt="IETF"
-          class="w-9 h-9 flex-shrink-0" />
-        <div>
-          <div class="text-text font-semibold text-[14px] leading-tight">Side Meetings</div>
-          <div class="text-sidebar-text-dim text-[11px]">My requests</div>
-        </div>
-      </NuxtLink>
+      <div class="flex items-center gap-2 pr-2 lg:pr-0">
+        <NuxtLink
+          to="/"
+          class="flex-1 min-w-0 flex items-center gap-3 px-4 pt-5 pb-4 transition-opacity hover:opacity-80">
+          <img
+            src="https://static.ietf.org/logos/ietf-square-inverted.svg"
+            alt="IETF"
+            class="w-9 h-9 flex-shrink-0" />
+          <div class="min-w-0">
+            <div class="text-text font-semibold text-[14px] leading-tight truncate">Side Meetings</div>
+            <div class="text-sidebar-text-dim text-[11px]">My requests</div>
+          </div>
+        </NuxtLink>
+        <button
+          class="lg:hidden w-9 h-9 rounded-lg flex items-center justify-center text-sidebar-text-dim hover:text-text transition-colors flex-shrink-0"
+          aria-label="Close menu"
+          @click="navOpen = false">
+          <X class="w-5 h-5" />
+        </button>
+      </div>
 
       <!-- Meeting the listed bookings belong to -->
       <div v-if="myMeeting" class="px-3.5 pb-1 pt-0.5">
@@ -111,20 +130,46 @@
     <!-- Main content -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Top bar -->
-      <header class="flex items-center justify-between px-8 py-5 border-b border-border bg-surface">
-        <div>
-          <h1 class="text-[18px] font-bold text-text leading-tight">{{ pageTitle }}</h1>
-          <p v-if="pageSubtitle" class="text-[12.5px] text-text-dim mt-0.5">{{ pageSubtitle }}</p>
+      <header
+        class="flex items-center gap-3 px-4 py-3.5 border-b border-border bg-surface sm:px-6 lg:px-8 lg:py-5">
+        <button
+          class="lg:hidden w-9 h-9 -ml-1 rounded-lg flex items-center justify-center text-text-dim hover:text-text hover:bg-s2 transition-colors flex-shrink-0"
+          aria-label="Open menu"
+          @click="navOpen = true">
+          <Menu class="w-5 h-5" />
+        </button>
+        <div class="flex-1 min-w-0">
+          <h1 class="text-[16px] lg:text-[18px] font-bold text-text leading-tight truncate">
+            {{ pageTitle }}
+          </h1>
+          <p v-if="pageSubtitle" class="hidden sm:block text-[12.5px] text-text-dim mt-0.5">
+            {{ pageSubtitle }}
+          </p>
         </div>
-        <div class="flex items-center gap-2">
-          <NuxtLink to="/request" class="btn-primary">
-            <Plus class="w-4 h-4" /> Request a side meeting
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <NuxtLink v-if="canRequest" to="/request" class="btn-primary whitespace-nowrap">
+            <Plus class="w-4 h-4" />
+            <span class="hidden sm:inline">Request a side meeting</span>
+            <span class="sm:hidden">Request</span>
           </NuxtLink>
+          <!-- Disabled state carries the reason; on touch it shows on tap-and-hold,
+               so the same tooltip markup is kept. -->
+          <div v-else class="relative group cursor-not-allowed">
+            <button class="btn-primary opacity-50 pointer-events-none whitespace-nowrap" disabled>
+              <Plus class="w-4 h-4" />
+              <span class="hidden sm:inline">Request a side meeting</span>
+              <span class="sm:hidden">Request</span>
+            </button>
+            <span
+              class="pointer-events-none absolute right-0 top-full mt-2 px-3 py-2 rounded-lg bg-s3 border border-border-strong text-text text-xs font-medium text-center max-w-[240px] w-max opacity-0 group-hover:opacity-100 transition-opacity shadow-card z-40">
+              {{ requestDisabledReason }}
+            </span>
+          </div>
         </div>
       </header>
 
       <!-- Page content -->
-      <main class="flex-1 p-8 overflow-auto">
+      <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
         <slot />
       </main>
     </div>
@@ -143,7 +188,9 @@ import {
   LayoutGrid,
   ChevronsUpDown,
   LogOut,
-  Plus
+  Plus,
+  Menu,
+  X
 } from 'lucide-vue-next'
 
 // Same useState keys as the admin layout, so pages set their heading the same way.
@@ -155,6 +202,21 @@ const { meeting: myMeeting, counts, load } = useMyBookings()
 
 const userMenuOpen = ref(false)
 const userBlockRef = ref<HTMLElement | null>(null)
+
+// Mobile/tablet drawer. Tapping a nav item navigates, so close it on route change.
+const navOpen = ref(false)
+const route = useRoute()
+watch(
+  () => route.path,
+  () => {
+    navOpen.value = false
+  }
+)
+
+// Same submission-window rules as the public homepage: requests are only open
+// for the active meeting, between its open date and the end of its last day.
+const requestDisabledReason = computed(() => requestWindowReason(myMeeting.value))
+const canRequest = computed(() => !requestDisabledReason.value)
 
 const meetingCity = computed(() => {
   const m = myMeeting.value
@@ -196,4 +258,7 @@ onUnmounted(() => {
 <style scoped>
 .menu-enter-active, .menu-leave-active { transition: all 0.15s; }
 .menu-enter-from, .menu-leave-to { opacity: 0; transform: translateY(4px); }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

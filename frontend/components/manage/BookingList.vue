@@ -1,6 +1,16 @@
 <template>
   <div class="max-w-[900px] mx-auto">
-    <div v-if="loading && !loaded" class="card py-16 text-center text-text-dim text-sm">Loading…</div>
+    <!-- Nothing has loaded yet: the first fetch runs on mount, so anything
+         before it completes is "loading", not "empty". -->
+    <div v-if="!loaded && !error" class="card py-16 text-center text-text-dim text-sm">Loading…</div>
+
+    <div v-else-if="error && !loaded" class="card py-16 text-center">
+      <div class="text-[15px] font-semibold text-text-dim">Couldn't load your side meetings</div>
+      <div class="text-[13px] text-text-faint mt-1">{{ error }}</div>
+      <button class="btn-secondary mt-4" :disabled="loading" @click="load(true)">
+        {{ loading ? 'Retrying…' : 'Try again' }}
+      </button>
+    </div>
 
     <div v-else-if="!meeting" class="card py-16 text-center">
       <div class="text-[15px] font-semibold text-text-dim">No active meeting</div>
@@ -13,11 +23,20 @@
     </div>
 
     <div v-else class="flex flex-col gap-3.5">
-      <div v-for="b in items" :key="b.id" class="card p-[18px] !rounded-2xl">
+      <!-- A failed refresh keeps the last known data visible. -->
+      <div
+        v-if="error"
+        class="rounded-xl border border-bad/40 bg-bad/10 px-3.5 py-2.5 text-[12.5px] text-bad flex items-center justify-between gap-3 flex-wrap">
+        <span>Couldn't refresh: {{ error }}</span>
+        <button class="font-semibold underline" :disabled="loading" @click="load(true)">
+          {{ loading ? 'Retrying…' : 'Retry' }}
+        </button>
+      </div>
+      <div v-for="b in items" :key="b.id" class="card p-4 sm:p-[18px] !rounded-2xl">
         <!-- Header: title + status -->
         <div class="flex items-start justify-between gap-3 flex-wrap">
           <div class="min-w-0">
-            <div class="text-[15px] font-bold text-text flex items-center gap-2 flex-wrap">
+            <div class="text-[14.5px] sm:text-[15px] font-bold text-text flex items-center gap-2 flex-wrap break-words">
               {{ b.title }}
               <span
                 v-if="b.isIrtf"
@@ -31,7 +50,7 @@
                 {{ area }}
               </span>
             </div>
-            <div class="text-[12.5px] text-text-dim mt-1 flex items-center gap-2">
+            <div class="text-[12.5px] text-text-dim mt-1 flex items-center gap-x-2 gap-y-1 flex-wrap">
               <span class="inline-flex items-center gap-1.5">
                 <span
                   class="w-2.5 h-2.5 rounded-full flex-shrink-0"
@@ -50,10 +69,10 @@
         </div>
 
         <!-- When -->
-        <div class="mt-3.5 pt-3.5 border-t border-border flex items-start gap-6 flex-wrap">
+        <div class="mt-3.5 pt-3.5 border-t border-border flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6 sm:flex-wrap">
           <div>
             <p class="text-[11px] font-semibold text-text-faint uppercase tracking-wide">When</p>
-            <div class="text-[13.5px] font-semibold text-text mt-0.5">
+            <div class="text-[13px] sm:text-[13.5px] font-semibold text-text mt-0.5">
               {{ when(b).day }}
               <span class="font-mono">{{ when(b).range }}</span>
               <span class="font-medium text-text-faint ml-1">({{ meeting.timezone }})</span>
@@ -113,8 +132,10 @@
           </div>
         </div>
 
-        <!-- Footer: submitted date + actions (live requests only) -->
-        <div class="mt-3.5 pt-3 border-t border-border flex items-center justify-between gap-3 flex-wrap">
+        <!-- Footer: submitted date + actions (live requests only). Stacks on
+             phones so the buttons get full-width, thumb-sized targets. -->
+        <div
+          class="mt-3.5 pt-3 border-t border-border flex flex-col items-stretch gap-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:flex-wrap">
           <div class="text-[11.5px] text-text-faint">
             Submitted {{ formatSubmittedAt(b.createdAt, meeting.timezone) }}
           </div>
@@ -125,16 +146,20 @@
           </div>
           <div v-else-if="isEditable(b)" class="flex items-center gap-2">
             <button
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-strong bg-surface text-text text-[12px] font-semibold transition-colors hover:text-accent hover:border-accent disabled:opacity-40"
+              class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg border border-border-strong bg-surface text-text text-[12px] font-semibold transition-colors hover:text-accent hover:border-accent disabled:opacity-40"
               :disabled="busyId === b.id"
               @click="openEdit(b)">
-              <Pencil class="w-3.5 h-3.5" /> Edit description
+              <Pencil class="w-3.5 h-3.5 flex-shrink-0" /> Edit description
             </button>
             <button
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-bad/40 bg-bad/10 text-bad text-[12px] font-semibold transition-colors hover:border-bad hover:bg-bad/20 disabled:opacity-40"
+              class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg border border-bad/40 bg-bad/10 text-bad text-[12px] font-semibold transition-colors hover:border-bad hover:bg-bad/20 disabled:opacity-40"
               :disabled="busyId === b.id"
               @click="askCancel(b)">
-              <X class="w-3.5 h-3.5" /> Cancel side meeting
+              <X class="w-3.5 h-3.5 flex-shrink-0" />
+              <!-- Full label where there's room (stacked phone rows, wide desktop);
+                   shortened in the tablet range where both buttons share a line. -->
+              <span class="sm:hidden lg:inline">Cancel side meeting</span>
+              <span class="hidden sm:inline lg:hidden">Cancel</span>
             </button>
           </div>
         </div>
@@ -147,7 +172,7 @@
       title="Edit description"
       :subtitle="needsApproval ? 'Changes are reviewed before they go live' : 'Applied to your pending request right away'"
       size="lg">
-      <div class="px-6 py-5 flex flex-col gap-3.5">
+      <div class="px-4 sm:px-6 py-5 flex flex-col gap-3.5">
         <div
           v-if="needsApproval"
           class="flex items-start gap-3 p-3.5 rounded-xl border border-warn/30"
@@ -184,7 +209,7 @@
         </div>
       </div>
       <template #footer>
-        <div class="flex justify-end gap-2 px-6 py-4 border-t border-border">
+        <div class="flex justify-end gap-2 px-4 sm:px-6 py-4 border-t border-border">
           <button class="btn-secondary text-text-dim" @click="editOpen = false">Cancel</button>
           <button class="btn-primary" :disabled="!canSubmitEdit" @click="submitEdit">
             {{ savingEdit ? 'Saving…' : needsApproval ? 'Submit for approval' : 'Save description' }}
@@ -195,7 +220,7 @@
 
     <!-- Cancel confirmation -->
     <AdminModal v-model="cancelOpen" title="Cancel side meeting" size="sm">
-      <div class="px-6 py-5">
+      <div class="px-4 sm:px-6 py-5">
         <div
           class="flex items-start gap-3 p-4 rounded-xl"
           style="background: rgba(240,113,106,.1); border: 1px solid rgba(240,113,106,.3)">
@@ -210,7 +235,7 @@
         </div>
       </div>
       <template #footer>
-        <div class="flex justify-end gap-2 px-6 py-4 border-t border-border">
+        <div class="flex justify-end gap-2 px-4 sm:px-6 py-4 border-t border-border">
           <button class="btn-secondary" @click="cancelOpen = false">Keep it</button>
           <button class="btn-danger" @click="confirmCancel">
             <X class="w-4 h-4" /> Cancel side meeting
@@ -232,7 +257,7 @@ const props = defineProps<{
   emptyHint: string
 }>()
 
-const { bookings, meeting, loading, loaded, load } = useMyBookings()
+const { bookings, meeting, loading, loaded, error, load } = useMyBookings()
 const { minutesToTime, formatSubmittedAt } = useTemporal()
 const toast = useToastStore()
 

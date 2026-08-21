@@ -604,6 +604,9 @@ export default async function bookingsRoutes(fastify) {
         timezone: meetings.timezone,
         startDate: meetings.startDate,
         endDate: meetings.endDate,
+        // Lets the /manage header apply the same submission-window rules as the
+        // public homepage.
+        allowRequestsFrom: meetings.allowRequestsFrom,
         isActive: meetings.isActive
       }
 
