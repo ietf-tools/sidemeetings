@@ -109,7 +109,13 @@
   <div class="w-full max-w-[1100px] flex-1">
     <div v-if="loading" class="py-20 text-center text-text-dim">Loading…</div>
     <div v-else-if="!meeting" class="py-20 text-center text-text-dim">
-      No active meeting at the moment. Please check back later.
+      <template v-if="notFoundNum">
+        <p>{{ meetingLabel(notFoundNum) }} could not be found.</p>
+        <NuxtLink to="/" class="inline-block mt-2 text-accent hover:underline">
+          View the current meeting
+        </NuxtLink>
+      </template>
+      <template v-else> No active meeting at the moment. Please check back later. </template>
     </div>
 
     <template v-else>
@@ -487,6 +493,10 @@ const bookings = ref<any[]>([])
 // ── Meeting picker (view past meetings) ─────────────────────────────────────
 const meetingList = ref<any[]>([])
 const pickerOpen = ref(false)
+// Set when the URL carries a meeting number (e.g. /999) that matches no meeting.
+const notFoundNum = ref<string | null>(null)
+
+const route = useRoute()
 
 // Whether side-meeting requests can be submitted right now, with a reason when
 // not (see useRequestWindow, shared with the /manage header).
@@ -514,9 +524,52 @@ async function loadSchedule(meetingId?: string) {
   }
 }
 
+// Loads the meeting list once (needed for the picker and to resolve /:num). The
+// in-flight promise is cached so concurrent callers share a single request.
+let meetingListPromise: Promise<any[]> | null = null
+function ensureMeetingList() {
+  if (meetingList.value.length) return Promise.resolve(meetingList.value)
+  if (!meetingListPromise) {
+    meetingListPromise = useApiFetch<any[]>('/public/meetings')
+      .then((list) => {
+        meetingList.value = list
+        return list
+      })
+      .catch(() => {
+        meetingListPromise = null
+        return meetingList.value
+      })
+  }
+  return meetingListPromise
+}
+
+// Resolves the current route to a schedule. No :num param → the active meeting
+// (the bare "/" URL); a param → the meeting with that number, e.g. "/126" → IETF
+// 126. An unknown number shows a not-found state instead of a schedule.
+async function loadFromRoute() {
+  const num = route.params.num ? String(route.params.num) : ''
+  notFoundNum.value = null
+  if (!num) {
+    await loadSchedule()
+    return
+  }
+  const list = await ensureMeetingList()
+  const match = list.find((m) => String(m.num) === num)
+  if (match) {
+    await loadSchedule(match.id)
+  } else {
+    meeting.value = null
+    notFoundNum.value = num
+    loading.value = false
+  }
+}
+
 function selectMeeting(m: any) {
   pickerOpen.value = false
-  if (m.id !== meeting.value?.id) loadSchedule(m.id)
+  if (m.id === meeting.value?.id) return
+  // Reflect the choice in the URL; the route watcher performs the load. The
+  // active meeting lives at "/", every other meeting at "/<num>".
+  navigateTo(m.isActive ? '/' : `/${m.num}`)
 }
 
 // ── Mobile nav drawer ───────────────────────────────────────────────────────
@@ -702,15 +755,13 @@ function addToCalendar(booking: any) {
   URL.revokeObjectURL(href)
 }
 
-onMounted(async () => {
-  // Meeting list for the picker (non-blocking).
-  useApiFetch<any[]>('/public/meetings')
-    .then((list) => {
-      meetingList.value = list
-    })
-    .catch(() => {})
-  // Active meeting schedule.
-  await loadSchedule()
+// Navigating between meetings (picker, browser back/forward, direct links) only
+// changes the :num param — reload the schedule to match.
+watch(() => route.params.num, () => loadFromRoute())
+
+onMounted(() => {
+  ensureMeetingList() // populate the picker (non-blocking)
+  loadFromRoute()
 })
 </script>
 
