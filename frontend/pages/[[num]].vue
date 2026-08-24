@@ -433,7 +433,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, ClipboardList, Video, CalendarPlus, ChevronDown, X, Menu } from 'lucide-vue-next'
+import { Plus, ClipboardList, Video, CalendarPlus, ChevronDown, X, Menu } from '@lucide/vue'
 
 definePageMeta({ layout: 'request' })
 

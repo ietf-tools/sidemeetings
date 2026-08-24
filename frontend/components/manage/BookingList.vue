@@ -247,7 +247,7 @@
 </template>
 
 <script setup lang="ts">
-import { Users, Pencil, X, Hourglass, TriangleAlert, Info } from 'lucide-vue-next'
+import { Users, Pencil, X, Hourglass, TriangleAlert, Info } from '@lucide/vue'
 import type { MyBooking } from '~/composables/useMyBookings'
 
 const props = defineProps<{

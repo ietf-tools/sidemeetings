@@ -452,7 +452,7 @@ import {
   MoreHorizontal,
   FileUp,
   Hourglass
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 

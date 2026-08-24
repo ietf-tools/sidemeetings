@@ -193,7 +193,7 @@
 </template>
 
 <script setup lang="ts">
-import { LayoutGrid, List, Building2, CalendarDays, Users, Settings, CalendarPlus, Globe, ChevronsUpDown, LogOut, Search, Check } from 'lucide-vue-next'
+import { LayoutGrid, List, Building2, CalendarDays, Users, Settings, CalendarPlus, Globe, ChevronsUpDown, LogOut, Search, Check } from '@lucide/vue'
 
 // Provide page meta via useState
 const pageTitle = useState('page-title', () => 'Dashboard')

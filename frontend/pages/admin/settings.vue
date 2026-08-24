@@ -103,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { X } from 'lucide-vue-next'
+import { X } from '@lucide/vue'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 

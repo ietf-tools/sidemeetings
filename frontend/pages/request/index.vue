@@ -426,7 +426,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check, Users, Clock, ArrowRight, ChevronLeft, Calendar, X, Eye, RotateCcw } from 'lucide-vue-next'
+import { Check, Users, Clock, ArrowRight, ChevronLeft, Calendar, X, Eye, RotateCcw } from '@lucide/vue'
 
 definePageMeta({ layout: 'request', middleware: ['auth'] })
 

@@ -461,7 +461,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronLeft, X, Check, Megaphone, BellOff, Trash2, Hourglass } from 'lucide-vue-next'
+import { ChevronLeft, X, Check, Megaphone, BellOff, Trash2, Hourglass } from '@lucide/vue'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 

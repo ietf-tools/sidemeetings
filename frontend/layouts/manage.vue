@@ -191,7 +191,7 @@ import {
   Plus,
   Menu,
   X
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 // Same useState keys as the admin layout, so pages set their heading the same way.
 const pageTitle = useState('page-title', () => 'My side meetings')

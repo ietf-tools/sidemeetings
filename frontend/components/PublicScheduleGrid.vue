@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { CalendarPlus, Video } from 'lucide-vue-next'
+import { CalendarPlus, Video } from '@lucide/vue'
 
 const props = defineProps<{
   meeting: any

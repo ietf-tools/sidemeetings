@@ -130,7 +130,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Pencil, Ban, Trash2, Search } from 'lucide-vue-next'
+import { Plus, Pencil, Ban, Trash2, Search } from '@lucide/vue'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 

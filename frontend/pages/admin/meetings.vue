@@ -249,7 +249,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Pencil, Trash2, Clock, Calendar, Eye } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Clock, Calendar, Eye } from '@lucide/vue'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 

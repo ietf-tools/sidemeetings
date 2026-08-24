@@ -204,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { Eye, GitCompareArrows } from 'lucide-vue-next'
+import { Eye, GitCompareArrows } from '@lucide/vue'
 
 definePageMeta({ layout: 'default', middleware: ['auth', 'admin'] })
 
