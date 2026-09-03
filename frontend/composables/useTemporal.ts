@@ -1,4 +1,4 @@
-import 'temporal-polyfill/full'
+import 'temporal-polyfill/full/global'
 
 export function useTemporal() {
   function minutesToTime(min: number): string {
