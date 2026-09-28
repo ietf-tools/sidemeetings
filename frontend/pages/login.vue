@@ -18,7 +18,7 @@
         :href="config.public.apiUrl + '/auth/login'"
         class="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base">
         <LogIn class="w-5 h-5" />
-        Sign in with Datatracker
+        Sign in with an IETF account
       </a>
 
       <p class="text-xs text-text-faint mt-6">Access is restricted to IETF participants</p>
