@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { randomBytes } from 'node:crypto'
 
 /**
- * Build the Authentik (OIDC) authorise URL manually.
+ * Drive the Authentik (OIDC) flow manually.
  * We do not use @fastify/oauth2's plugin registration here because we need
  * full control over the state parameter for CSRF protection.
  */
@@ -14,17 +14,78 @@ export default async function authRoutes(fastify) {
     OAUTH_CLIENT_SECRET,
     OAUTH_ISSUER_URL,
     OAUTH_CALLBACK_URL,
+    OAUTH_AUTHORIZATION_URL,
+    OAUTH_TOKEN_URL,
+    OAUTH_USERINFO_URL,
     FRONTEND_URL
   } = process.env
+
+  // ─── Endpoint resolution ───────────────────────────────────────────────
+  // The endpoints are NOT under the issuer path: Authentik's issuer is
+  // .../application/o/<app>/ while authorize/token/userinfo live at
+  // .../application/o/authorize/ etc. So we read them from the provider's
+  // discovery document instead of concatenating onto the issuer. Individual
+  // OAUTH_*_URL variables override discovery when set (all three set skips
+  // the discovery request entirely).
 
   // Normalise issuer URL – ensure trailing slash for URL concatenation.
   function issuerBase() {
     return OAUTH_ISSUER_URL?.endsWith('/') ? OAUTH_ISSUER_URL : `${OAUTH_ISSUER_URL}/`
   }
 
+  const overrides = {
+    authorization_endpoint: OAUTH_AUTHORIZATION_URL,
+    token_endpoint: OAUTH_TOKEN_URL,
+    userinfo_endpoint: OAUTH_USERINFO_URL
+  }
+
+  // Cached as a promise so concurrent logins share one discovery request;
+  // cleared on failure so a transient outage doesn't poison the cache.
+  let discovery = null
+
+  async function fetchDiscovery() {
+    const url = `${issuerBase()}.well-known/openid-configuration`
+    const res = await fetch(url)
+    if (!res.ok) {
+      throw new Error(`OIDC discovery failed: ${res.status} ${url}`)
+    }
+    return res.json()
+  }
+
+  /**
+   * Resolve one OIDC endpoint, preferring the matching OAUTH_*_URL override.
+   * @param {'authorization_endpoint'|'token_endpoint'|'userinfo_endpoint'} name
+   * @returns {Promise<string>}
+   */
+  async function endpoint(name) {
+    if (overrides[name]) return overrides[name]
+
+    if (!discovery) {
+      discovery = fetchDiscovery().catch(err => {
+        discovery = null
+        throw err
+      })
+    }
+
+    const doc = await discovery
+    const value = doc[name]
+    if (!value) {
+      throw new Error(`OIDC discovery document has no ${name}`)
+    }
+    return value
+  }
+
   // ── GET /api/auth/login ───────────────────────────────────────────────────
 
   fastify.get('/login', async (request, reply) => {
+    let authorizationEndpoint
+    try {
+      authorizationEndpoint = await endpoint('authorization_endpoint')
+    } catch (err) {
+      fastify.log.error(err, 'OIDC discovery failed')
+      return reply.redirect(`${FRONTEND_URL}/login?error=discovery_failed`)
+    }
+
     const state = randomBytes(16).toString('hex')
     request.session.oauthState = state
 
@@ -36,7 +97,7 @@ export default async function authRoutes(fastify) {
       state
     })
 
-    const authorizeUrl = `${issuerBase()}authorize?${params.toString()}`
+    const authorizeUrl = `${authorizationEndpoint}?${params.toString()}`
     return reply.redirect(authorizeUrl)
   })
 
@@ -59,7 +120,7 @@ export default async function authRoutes(fastify) {
     // Exchange authorisation code for tokens.
     let tokenData
     try {
-      const tokenRes = await fetch(`${issuerBase()}token`, {
+      const tokenRes = await fetch(await endpoint('token_endpoint'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -88,7 +149,7 @@ export default async function authRoutes(fastify) {
     // Fetch userinfo.
     let userInfo
     try {
-      const userRes = await fetch(`${issuerBase()}userinfo`, {
+      const userRes = await fetch(await endpoint('userinfo_endpoint'), {
         headers: { Authorization: `Bearer ${accessToken}` }
       })
 

@@ -42,6 +42,9 @@ npm run dev
 | `OAUTH_CLIENT_SECRET` | Authentik OAuth2 client secret |
 | `OAUTH_ISSUER_URL` | Authentik application URL (e.g. `https://auth.example.com/application/o/sidemeetings/`) |
 | `OAUTH_CALLBACK_URL` | OAuth2 redirect URI (e.g. `http://localhost:4000/api/auth/callback`) |
+| `OAUTH_AUTHORIZATION_URL` | Optional — overrides the discovered authorize endpoint |
+| `OAUTH_TOKEN_URL` | Optional — overrides the discovered token endpoint |
+| `OAUTH_USERINFO_URL` | Optional — overrides the discovered userinfo endpoint |
 
 ### Authentik configuration
 
@@ -50,7 +53,15 @@ npm run dev
 3. Copy the **Client ID** and **Client Secret** into `.env`.
 4. Set `OAUTH_ISSUER_URL` to the provider's **OpenID Configuration URL** base (e.g. `https://auth.example.com/application/o/sidemeetings/`).
 
-The auth flow uses standard OIDC — the backend manually builds the authorize URL, exchanges the code, and fetches userinfo.
+The auth flow uses standard OIDC — the backend manually builds the authorize URL,
+exchanges the code, and fetches userinfo. The authorize, token and userinfo
+endpoints come from the provider's discovery document at
+`OAUTH_ISSUER_URL` + `.well-known/openid-configuration`, fetched once and cached
+for the process lifetime. This matters for Authentik, where the endpoints live at
+`/application/o/authorize/` rather than under the per-application issuer path. If
+your provider doesn't publish a discovery document, set `OAUTH_AUTHORIZATION_URL`,
+`OAUTH_TOKEN_URL` and `OAUTH_USERINFO_URL` explicitly — each one set individually
+overrides discovery, and setting all three skips the discovery request entirely.
 
 ### API overview
 
