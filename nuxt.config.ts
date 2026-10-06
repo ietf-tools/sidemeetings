@@ -37,6 +37,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
+      title: 'Side Meetings | IETF',
       link: [
         { rel: 'preconnect', href: 'https://static.ietf.org', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://static.ietf.org/fonts/inter/import.css' },
