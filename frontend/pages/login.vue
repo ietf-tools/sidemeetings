@@ -14,6 +14,21 @@
 
       <p class="text-sm text-text-dim mb-6">You must be logged in to continue.</p>
 
+      <!-- TEMPORARY: remove once the Datatracker OIDC provider is retired. -->
+      <a
+        :href="config.public.apiUrl + '/auth/login2'"
+        class="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base">
+        <LogIn class="w-5 h-5" />
+        Sign in with Datatracker
+      </a>
+
+      <div class="flex items-center gap-3 my-4">
+        <div class="flex-1 h-px bg-border"></div>
+        <span class="text-xs text-text-faint uppercase">or</span>
+        <div class="flex-1 h-px bg-border"></div>
+      </div>
+      <!-- END TEMPORARY -->
+
       <a
         :href="config.public.apiUrl + '/auth/login'"
         class="btn-primary w-full flex items-center justify-center gap-2 py-3 text-base">

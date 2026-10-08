@@ -45,6 +45,7 @@ npm run dev
 | `OAUTH_AUTHORIZATION_URL` | Optional — overrides the discovered authorize endpoint |
 | `OAUTH_TOKEN_URL` | Optional — overrides the discovered token endpoint |
 | `OAUTH_USERINFO_URL` | Optional — overrides the discovered userinfo endpoint |
+| `DATATRACKER_OAUTH_*` | **Temporary.** Same set of variables for the secondary "Sign in with Datatracker" provider (login `/api/auth/login2`, callback `/api/auth/callback2`). Users are matched by email across both providers. |
 
 ### Authentik configuration
 
