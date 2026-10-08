@@ -6,7 +6,9 @@ import {
   sendApproverNotification,
   sendBookingApproved,
   sendBookingRejected,
-  sendDescriptionChangeNotification
+  sendDescriptionChangeNotification,
+  sendBookingCancelled,
+  sendCancellationApproverNotification
 } from '../lib/email.js'
 
 /**
@@ -1218,6 +1220,15 @@ export default async function bookingsRoutes(fastify) {
         action: 'cancelled',
         meta: { previousState: existing.state }
       })
+
+      // Notify the organizer + co-organizers and the approvers. Fire-and-forget.
+      loadBookingContext(id)
+        .then((ctx) => {
+          if (!ctx) return
+          sendBookingCancelled(ctx, request.log)
+          sendCancellationApproverNotification(ctx, request.log)
+        })
+        .catch((err) => request.log.error({ err }, 'cancellation notifications failed'))
 
       return updated
     }

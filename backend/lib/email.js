@@ -555,3 +555,81 @@ export async function sendDescriptionChangeNotification(ctx, logger = console) {
     logger
   )
 }
+
+// 6) Organizer + co-organizers: the side meeting was cancelled.
+export async function sendBookingCancelled(ctx, logger = console) {
+  const { from, replyTo, emailEnabled } = await getMailSettings()
+  const coEmails = (Array.isArray(ctx.booking.coOrganizers) ? ctx.booking.coOrganizers : [])
+    .map((c) => c.email)
+    .filter(Boolean)
+  const recipients = [ctx.organizer.email, ...coEmails].filter(Boolean)
+
+  const heading = 'Your side meeting has been cancelled'
+  const introHtml =
+    'This side meeting has been <strong>cancelled</strong> and its room slot has been released.'
+  const introText = 'This side meeting has been cancelled and its room slot has been released.'
+
+  return send(
+    {
+      from,
+      replyTo,
+      to: recipients,
+      subject: `Side meeting cancelled: ${ctx.booking.title}`,
+      html: layout({
+        heading,
+        intro: introHtml,
+        ctx,
+        buttonUrl: manageUrl(),
+        buttonLabel: MANAGE_LABEL,
+        footer: SUPPORT_FOOTER_HTML
+      }),
+      text: plainText({
+        heading,
+        introText,
+        ctx,
+        buttonUrl: manageUrl(),
+        footerText: SUPPORT_FOOTER_TEXT
+      }),
+      enabled: emailEnabled
+    },
+    logger
+  )
+}
+
+// 7) Approvers: a side meeting was cancelled.
+export async function sendCancellationApproverNotification(ctx, logger = console) {
+  const { from, replyTo, approvers, emailEnabled } = await getMailSettings()
+  if (!emailEnabled) {
+    logger.info?.('[email] notifications disabled — skipping cancellation notification')
+    return false
+  }
+  if (!approvers.length) {
+    logger.warn?.('[email] no approvers configured — skipping cancellation notification')
+    return false
+  }
+
+  const url = adminBookingUrl(ctx.booking.id)
+  const heading = 'Side meeting cancelled'
+  const introHtml = 'The following side meeting has been <strong>cancelled</strong>.'
+  const introText = 'The following side meeting has been cancelled.'
+
+  return send(
+    {
+      from,
+      replyTo,
+      to: approvers,
+      subject: `Side meeting cancelled: ${ctx.booking.title}`,
+      html: layout({
+        heading,
+        intro: introHtml,
+        ctx,
+        includePeople: true,
+        buttonUrl: url,
+        buttonLabel: 'View this side meeting'
+      }),
+      text: plainText({ heading, introText, ctx, includePeople: true, buttonUrl: url }),
+      enabled: emailEnabled
+    },
+    logger
+  )
+}
